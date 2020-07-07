@@ -1,0 +1,38 @@
+{
+  "name": "@flowlist/js-core",
+  "version": "0.0.1",
+  "main": "dist/jsCore.umd.min.js",
+  "description": "flowlist frontend javascript core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flowlist/js-core.git"
+  },
+  "keywords": [
+    "flowlist"
+  ],
+  "author": "falstack",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/flowlist/js-core/issues"
+  },
+  "homepage": "https://github.com/flowlist/js-core#readme",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build --target lib --name jsCore src/index.js",
+    "test:unit": "vue-cli-service test:unit",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.6.5"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.4.0",
+    "@vue/cli-plugin-eslint": "~4.4.0",
+    "@vue/cli-plugin-unit-jest": "~4.4.0",
+    "@vue/cli-service": "~4.4.0",
+    "@vue/test-utils": "^1.0.3",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.20.2"
+  }
+}
