@@ -7,7 +7,7 @@ export const generateDefaultField = () => ({
   error: null,
   extra: null,
   page: 0,
-  total: 0
+  total: 0,
 })
 
 /**
@@ -21,12 +21,11 @@ export const generateFieldName = (func, type, query = {}) => {
   let result = `${func}-${type}`
   Object.keys(query)
     .filter(
-      _ =>
-        !~['undefined', 'object', 'function'].indexOf(typeof query[_]) &&
-        !~['page', 'is_up', 'since_id', 'seen_ids', 'last_id', 'changing', '__refresh__', '__reload__'].indexOf(_)
+      (_) => !~['undefined', 'object', 'function'].indexOf(typeof query[_])
+        && !~['page', 'is_up', 'since_id', 'seen_ids', 'last_id', 'changing', '__refresh__', '__reload__'].indexOf(_),
     )
     .sort()
-    .forEach(key => {
+    .forEach((key) => {
       result += `-${key}-${query[key]}`
     })
   return result
@@ -44,7 +43,7 @@ export const getObjectDeepValue = (field, keys) => {
   }
   let result = field
   const keysArr = isArray(keys) ? keys : keys.split('.')
-  keysArr.forEach(key => {
+  keysArr.forEach((key) => {
     result = result[key]
   })
   return result
@@ -91,89 +90,41 @@ export const setDataToCache = ({ key, value, expiredAt }) => {
  * @param {any} data
  * @return {boolean}
  */
-export const isArray = data => Object.prototype.toString.call(data) === '[object Array]'
+export const isArray = (data) => Object.prototype.toString.call(data) === '[object Array]'
 
 /**
  * 设置一个响应式的数据到对象上
- * @param {Vue.set} setter
  * @param {object} field
  * @param {string} key
- * @param {any} value
+ * @param {array|object} value
  * @param {string} type
  * @param {boolean} insertBefore
  */
-export const setReactivityField = (setter, field, key, value, type, insertBefore ) => {
-  if (field[key]) {
-    if (isArray(value)) {
-      field[key] = insertBefore ? value.concat(field[key]) : field[key].concat(value)
-    } else {
-      if (type === 'jump' || key !== 'result') {
-        setter(field, key, value)
-      } else {
-        const oldVal = field[key]
-        const newVal = { ...oldVal }
-        Object.keys(value).forEach(subKey => {
-          newVal[subKey] = oldVal[subKey]
-            ? insertBefore ? value[subKey].concat(oldVal[subKey]) : oldVal[subKey].concat(value[subKey])
-            : value[subKey]
-        })
-        setter(field, key, newVal)
-      }
-    }
-  } else {
-    setter(field, key, value)
+export const setReactivityField = (field, key, value, type, insertBefore) => {
+  if (type === 'jump') {
+    field[key] = value
+    return
   }
-}
 
-/**
- * 响应式的更新对象上的数据
- * @param {Vue.set} setter
- * @param {array} fieldArray
- * @param {any} value
- * @param {string} changing
- */
-export const updateReactivityField = (setter, fieldArray, value, changing) => {
   if (isArray(value)) {
-    value.forEach(col => {
-      const stringifyId = getObjectDeepValue(col, changing).toString()
-      fieldArray.forEach((item, index) => {
-        if (getObjectDeepValue(item, changing).toString() === stringifyId) {
-          Object.keys(col).forEach(key => {
-            setter(fieldArray[index], key, col[key])
-          })
-        }
-      })
-    })
-  } else {
-    Object.keys(value).forEach(uniqueId => {
-      const stringifyId = uniqueId.toString()
-      fieldArray.forEach((item, index) => {
-        if (getObjectDeepValue(item, changing).toString() === stringifyId) {
-          const col = value[uniqueId]
-          Object.keys(col).forEach(key => {
-            setter(fieldArray[index], key, col[key])
-          })
-        }
-      })
-    })
+    field[key] = insertBefore ? value.concat(field[key] || []) : (field[key] || []).concat(value)
+    return
   }
-}
 
-/**
- * 通过 id 匹配返回数组中某个对象的 index
- * @param {int|string} itemId
- * @param {array} fieldArr
- * @param {int|string} changingKey
- * @return {number}
- */
-export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
-  let i
-  for (i = 0; i < fieldArr.length; i++) {
-    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === itemId.toString()) {
-      break
-    }
+  if (key !== 'result') {
+    field[key] = value
+    return
   }
-  return i
+
+  if (isArray(field[key])) {
+    field[key] = {}
+  }
+
+  Object.keys(value).forEach((subKey) => {
+    field[key][subKey] = field[key][subKey]
+      ? insertBefore ? value[subKey].concat(field[key][subKey]) : field[key][subKey].concat(value[subKey])
+      : value[subKey]
+  })
 }
 
 /**
@@ -181,64 +132,16 @@ export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
  * @param {array|object} data
  * @return {number}
  */
-export const computeResultLength = data => {
+export const computeResultLength = (data) => {
   let result = 0
   if (isArray(data)) {
     result = data.length
   } else {
-    Object.keys(data).forEach(key => {
+    Object.keys(data).forEach((key) => {
       result += data[key].length
     })
   }
   return result
-}
-
-/**
- * 事件绑定
- * @param elem
- * @param {string} type
- * @param {function} listener
- */
-export const on = (elem, type, listener) => {
-  elem.addEventListener(type, listener, {
-    capture: false,
-    passive: true
-  })
-}
-
-/**
- * 事件解绑
- * @param elem
- * @param {string} type
- * @param {function} listener
- */
-export const off = (elem, type, listener) => {
-  elem.removeEventListener(type, listener, {
-    capture: false,
-    passive: true
-  })
-}
-
-/**
- * 检查元素是否在屏幕内
- * @param dom
- * @param {int} preload
- * @return {boolean}
- */
-export const checkInView = (dom, preload = 0) => {
-  if (!dom) {
-    return false
-  }
-  const rect = dom.getBoundingClientRect()
-  if (!rect.left && !rect.right && !rect.top && !rect.bottom) {
-    return false
-  }
-  return (
-    rect.top < window.innerHeight + preload &&
-    rect.bottom + preload > 0 &&
-    rect.left < window.innerWidth + preload &&
-    rect.right + preload > 0
-  )
 }
 
 /**
@@ -253,7 +156,7 @@ export const generateRequestParams = (field, query, type) => {
   if (field.fetched) {
     const changing = query.changing || 'id'
     if (type === 'seenIds') {
-      result.seen_ids = field.result.map(_ => getObjectDeepValue(_, changing)).join(',')
+      result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
     } else if (type === 'lastId') {
       result.last_id = getObjectDeepValue(field.result[field.result.length - 1], changing)
     } else if (type === 'sinceId') {
@@ -264,53 +167,32 @@ export const generateRequestParams = (field, query, type) => {
     } else {
       result.page = field.page + 1
     }
+  } else if (type === 'seenIds') {
+    result.seen_ids = ''
+  } else if (type === 'lastId') {
+    result.last_id = 0
+  } else if (type === 'sinceId') {
+    result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
+    result.is_up = query.is_up ? 1 : 0
+  } else if (type === 'jump') {
+    result.page = query.page || 1
   } else {
-    if (type === 'seenIds') {
-      result.seen_ids = ''
-    } else if (type === 'lastId') {
-      result.last_id = 0
-    } else if (type === 'sinceId') {
-      result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
-      result.is_up = query.is_up ? 1 : 0
-    } else if (type === 'jump') {
-      result.page = query.page || 1
-    } else {
-      result.page = 1
-    }
+    result.page = 1
   }
   return Object.assign(query, result)
 }
 
-export const getScrollParentDom = dom => {
-  let el = dom
-  if (!el) {
-    return null
-  }
-  while (
-    el &&
-    el.tagName !== 'HTML' &&
-    el.tagName !== 'BOYD' &&
-    el.nodeType === 1
-    ) {
-    const overflowY = window.getComputedStyle(el).overflowY
-    if (overflowY === 'scroll' || overflowY === 'auto') {
-      if (el.tagName === 'HTML' || el.tagName === 'BODY') {
-        return document
-      }
-      return el
-    }
-    el = el.parentNode
-  }
-  return document
-}
+export const isClient = typeof window !== 'undefined'
 
-export const observerInstance = typeof window === 'undefined' ? null :
-  window.IntersectionObserver &&
-  new window.IntersectionObserver((entries) => {
+export const observerInstance = isClient
+  ? window.IntersectionObserver
+  && new window.IntersectionObserver((entries) => {
     entries.forEach(({ intersectionRatio, target }) => {
       if (intersectionRatio <= 0 || !target) {
         return
       }
       target.__flow_handler__ && target.__flow_handler__()
     })
-  })
+  }) : null
+
+export const printLog = (field, type, val) => console.log(`[${field}]`, type, val)
