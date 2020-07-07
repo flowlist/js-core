@@ -1,7 +1,7 @@
 {
   "name": "@flowlist/js-core",
   "version": "0.0.1",
-  "main": "dist/jsCore.umd.min.js",
+  "main": "dist/js-core.umd.js",
   "description": "flowlist frontend javascript core",
   "repository": {
     "type": "git",
@@ -18,7 +18,8 @@
   "homepage": "https://github.com/flowlist/js-core#readme",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build --target lib --name jsCore src/index.js",
+    "webpack-build": "vue-cli-service build --target lib --name jsCore src/index.js",
+    "build": "rollup src/index.js --file dist/js-core.umd.js --format umd --name jsCore",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },
