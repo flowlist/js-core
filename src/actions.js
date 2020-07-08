@@ -9,7 +9,7 @@ import {
 import { SET_DATA, SET_ERROR } from './setters'
 
 export const initData = ({
-  getter, setter, query, type, func, api, cacheTimeout,
+  getter, setter, query, type, func, api, cacheTimeout, uniqueKey
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName(func, type, query)
   const fieldData = getter(fieldName)
@@ -33,7 +33,7 @@ export const initData = ({
     return resolve()
   }
 
-  const params = generateRequestParams({ fetched: false }, query, type)
+  const params = generateRequestParams({ fetched: false }, uniqueKey, query, type)
   params._extra = dontFetch ? (fieldData ? fieldData.extra : null) : null
   printLog(fieldName, 'request', { func, params })
   let data

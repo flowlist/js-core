@@ -1,13 +1,16 @@
-export const generateDefaultField = () => ({
-  result: [],
-  noMore: false,
-  nothing: false,
-  loading: false,
-  fetched: false,
-  error: null,
-  extra: null,
-  page: 0,
-  total: 0,
+export const generateDefaultField = (opts = {}) => ({
+  ...{
+    result: [],
+    noMore: false,
+    nothing: false,
+    loading: false,
+    error: null,
+    extra: null,
+    fetched: false,
+    page: 0,
+    total: 0,
+  },
+  ...opts
 })
 
 /**
@@ -87,7 +90,7 @@ export const setDataToCache = ({ key, value, expiredAt }) => {
 
 /**
  * 判断参数是否为数组
- * @param {any} data
+ * @param {object|array} data
  * @return {boolean}
  */
 export const isArray = (data) => Object.prototype.toString.call(data) === '[object Array]'
@@ -147,39 +150,42 @@ export const computeResultLength = (data) => {
 /**
  * 拼接请求的参数
  * @param {object} field
+ * @param {string} uniqueKey
  * @param {object} query
  * @param {string} type
  * @return {object}
  */
-export const generateRequestParams = (field, query, type) => {
+export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
   const result = {}
   if (field.fetched) {
-    const changing = query.changing || 'id'
+    const changing = uniqueKey || 'id'
     if (type === 'seenIds') {
       result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
-    } else if (type === 'lastId') {
-      result.last_id = getObjectDeepValue(field.result[field.result.length - 1], changing)
     } else if (type === 'sinceId') {
-      result.since_id = getObjectDeepValue(query.is_up ? field.result[0] : field.result[field.result.length - 1], changing)
+      result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing)
       result.is_up = query.is_up ? 1 : 0
     } else if (type === 'jump') {
-      result.page = query.page || 1
-    } else {
+      result.page = query.page
+    } else if (type === 'page') {
       result.page = field.page + 1
     }
-  } else if (type === 'seenIds') {
-    result.seen_ids = ''
-  } else if (type === 'lastId') {
-    result.last_id = 0
-  } else if (type === 'sinceId') {
-    result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
-    result.is_up = query.is_up ? 1 : 0
-  } else if (type === 'jump') {
-    result.page = query.page || 1
   } else {
-    result.page = 1
+    if (type === 'seenIds') {
+      result.seen_ids = ''
+    } else if (type === 'sinceId') {
+      result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
+      result.is_up = query.is_up ? 1 : 0
+    } else if (type === 'jump') {
+      result.page = query.page || field.page
+    } else if (type === 'page') {
+      result.page = field.page
+    }
   }
-  return Object.assign(query, result)
+
+  return {
+    ...query,
+    ...result
+  }
 }
 
 export const isClient = typeof window !== 'undefined'
