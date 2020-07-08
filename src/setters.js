@@ -1,29 +1,23 @@
 import {
-  computeResultLength,
   isClient,
-  printLog,
+  computeResultLength,
   setReactivityField,
 } from './utils'
 
 export const SET_DATA = ({
   getter, setter, data, fieldName, type, fromLocal, cacheTimeout, page, insertBefore,
 }) => {
-  printLog(fieldName, 'setData', {
-    data, type, page, insertBefore, fromLocal, cacheTimeout,
-  })
   if (fromLocal) {
     setter({
       key: fieldName,
       type: 0,
       value: data,
     })
-    printLog(fieldName, 'setData', 'from local return')
     return
   }
 
   const fieldData = getter(fieldName)
   if (!fieldData) {
-    printLog(fieldName, 'setData', 'no field return')
     return
   }
 
@@ -32,14 +26,12 @@ export const SET_DATA = ({
     fieldData.fetched = true
     fieldData.nothing = computeResultLength(result) === 0
   }
-  fieldData.total = data.total
-  fieldData.noMore = type === 'jump' ? false : data.no_more
+  fieldData.total = data.total || 0
+  fieldData.noMore = type === 'jump' ? false : (data.no_more || false)
   fieldData.page = typeof page === 'number' ? page : typeof page === 'string' ? +page : 1
   fieldData.loading = false
   setReactivityField(fieldData, 'result', result, type, insertBefore)
-  if (extra) {
-    setReactivityField(fieldData, 'extra', extra, type, insertBefore)
-  }
+  extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore)
 
   setter({
     key: fieldName,
@@ -47,7 +39,7 @@ export const SET_DATA = ({
     value: fieldData,
   })
 
-  if (isClient && cacheTimeout && !fieldData.nothing) {
+  if (cacheTimeout && isClient && !fieldData.nothing) {
     setDataToCache({
       key: fieldName,
       value: fieldData,
