@@ -3,7 +3,7 @@ import {
   generateFieldName,
   generateRequestParams,
   getDateFromCache,
-  isClient,
+  inBrowserClient,
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
 
@@ -50,7 +50,7 @@ export const initData = ({
 
   const getData = async () => {
     try {
-      if (cacheTimeout && isClient) {
+      if (cacheTimeout && inBrowserClient) {
         data = getDateFromCache({
           key: fieldName,
           now: Date.now(),
@@ -77,7 +77,7 @@ export const initData = ({
           insertBefore: !!query.is_up,
         })
 
-        if (isClient && callback) {
+        if (inBrowserClient && callback) {
           callback({
             params,
             data,
@@ -164,7 +164,7 @@ export const loadMore = ({
         insertBefore: !!query.is_up
       })
 
-      if (isClient && callback) {
+      if (inBrowserClient && callback) {
         callback({
           params,
           data,

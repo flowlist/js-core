@@ -1,5 +1,5 @@
 import {
-  isClient,
+  inBrowserClient,
   computeResultLength,
   setDataToCache,
   setReactivityField,
@@ -38,7 +38,7 @@ export const SET_DATA = ({
     value: fieldData,
   })
 
-  if (cacheTimeout && isClient && !fieldData.nothing) {
+  if (cacheTimeout && inBrowserClient && !fieldData.nothing) {
     setDataToCache({
       key: fieldName,
       value: fieldData,

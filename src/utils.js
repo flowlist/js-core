@@ -193,9 +193,9 @@ export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
   }
 }
 
-export const isClient = typeof window !== 'undefined'
+export const inBrowserClient = typeof window !== 'undefined'
 
-export const observerInstance = isClient
+export const observerInstance = inBrowserClient
   ? window.IntersectionObserver
   && new window.IntersectionObserver((entries) => {
     entries.forEach(({ intersectionRatio, target }) => {
