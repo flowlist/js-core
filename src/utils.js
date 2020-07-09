@@ -63,12 +63,12 @@ export const getDateFromCache = ({ key, now }) => {
     const expiredAt = localStorage.getItem(`vue-mixin-store-${key}-expired-at`)
     const cacheStr = localStorage.getItem(`vue-mixin-store-${key}`)
     if (!expiredAt || !cacheStr || now - expiredAt > 0) {
-      localStorage.removeItem(`vue-mixin-store-${key}`)
-      localStorage.removeItem(`vue-mixin-store-${key}-expired-at`)
+      delDataFromCache(key)
       return null
     }
     return JSON.parse(cacheStr)
   } catch (e) {
+    delDataFromCache(key)
     return null
   }
 }
@@ -86,6 +86,11 @@ export const setDataToCache = ({ key, value, expiredAt }) => {
   } catch (e) {
     // do nothing
   }
+}
+
+export const delDataFromCache = (key) => {
+  localStorage.removeItem(`vue-mixin-store-${key}`)
+  localStorage.removeItem(`vue-mixin-store-${key}-expired-at`)
 }
 
 /**
@@ -200,5 +205,3 @@ export const observerInstance = isClient
       target.__flow_handler__ && target.__flow_handler__()
     })
   }) : null
-
-export const printLog = (field, type, val) => console.log(`[${field}]`, type, val)

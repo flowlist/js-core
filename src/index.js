@@ -1,7 +1,5 @@
-import * as utils from './utils'
-import * as setters from './setters'
+import * as actions from './actions'
 
 export default {
-  ...utils,
-  ...setters,
+  ...actions
 }
