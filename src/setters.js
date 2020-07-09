@@ -1,6 +1,7 @@
 import {
   isClient,
   computeResultLength,
+  setDataToCache,
   setReactivityField,
 } from './utils'
 
@@ -22,13 +23,11 @@ export const SET_DATA = ({
   }
 
   const { result, extra } = data
-  if (!fieldData.fetched) {
-    fieldData.fetched = true
-    fieldData.nothing = computeResultLength(result) === 0
-  }
+  fieldData.nothing = fieldData.fetched ? false : computeResultLength(result) === 0
+  fieldData.fetched = true
   fieldData.total = data.total || 0
   fieldData.noMore = type === 'jump' ? false : (data.no_more || false)
-  fieldData.page = typeof page === 'number' ? page : typeof page === 'string' ? +page : 1
+  fieldData.page = page ? parseInt(page) : fieldData.page + 1
   fieldData.loading = false
   setReactivityField(fieldData, 'result', result, type, insertBefore)
   extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore)
