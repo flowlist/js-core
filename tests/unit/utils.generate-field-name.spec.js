@@ -14,7 +14,6 @@ describe('generate field name', () => {
       sort: 'desc',
       count: 10,
       page: 1,
-      changing: 'slug',
       is_up: false,
       __refresh__: true,
     })
