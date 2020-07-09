@@ -186,3 +186,9 @@ export const loadMore = ({
     callback: getData
   })
 })
+
+export const updateState = ({
+  getter, setter
+}) => {
+
+}
