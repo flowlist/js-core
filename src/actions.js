@@ -11,25 +11,24 @@ import {
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
 
-export const initState = ({
-  getter, setter, query, type, func, opts
-}) => {
-  const fieldName = generateFieldName(func, type, query)
+export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
+  const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
   if (fieldData) {
     return
   }
+
   setter({
     key: fieldName,
     type: 0,
-    value: generateDefaultField(opts || {})
+    value: generateDefaultField(opts)
   })
 }
 
 export const initData = ({
   getter, setter, query, type, func, api, cacheTimeout, uniqueKey, callback
 }) => new Promise((resolve, reject) => {
-  const fieldName = generateFieldName(func, type, query)
+  const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
   const doRefresh = !!query.__refresh__
   const needReset = !!query.__reload__
@@ -128,7 +127,7 @@ export const initData = ({
 export const loadMore = ({
   getter, setter, query, type, func, api, cacheTimeout, uniqueKey, force, callback
 }) => new Promise((resolve, reject) => {
-  const fieldName = generateFieldName(func, type, query)
+  const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
 
   if (!fieldData || fieldData.loading || fieldData.nothing || (fieldData.noMore && !force)) {
@@ -192,12 +191,9 @@ export const loadMore = ({
 })
 
 export const updateState = ({
-  getter, setter, type, func, query, id, method, changeKey, value, cacheTimeout, uniqueKey
-} = {
-  uniqueKey: 'id',
-  changeKey: 'result'
+  getter, setter, type, func, query, id, method, value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
 }) => {
-  const fieldName = generateFieldName(func, type, query)
+  const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
   if (!fieldData) {
     return

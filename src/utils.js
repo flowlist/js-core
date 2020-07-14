@@ -20,7 +20,7 @@ export const generateDefaultField = (opts = {}) => ({
  * @param {object} query
  * @return {string}
  */
-export const generateFieldName = (func, type, query = {}) => {
+export const generateFieldName = ({ func, type, query = {} }) => {
   let result = `${func}-${type}`
   Object.keys(query)
     .filter(
