@@ -52,6 +52,66 @@ export const getObjectDeepValue = (field, keys) => {
   return result
 }
 
+export const updateObjectDeepValue = (field, changeKey, value) => {
+  if (/\./.test(changeKey)) {
+    const keys = changeKey.split('.')
+    const prefix = keys.pop()
+    let result = field
+    keys.forEach(key => {
+      result = result[key]
+    })
+    result[prefix] = value
+  } else {
+    field[changeKey] = value
+  }
+}
+
+/**
+ * 通过 id 匹配返回数组中某个对象的 index
+ * @param {int|string} itemId
+ * @param {array} fieldArr
+ * @param {int|string} changingKey
+ * @return {number}
+ */
+export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
+  let s = -1
+  for (let i = 0; i < fieldArr.length; i++) {
+    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === itemId.toString()) {
+      s = i
+      break
+    }
+  }
+  return s
+}
+
+export const combineArrayData = (fieldArray, value, changingKey) => {
+  if (isArray(value)) {
+    value.forEach(col => {
+      const stringifyId = getObjectDeepValue(col, changingKey).toString()
+      fieldArray.forEach((item, index) => {
+        if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
+          fieldArray[index] = {
+            ...item,
+            ...col
+          }
+        }
+      })
+    })
+  } else {
+    Object.keys(value).forEach(uniqueId => {
+      const stringifyId = uniqueId.toString()
+      fieldArray.forEach((item, index) => {
+        if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
+          fieldArray[index] = {
+            ...item,
+            ...value[uniqueId]
+          }
+        }
+      })
+    })
+  }
+}
+
 /**
  * 从 localStorage 里获取数据
  * @param {string} key

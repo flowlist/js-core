@@ -4,6 +4,10 @@ import {
   generateRequestParams,
   getDateFromCache,
   inBrowserClient,
+  computeMatchedItemIndex,
+  combineArrayData,
+  updateObjectDeepValue,
+  isArray
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
 
@@ -188,7 +192,68 @@ export const loadMore = ({
 })
 
 export const updateState = ({
-  getter, setter
+  getter, setter, type, func, query, id, method, changeKey, value, cacheTimeout, uniqueKey
 }) => {
+  const fieldName = generateFieldName(func, type, query)
+  const fieldData = getter(fieldName)
+  if (!fieldData) {
+    return
+  }
+  const changingKey = uniqueKey || 'id'
+  const beforeLength = computeResultLength(fieldData.result)
+  if (method === 'update') {
+    // TODO
+  } else if (method === 'modify') {
+    updateObjectDeepValue(fieldData, changeKey, value)
+  } else {
+    const modifyKey = changeKey || 'result'
+    let modifyValue = getObjectDeepValue(fieldData, modifyKey)
+    const matchedIndex = computeMatchedItemIndex(id, modifyValue, changingKey)
 
+    switch (method) {
+      case 'push':
+        isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value)
+        break
+      case 'unshift':
+        isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value)
+        break
+      case 'delete':
+        if (matchedIndex >= 0) {
+          modifyValue.splice(matchedIndex, 1)
+        }
+        break
+      case 'insert-before':
+        if (matchedIndex >= 0) {
+          modifyValue.splice(matchedIndex, 0, value)
+        }
+        break
+      case 'insert-after':
+        if (matchedIndex >= 0) {
+          modifyValue.splice(matchedIndex + 1, 0, value)
+        }
+        break
+      case 'patch':
+        combineArrayData(modifyValue, value, changingKey)
+        break
+    }
+    fieldData[modifyKey] = modifyValue
+  }
+
+  const afterLength = computeResultLength(fieldData.result)
+  fieldData.total = fieldData.total + afterLength - beforeLength
+  fieldData.nothing = afterLength === 0
+
+  setter({
+    key: fieldName,
+    type: 0,
+    value: fieldData
+  })
+
+  if (inBrowserClient && cacheTimeout) {
+    setDataToCache({
+      key: fieldName,
+      value: fieldData,
+      expiredAt: Date.now() + cacheTimeout * 1000
+    })
+  }
 }
