@@ -193,22 +193,35 @@ export const loadMore = ({
 
 export const updateState = ({
   getter, setter, type, func, query, id, method, changeKey, value, cacheTimeout, uniqueKey
+} = {
+  uniqueKey: 'id',
+  changeKey: 'result'
 }) => {
   const fieldName = generateFieldName(func, type, query)
   const fieldData = getter(fieldName)
   if (!fieldData) {
     return
   }
-  const changingKey = uniqueKey || 'id'
+
   const beforeLength = computeResultLength(fieldData.result)
   if (method === 'update') {
-    // TODO
+    // 修改 result 下的任意字段
+    if (isArray(fieldData.result)) {
+      const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
+      updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
+    } else {
+      const keys = changeKey.split('.')
+      keys.pop()
+      const changeArr = getObjectDeepValue(fieldData.result, keys)
+      const matchedIndex = computeMatchedItemIndex(id, changeArr, uniqueKey)
+      changeArr[matchedIndex] = value
+    }
   } else if (method === 'modify') {
+    // 修改包括 field 下的任意字段
     updateObjectDeepValue(fieldData, changeKey, value)
   } else {
-    const modifyKey = changeKey || 'result'
-    let modifyValue = getObjectDeepValue(fieldData, modifyKey)
-    const matchedIndex = computeMatchedItemIndex(id, modifyValue, changingKey)
+    let modifyValue = getObjectDeepValue(fieldData, changeKey)
+    const matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey)
 
     switch (method) {
       case 'push':
@@ -233,10 +246,10 @@ export const updateState = ({
         }
         break
       case 'patch':
-        combineArrayData(modifyValue, value, changingKey)
+        combineArrayData(modifyValue, value, uniqueKey)
         break
     }
-    fieldData[modifyKey] = modifyValue
+    fieldData[changeKey] = modifyValue
   }
 
   const afterLength = computeResultLength(fieldData.result)
