@@ -31,7 +31,6 @@ export const SET_DATA = ({
   fieldData.loading = false
   setReactivityField(fieldData, 'result', result, type, insertBefore)
   extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore)
-
   setter({
     key: fieldName,
     type: 0,

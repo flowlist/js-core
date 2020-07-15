@@ -26,7 +26,7 @@ export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
 }
 
 export const initData = ({
-  getter, setter, query, type, func, api, cacheTimeout, uniqueKey, callback
+  getter, setter, func, type, query, api, cacheTimeout, uniqueKey, callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
@@ -46,7 +46,12 @@ export const initData = ({
     return resolve()
   }
 
-  const params = generateRequestParams({ fetched: false }, uniqueKey, query, type)
+  const params = generateRequestParams({
+    field: { fetched: false },
+    uniqueKey,
+    query,
+    type
+  })
   params._extra = dontFetch ? (fieldData ? fieldData.extra : null) : null
   let data
   let fromLocal = false
@@ -148,7 +153,12 @@ export const loadMore = ({
     loadingState.extra = null
   }
 
-  const params = generateRequestParams(fieldData, uniqueKey, query, type)
+  const params = generateRequestParams({
+    field: fieldData,
+    uniqueKey,
+    query,
+    type
+  })
   params._extra = fieldData.extra
 
   const getData = async () => {
