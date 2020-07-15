@@ -10,6 +10,7 @@ import {
   isArray
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
+import ENUM from './enum'
 
 export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
   const fieldName = generateFieldName({ func, type, query })
@@ -20,7 +21,7 @@ export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
 
   setter({
     key: fieldName,
-    type: 0,
+    type: ENUM.SETTER_TYPE.RESET,
     value: generateDefaultField(opts)
   })
 }
@@ -102,7 +103,7 @@ export const initData = ({
       if (needReset) {
         setter({
           key: fieldName,
-          type: 0,
+          type: ENUM.SETTER_TYPE.RESET,
           value: generateDefaultField(),
           callback: setData,
         })
@@ -119,7 +120,7 @@ export const initData = ({
   if (!dontFetch && !needReset) {
     setter({
       key: fieldName,
-      type: 0,
+      type: ENUM.SETTER_TYPE.RESET,
       value: {
         ...generateDefaultField(),
         loading: true,
@@ -154,7 +155,7 @@ export const loadMore = ({
     return resolve()
   }
 
-  if (type === 'jump' && +query.page === fieldData.page) {
+  if (type === ENUM.FETCH_TYPE.PAGINATION && +query.page === fieldData.page) {
     return resolve()
   }
 
@@ -163,7 +164,7 @@ export const loadMore = ({
     error: null
   }
 
-  if (type === 'jump') {
+  if (type === ENUM.FETCH_TYPE.PAGINATION) {
     loadingState.result = []
     loadingState.extra = null
   }
@@ -209,7 +210,7 @@ export const loadMore = ({
 
   setter({
     key: fieldName,
-    type: 1,
+    type: ENUM.SETTER_TYPE.MERGE,
     value: loadingState,
     callback: getData
   })
@@ -279,7 +280,7 @@ export const updateState = ({
 
   setter({
     key: fieldName,
-    type: 0,
+    type: ENUM.SETTER_TYPE.MERGE,
     value: fieldData
   })
 
