@@ -86,7 +86,7 @@ export const getListBySinceId = ({ since_id, is_up, count }) => {
 
 export const getListByJump = ({ page, count }) => {
   return new Promise(resolve => {
-    const total = 87
+    const total = 999
     const hasFetch = (page - 1) * count
     const getLength = total - hasFetch >= count ? count : total - hasFetch
     setTimeout(() => {

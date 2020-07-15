@@ -233,7 +233,8 @@ describe('load more', () => {
     const type = 'jump'
     const query = {
       test_order: 7,
-      page: 1
+      page: 1,
+      count: 10
     }
 
     const fieldName = generateFieldName({

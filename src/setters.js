@@ -31,7 +31,7 @@ export const SET_DATA = ({
 
     const { result, extra } = data
     const isJump = type === 'jump'
-    fieldData.nothing = isJump || fieldData.fetched ? false : computeResultLength(result) === 0
+    fieldData.nothing = fieldData.fetched ? false : computeResultLength(result) === 0
     fieldData.fetched = true
     fieldData.total = data.total || 0
     fieldData.noMore = isJump ? false : (data.no_more || false)
