@@ -71,8 +71,8 @@ export const initData = ({
         data = await api[func](params)
       }
 
-      const setData = () => {
-        SET_DATA({
+      const setData = async () => {
+        await SET_DATA({
           getter,
           setter,
           data,
@@ -91,7 +91,10 @@ export const initData = ({
             refresh: doRefresh
           })
         }
+
+        resolve()
       }
+
       // 拿到数据后再重置 field
       if (needReset) {
         setter({
@@ -103,8 +106,6 @@ export const initData = ({
       } else {
         setData()
       }
-
-      resolve()
     } catch (error) {
       SET_ERROR({ setter, fieldName, error })
       reject(error)
@@ -134,7 +135,19 @@ export const loadMore = ({
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
 
-  if (!fieldData || fieldData.loading || fieldData.nothing || (fieldData.noMore && !errorRetry)) {
+  if (!fieldData) {
+    return resolve()
+  }
+
+  if (fieldData.loading) {
+    return resolve()
+  }
+
+  if (fieldData.nothing) {
+    return resolve()
+  }
+
+  if (fieldData.noMore && !errorRetry) {
     return resolve()
   }
 
@@ -164,7 +177,7 @@ export const loadMore = ({
     try {
       const data = await api[func](params)
 
-      SET_DATA({
+      await SET_DATA({
         getter,
         setter,
         data,

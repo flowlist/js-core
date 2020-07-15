@@ -31,7 +31,8 @@ export const getListByPage = ({ page, count }) => {
       resolve({
         result,
         no_more,
-        total
+        total,
+        extra: result
       })
     }, 500)
   })

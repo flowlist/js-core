@@ -3,13 +3,13 @@ import { generateDefaultField, generateFieldName, getDateFromCache } from '@/uti
 import { setter, getter } from './env'
 
 describe('set data', () => {
-  it('如果数据从 localStorage 得来，直接 set', () => {
+  it('如果数据从 localStorage 得来，直接 set', async () => {
     const fieldName = generateFieldName({
       func: 'func1',
       type: 'type'
     })
     const data = [{ id: 1 }, { id: 2 }]
-    SET_DATA({
+    await SET_DATA({
       setter,
       data: generateDefaultField({
         result: data
@@ -25,27 +25,31 @@ describe('set data', () => {
     }))
   })
 
-  it('如果 field 未初始化，则直接返回', () => {
+  it('如果 field 未初始化，则直接返回', async () => {
     const fieldName = generateFieldName({
       func: 'func2',
       type: 'type'
     })
     const data = [{ id: 1 }, { id: 2 }]
-    SET_DATA({
-      setter,
-      getter,
-      data: generateDefaultField({
-        result: data
-      }),
-      fieldName
-    })
+    try {
+      await SET_DATA({
+        setter,
+        getter,
+        data: generateDefaultField({
+          result: data
+        }),
+        fieldName
+      })
+    } catch (e) {
+      // do nothing
+    }
 
     const field = getter(fieldName)
 
     expect(field).toEqual(null)
   })
 
-  it('set 之后，fetched 为 true', () => {
+  it('set 之后，fetched 为 true', async () => {
     const fieldName = generateFieldName({
       func: 'func3',
       type: 'type'
@@ -57,7 +61,7 @@ describe('set data', () => {
     })
     const result = [{ id: 1 }, { id: 2 }]
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -75,7 +79,7 @@ describe('set data', () => {
     }))
   })
 
-  it('如果 fetched 已经是 true 了，那么 nothing 永远是 false', () => {
+  it('如果 fetched 已经是 true 了，那么 nothing 永远是 false', async () => {
     const fieldName = generateFieldName({
       func: 'func3',
       type: 'type'
@@ -89,7 +93,7 @@ describe('set data', () => {
     })
     const result = [{ id: 1 }, { id: 2 }]
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -108,7 +112,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，loading 为 false', () => {
+  it('set 之后，loading 为 false', async () => {
     const fieldName = generateFieldName({
       func: 'func4',
       type: 'type'
@@ -120,7 +124,7 @@ describe('set data', () => {
     })
     const result = [{ id: 1 }, { id: 2 }]
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -139,7 +143,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，nothing 为 数据的返回数', () => {
+  it('set 之后，nothing 为 数据的返回数', async () => {
     let fieldName = generateFieldName({
       func: 'func5',
       type: 'type'
@@ -151,7 +155,7 @@ describe('set data', () => {
     })
     let result = [{ id: 1 }, { id: 2 }]
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -181,7 +185,7 @@ describe('set data', () => {
     })
     result = []
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -214,7 +218,7 @@ describe('set data', () => {
       b: []
     }
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -247,7 +251,7 @@ describe('set data', () => {
       b: []
     }
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -266,7 +270,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，total 为 返回值或 0', () => {
+  it('set 之后，total 为 返回值或 0', async () => {
     let fieldName = generateFieldName({
       func: 'func9',
       type: 'type'
@@ -277,7 +281,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -308,7 +312,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -329,7 +333,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，noMore 由 type 和 result 定', () => {
+  it('set 之后，noMore 由 type 和 result 定', async () => {
     let fieldName = generateFieldName({
       func: 'func11',
       type: 'jump'
@@ -340,7 +344,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       type: 'jump',
@@ -372,7 +376,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {
@@ -394,7 +398,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', () => {
+  it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', async () => {
     let fieldName = generateFieldName({
       func: 'func12',
       type: 'type'
@@ -405,7 +409,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       type: 'type',
@@ -424,7 +428,7 @@ describe('set data', () => {
     expect(result).toBeNull()
   })
 
-  it('set 之后，当设置 cacheTimeout，set cache 生效', () => {
+  it('set 之后，当设置 cacheTimeout，set cache 生效', async () => {
     let fieldName = generateFieldName({
       func: 'func13',
       type: 'type'
@@ -435,7 +439,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       type: 'type',
@@ -456,7 +460,7 @@ describe('set data', () => {
     expect(result).toEqual(field)
   })
 
-  it('set 之后，如果参数中有 page，使用参数中的 page，如果参数中没有，field 的 page + 1', () => {
+  it('set 之后，如果参数中有 page，使用参数中的 page，如果参数中没有，field 的 page + 1', async () => {
     let fieldName = generateFieldName({
       func: 'func14',
       type: 'type'
@@ -467,7 +471,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       page: 99,
@@ -488,7 +492,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，如果设置了 extra，则写入 extra', () => {
+  it('set 之后，如果设置了 extra，则写入 extra', async () => {
     let fieldName = generateFieldName({
       func: 'func15',
       type: 'type'
@@ -499,7 +503,7 @@ describe('set data', () => {
       value: generateDefaultField()
     })
 
-    SET_DATA({
+    await SET_DATA({
       setter,
       getter,
       data: {

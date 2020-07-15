@@ -118,7 +118,7 @@ describe('init data', () => {
     expect(state).toEqual(field)
   })
 
-  it('如果正常初始化，就正常请求', () => {
+  it('如果正常初始化，就正常请求，loading 为 true', () => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {}
@@ -156,6 +156,14 @@ describe('init data', () => {
 
         expect(state).toEqual(field)
       })
+
+    const state = getter(generateFieldName({
+      func,
+      type,
+      query
+    }))
+
+    expect(state.loading).toBe(true)
   })
 
   it('如果接口异常，就走到 reject', () => {
