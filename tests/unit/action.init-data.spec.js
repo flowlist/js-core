@@ -191,4 +191,291 @@ describe('init data', () => {
         expect(state).toEqual(field)
       })
   })
+
+  it('如果 refresh，即使 fetched 了也要发请求', () => {
+    const func = 'testArrFunc'
+    const type = 'type'
+    const query = {
+      __refresh__: true
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        fetched: true
+      }
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        const field = generateDefaultField({
+          result: api.testArrData.result,
+          total: api.testArrData.total,
+          noMore: api.testArrData.no_more,
+          fetched: true,
+          page: 1
+        })
+
+        expect(state).toEqual(field)
+
+        initData({
+          getter,
+          setter,
+          func,
+          type,
+          query,
+          api
+        })
+          .then(() => {
+            const state = getter(generateFieldName({
+              func,
+              type,
+              query
+            }))
+
+            const field = generateDefaultField({
+              result: api.testArrData.result,
+              total: api.testArrData.total,
+              noMore: api.testArrData.no_more,
+              fetched: true,
+              page: 1
+            })
+
+            expect(state).toEqual(field)
+          })
+      })
+  })
+
+  it('如果 refresh，但不 reload，发请求之前 field 就初始化', () => {
+    const func = 'testArrFunc'
+    const type = 'type'
+    const query = {
+      __refresh__: true
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        fetched: true
+      }
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+      .then(() => {
+        let state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        let field = generateDefaultField({
+          result: api.testArrData.result,
+          total: api.testArrData.total,
+          noMore: api.testArrData.no_more,
+          fetched: true,
+          page: 1
+        })
+
+        expect(state).toEqual(field)
+
+        initData({
+          getter,
+          setter,
+          func,
+          type,
+          query,
+          api
+        })
+
+        state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        field = generateDefaultField({
+          loading: true
+        })
+
+        expect(state).toEqual(field)
+      })
+  })
+
+  it('如果 refresh，且 reload，发请求之后 field 才初始化', () => {
+    const func = 'testArrFunc'
+    const type = 'type'
+    const query = {
+      __refresh__: true,
+      __reload__: true
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        fetched: true
+      }
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+      .then(() => {
+        let state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        let field = generateDefaultField({
+          result: api.testArrData.result,
+          total: api.testArrData.total,
+          noMore: api.testArrData.no_more,
+          fetched: true,
+          page: 1
+        })
+
+        expect(state).toEqual(field)
+
+        initData({
+          getter,
+          setter,
+          func,
+          type,
+          query,
+          api
+        })
+          .then(() => {
+            const state = getter(generateFieldName({
+              func,
+              type,
+              query
+            }))
+
+            const field = generateDefaultField({
+              result: api.testArrData.result,
+              total: api.testArrData.total,
+              noMore: api.testArrData.no_more,
+              fetched: true,
+              page: 1
+            })
+
+            expect(state).toEqual(field)
+          })
+
+        state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        expect(state).toEqual(field)
+      })
+  })
+
+  it('调用 callback', () => {
+    const func = 'testArrFunc'
+    const type = 'type'
+    let query = {}
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api,
+      callback: ({ data, refresh }) => {
+        expect(refresh).toBe(!!query.__refresh__)
+        expect(data).toEqual(api.testArrData)
+      }
+    })
+
+    query = {
+      __refresh__: true
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api,
+      callback: ({ data, refresh }) => {
+        expect(refresh).toBe(!!query.__refresh__)
+        expect(data).toEqual(api.testArrData)
+      }
+    })
+  })
 })

@@ -52,7 +52,6 @@ export const initData = ({
     query,
     type
   })
-  params._extra = dontFetch ? (fieldData ? fieldData.extra : null) : null
   let data
   let fromLocal = false
 
