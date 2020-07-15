@@ -7,7 +7,9 @@ describe('init data', () => {
   it('如果 error 了，就直接退出', () => {
     const func = 'func-test-init-data-error'
     const type = 'type'
-    const query = {}
+    const query = {
+      test_order: 0
+    }
 
     initState({
       getter,
@@ -45,7 +47,9 @@ describe('init data', () => {
   it('如果 loading 了，就直接退出', () => {
     const func = 'func-test-init-data-loading'
     const type = 'type'
-    const query = {}
+    const query = {
+      test_order: 1
+    }
 
     initState({
       getter,
@@ -83,7 +87,9 @@ describe('init data', () => {
   it('如果 fetched 了，就直接退出', () => {
     const func = 'func-test-init-data-fetched'
     const type = 'type'
-    const query = {}
+    const query = {
+      test_order: 2
+    }
 
     initState({
       getter,
@@ -118,10 +124,12 @@ describe('init data', () => {
     expect(state).toEqual(field)
   })
 
-  it('如果正常初始化，就正常请求，loading 为 true', () => {
+  it('如果正常初始化，就正常请求，loading 为 true', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
-    const query = {}
+    const query = {
+      test_order: 3
+    }
 
     initState({
       getter,
@@ -155,6 +163,7 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(field)
+        done()
       })
 
     const state = getter(generateFieldName({
@@ -166,10 +175,12 @@ describe('init data', () => {
     expect(state.loading).toBe(true)
   })
 
-  it('如果接口异常，就走到 reject', () => {
+  it('如果接口异常，就走到 reject', (done) => {
     const func = 'testError'
     const type = 'type'
-    const query = {}
+    const query = {
+      test_order: 4
+    }
 
     initState({
       getter,
@@ -198,13 +209,15 @@ describe('init data', () => {
         const field = generateDefaultField({ error })
 
         expect(state).toEqual(field)
+        done()
       })
   })
 
-  it('如果 refresh，即使 fetched 了也要发请求', () => {
+  it('如果 refresh，即使 fetched 了也要发请求', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
+      test_order: 5,
       __refresh__: true
     }
 
@@ -268,14 +281,16 @@ describe('init data', () => {
             })
 
             expect(state).toEqual(field)
+            done()
           })
       })
   })
 
-  it('如果 refresh，但不 reload，发请求之前 field 就初始化', () => {
+  it('如果 refresh，但不 reload，发请求之前 field 就初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
+      test_order: 6,
       __refresh__: true
     }
 
@@ -344,13 +359,15 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(field)
+        done()
       })
   })
 
-  it('如果 refresh，且 reload，发请求之后 field 才初始化', () => {
+  it('如果 refresh，且 reload，发请求之后 field 才初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
+      test_order: 7,
       __refresh__: true,
       __reload__: true
     }
@@ -424,6 +441,7 @@ describe('init data', () => {
             })
 
             expect(state).toEqual(field)
+            done()
           })
 
         state = getter(generateFieldName({
@@ -436,34 +454,11 @@ describe('init data', () => {
       })
   })
 
-  it('调用 callback', () => {
+  it('调用 callback', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
-    let query = {}
-
-    initState({
-      getter,
-      setter,
-      func,
-      type,
-      query
-    })
-
-    initData({
-      getter,
-      setter,
-      func,
-      type,
-      query,
-      api,
-      callback: ({ data, refresh }) => {
-        expect(refresh).toBe(!!query.__refresh__)
-        expect(data).toEqual(api.testArrData)
-      }
-    })
-
-    query = {
-      __refresh__: true
+    let query = {
+      test_order: 8
     }
 
     initState({
@@ -484,14 +479,17 @@ describe('init data', () => {
       callback: ({ data, refresh }) => {
         expect(refresh).toBe(!!query.__refresh__)
         expect(data).toEqual(api.testArrData)
+        done()
       }
     })
   })
 
-  it('设置缓存', () => {
+  it('设置缓存', (done) => {
     const func = 'testArrFunc'
     const type = 'cache'
-    let query = {}
+    let query = {
+      test_order: 9
+    }
 
     initState({
       getter,
@@ -525,6 +523,7 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(cache)
+        done()
       })
   })
 })

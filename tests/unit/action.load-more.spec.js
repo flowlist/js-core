@@ -140,11 +140,12 @@ describe('load more', () => {
     }))
   })
 
-  it('发请求前，loading 设置为 true', () => {
+  it('发请求前，loading 设置为 true', (done) => {
     const func = 'getListByPage'
     const type = 'page'
     const query = {
-      test_order: 5
+      test_order: 5,
+      count: 10
     }
 
     const fieldName = generateFieldName({
@@ -180,12 +181,11 @@ describe('load more', () => {
         })
           .then(() => {
             const state = getter(fieldName)
-
             expect(state.loading).toBe(false)
+            done()
           })
 
         const state = getter(fieldName)
-
         expect(state.loading).toBe(true)
       })
   })
@@ -228,11 +228,12 @@ describe('load more', () => {
     }))
   })
 
-  it('如果 type 是 jump，清空之前的 field', () => {
+  it('如果 type 是 jump，清空之前的 field', (done) => {
     const func = 'getListByJump'
     const type = 'jump'
     const query = {
-      test_order: 7
+      test_order: 7,
+      page: 1
     }
 
     const fieldName = generateFieldName({
@@ -258,7 +259,10 @@ describe('load more', () => {
       api,
       callback: ({ data }) => {
         const state = getter(fieldName)
-        expect(state).toEqual(data)
+        expect({
+          result: state.result,
+          total: state.total
+        }).toEqual(data)
       }
     })
       .then(() => {
@@ -267,21 +271,29 @@ describe('load more', () => {
           setter,
           func,
           type,
-          query,
+          query: {
+            ...query,
+            page: query + 1
+          },
           api,
           callback: ({ data }) => {
             const state = getter(fieldName)
-            expect(state).toEqual(data)
+            expect({
+              result: state.result,
+              total: state.total
+            }).toEqual(data)
+            done()
           }
         })
       })
   })
 
-  it('如果 type 不是 jump，page 自动递增', () => {
-    const func = 'getListBySinceId'
-    const type = 'since_id'
+  it('如果 type 是 page，page 自动递增', (done) => {
+    const func = 'getListByPage'
+    const type = 'page'
     const query = {
-      test_order: 8
+      test_order: 8,
+      count: 10
     }
 
     const fieldName = generateFieldName({
@@ -295,10 +307,7 @@ describe('load more', () => {
       setter,
       func,
       type,
-      query,
-      opts: {
-        page: 10
-      }
+      query
     })
 
     initData({
@@ -311,7 +320,7 @@ describe('load more', () => {
     })
       .then(() => {
         const state = getter(fieldName)
-        expect(state.page).toBe(11)
+        expect(state.page).toBe(1)
 
         loadMore({
           getter,
@@ -323,16 +332,18 @@ describe('load more', () => {
         })
           .then(() => {
             const state = getter(fieldName)
-            expect(state.page).toBe(12)
+            expect(state.page).toBe(2)
+            done()
           })
       })
   })
 
-  it('如果返回值中有 extra，会在下次请求的参数中携带', () => {
+  it('如果返回值中有 extra，会在下次请求的参数中携带', (done) => {
     const func = 'getListByPage'
     const type = 'page'
     const query = {
-      test_order: 9
+      test_order: 9,
+      count: 10
     }
 
     const fieldName = generateFieldName({
@@ -359,7 +370,6 @@ describe('load more', () => {
     })
       .then(() => {
         const state = getter(fieldName)
-        console.log(state)
         loadMore({
           getter,
           setter,
@@ -368,8 +378,8 @@ describe('load more', () => {
           query,
           api,
           callback: ({ params }) => {
-            console.log(params)
             expect(params._extra).toEqual(state.extra)
+            done()
           }
         })
       })

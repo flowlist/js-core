@@ -22,7 +22,7 @@ export const testError = () => {
 
 export const getListByPage = ({ page, count }) => {
   return new Promise(resolve => {
-    const total = 87
+    const total = 999
     const hasFetch = (page - 1) * count
     const getLength = total - hasFetch >= count ? count : total - hasFetch
     const no_more = getLength + hasFetch >= total
@@ -34,7 +34,7 @@ export const getListByPage = ({ page, count }) => {
         total,
         extra: result
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -58,7 +58,7 @@ export const getObjectByPage = ({ page, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -80,7 +80,7 @@ export const getListBySinceId = ({ since_id, is_up, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -95,7 +95,7 @@ export const getListByJump = ({ page, count }) => {
         result,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -119,7 +119,7 @@ export const getListWithError = ({ page, count }) => {
           message: 'error'
         })
       }
-    }, 1500)
+    }, 150)
   })
 }
 
@@ -162,7 +162,7 @@ export const getListByFirstError = ({ page, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -185,7 +185,7 @@ export const getListByLastId = ({ last_id, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -203,7 +203,7 @@ export const getListBySeenIds = ({ seen_ids, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }
 
@@ -220,6 +220,6 @@ export const getListByNothing = ({ page, count }) => {
         no_more,
         total
       })
-    }, 500)
+    }, 50)
   })
 }

@@ -14,8 +14,10 @@ export const SET_DATA = ({
         key: fieldName,
         type: 0,
         value: data,
+        callback: () => {
+          resolve()
+        }
       })
-      resolve()
       return
     }
 
@@ -28,11 +30,12 @@ export const SET_DATA = ({
     }
 
     const { result, extra } = data
-    fieldData.nothing = fieldData.fetched ? false : computeResultLength(result) === 0
+    const isJump = type === 'jump'
+    fieldData.nothing = isJump || fieldData.fetched ? false : computeResultLength(result) === 0
     fieldData.fetched = true
     fieldData.total = data.total || 0
-    fieldData.noMore = type === 'jump' ? false : (data.no_more || false)
-    fieldData.page = page ? parseInt(page) : fieldData.page + 1
+    fieldData.noMore = isJump ? false : (data.no_more || false)
+    fieldData.page = isJump ? +page : fieldData.page + 1
     fieldData.loading = false
     setReactivityField(fieldData, 'result', result, type, insertBefore)
     extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore)

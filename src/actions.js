@@ -47,7 +47,10 @@ export const initData = ({
   }
 
   const params = generateRequestParams({
-    field: { fetched: false },
+    field: {
+      ...fieldData,
+      fetched: false
+    },
     uniqueKey,
     query,
     type
@@ -81,7 +84,7 @@ export const initData = ({
           fromLocal,
           cacheTimeout,
           page: params.page,
-          insertBefore: !!query.is_up,
+          insertBefore: false,
         })
 
         if (inBrowserClient && callback) {

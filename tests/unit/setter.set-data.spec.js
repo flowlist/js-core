@@ -460,10 +460,10 @@ describe('set data', () => {
     expect(result).toEqual(field)
   })
 
-  it('set 之后，如果参数中有 page，使用参数中的 page，如果参数中没有，field 的 page + 1', async () => {
+  it('set 之后，如果 type 是 jump，使用 query 里的 page，否则 page = field 的 page + 1', async () => {
     let fieldName = generateFieldName({
       func: 'func14',
-      type: 'type'
+      type: 'jump'
     })
     setter({
       key: fieldName,
@@ -475,6 +475,7 @@ describe('set data', () => {
       setter,
       getter,
       page: 99,
+      type: 'jump',
       data: {
         result: []
       },
@@ -482,6 +483,65 @@ describe('set data', () => {
     })
 
     let field = getter(fieldName)
+
+    expect(field).toEqual(generateDefaultField({
+      result: field.result,
+      page: 99,
+      fetched: field.fetched,
+      loading: field.loading,
+      nothing: field.nothing
+    }))
+
+    await SET_DATA({
+      setter,
+      getter,
+      data: {
+        result: []
+      },
+      fieldName
+    })
+
+    field = getter(fieldName)
+
+    expect(field).toEqual(generateDefaultField({
+      result: field.result,
+      page: 100,
+      fetched: field.fetched,
+      loading: field.loading,
+      nothing: field.nothing
+    }))
+
+    await SET_DATA({
+      setter,
+      getter,
+      data: {
+        result: []
+      },
+      fieldName
+    })
+
+    field = getter(fieldName)
+
+    expect(field).toEqual(generateDefaultField({
+      result: field.result,
+      page: 101,
+      fetched: field.fetched,
+      loading: field.loading,
+      nothing: field.nothing
+    }))
+
+    await SET_DATA({
+      setter,
+      getter,
+      page: 99,
+      type: 'jump',
+      data: {
+        result: []
+      },
+      fieldName
+    })
+
+    field = getter(fieldName)
 
     expect(field).toEqual(generateDefaultField({
       result: field.result,
