@@ -20,6 +20,7 @@ module.exports = {
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
   ],
+  collectCoverageFrom: ['src/*'],
   coverageDirectory: './coverage/',
   collectCoverage: true,
 }
