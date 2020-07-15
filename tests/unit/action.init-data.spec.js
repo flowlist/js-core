@@ -1,6 +1,7 @@
 import { initState, initData } from '@/actions'
 import { generateFieldName, generateDefaultField, getDateFromCache } from '@/utils'
-import { setter, getter, api } from './env'
+import { setter, getter } from './env'
+import * as api from './api'
 
 describe('init data', () => {
   it('如果 error 了，就直接退出', () => {

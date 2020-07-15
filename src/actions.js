@@ -129,12 +129,12 @@ export const initData = ({
 })
 
 export const loadMore = ({
-  getter, setter, query, type, func, api, cacheTimeout, uniqueKey, force, callback
+  getter, setter, query, type, func, api, cacheTimeout, uniqueKey, errorRetry, callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
 
-  if (!fieldData || fieldData.loading || fieldData.nothing || (fieldData.noMore && !force)) {
+  if (!fieldData || fieldData.loading || fieldData.nothing || (fieldData.noMore && !errorRetry)) {
     return resolve()
   }
 
