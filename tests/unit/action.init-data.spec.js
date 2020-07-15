@@ -1,5 +1,5 @@
 import { initState, initData } from '@/actions'
-import { generateFieldName, generateDefaultField } from '@/utils'
+import { generateFieldName, generateDefaultField, getDateFromCache } from '@/utils'
 import { setter, getter, api } from './env'
 
 describe('init data', () => {
@@ -477,5 +477,45 @@ describe('init data', () => {
         expect(data).toEqual(api.testArrData)
       }
     })
+  })
+
+  it('设置缓存', () => {
+    const func = 'testArrFunc'
+    const type = 'cache'
+    let query = {}
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query
+    })
+
+    initData({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api,
+      cacheTimeout: 100
+    })
+      .then(() => {
+        const fieldName = generateFieldName({
+          func,
+          type,
+          query
+        })
+
+        const state = getter(fieldName)
+
+        const cache = getDateFromCache({
+          key: fieldName,
+          now: 0
+        })
+
+        expect(state).toEqual(cache)
+      })
   })
 })
