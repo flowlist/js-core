@@ -1,9 +1,82 @@
 import ItemFactory from './item-factory'
 
 export const testArrData = {
-  result: [1, 2, 3],
+  result: [
+    {
+      id: 1,
+      slug: 'a',
+      obj: {
+        key: 'value_1'
+      },
+      arr: [
+        {
+          id: 7,
+          text: 'aaa'
+        }
+      ]
+    },
+    {
+      id: 2,
+      slug: 'b',
+      obj: {
+        key: 'value_2'
+      },
+      arr: [
+        {
+          id: 7,
+          text: 'bbb'
+        }
+      ]
+    },
+    {
+      id: 3,
+      slug: 'c',
+      obj: {
+        key: 'value_3'
+      },
+      arr: [
+        {
+          id: 7,
+          text: 'ccc'
+        }
+      ]
+    }
+  ],
   no_more: true,
   total: 3
+}
+
+export const testCommentData = {
+  result: [
+    {
+      parent_id: 1,
+      content: '主评论1',
+      children: [
+        {
+          sub_id: 2,
+          content: '子评论1'
+        },
+        {
+          sub_id: 3,
+          content: '子评论2'
+        }
+      ]
+    },
+    {
+      parent_id: 2,
+      content: '主评论2',
+      children: [
+        {
+          sub_id: 4,
+          content: '子评论3'
+        },
+        {
+          sub_id: 5,
+          content: '子评论4'
+        }
+      ]
+    }
+  ]
 }
 
 export const testArrFunc = () => {

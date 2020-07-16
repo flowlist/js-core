@@ -7,6 +7,7 @@ import {
   computeMatchedItemIndex,
   combineArrayData,
   updateObjectDeepValue,
+  computeResultLength,
   isArray
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
@@ -219,76 +220,82 @@ export const loadMore = ({
 export const updateState = ({
   getter, setter, type, func, query, id, method, value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
 }) => {
-  const fieldName = generateFieldName({ func, type, query })
-  const fieldData = getter(fieldName)
-  if (!fieldData) {
-    return
-  }
+  return new Promise((resolve, reject) => {
+    const fieldName = generateFieldName({ func, type, query })
+    const fieldData = getter(fieldName)
+    if (!fieldData) {
+      reject()
+      return
+    }
 
-  const beforeLength = computeResultLength(fieldData.result)
-  if (method === 'update') {
-    // 修改 result 下的任意字段
-    if (isArray(fieldData.result)) {
-      const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
-      updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
+    const beforeLength = computeResultLength(fieldData.result)
+    if (method === 'update') {
+      // 修改 result 下的某个值的任意字段
+      if (isArray(fieldData.result)) {
+        const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
+        updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
+      } else {
+        const keys = changeKey.split('.')
+        keys.pop()
+        const changeArr = getObjectDeepValue(fieldData.result, keys)
+        const matchedIndex = computeMatchedItemIndex(id, changeArr, uniqueKey)
+        changeArr[matchedIndex] = value
+      }
+    } else if (method === 'reset') {
+      // 修改包括 field 下的任意字段
+      updateObjectDeepValue(fieldData, changeKey, value)
     } else {
-      const keys = changeKey.split('.')
-      keys.pop()
-      const changeArr = getObjectDeepValue(fieldData.result, keys)
-      const matchedIndex = computeMatchedItemIndex(id, changeArr, uniqueKey)
-      changeArr[matchedIndex] = value
+      let modifyValue = getObjectDeepValue(fieldData, changeKey)
+      const matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey)
+
+      switch (method) {
+        case 'push':
+          isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value)
+          break
+        case 'unshift':
+          isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value)
+          break
+        case 'delete':
+          if (matchedIndex >= 0) {
+            modifyValue.splice(matchedIndex, 1)
+          }
+          break
+        case 'insert-before':
+          if (matchedIndex >= 0) {
+            modifyValue.splice(matchedIndex, 0, value)
+          }
+          break
+        case 'insert-after':
+          if (matchedIndex >= 0) {
+            modifyValue.splice(matchedIndex + 1, 0, value)
+          }
+          break
+        case 'patch':
+          combineArrayData(modifyValue, value, uniqueKey)
+          break
+      }
+      fieldData[changeKey] = modifyValue
     }
-  } else if (method === 'modify') {
-    // 修改包括 field 下的任意字段
-    updateObjectDeepValue(fieldData, changeKey, value)
-  } else {
-    let modifyValue = getObjectDeepValue(fieldData, changeKey)
-    const matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey)
 
-    switch (method) {
-      case 'push':
-        isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value)
-        break
-      case 'unshift':
-        isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value)
-        break
-      case 'delete':
-        if (matchedIndex >= 0) {
-          modifyValue.splice(matchedIndex, 1)
-        }
-        break
-      case 'insert-before':
-        if (matchedIndex >= 0) {
-          modifyValue.splice(matchedIndex, 0, value)
-        }
-        break
-      case 'insert-after':
-        if (matchedIndex >= 0) {
-          modifyValue.splice(matchedIndex + 1, 0, value)
-        }
-        break
-      case 'patch':
-        combineArrayData(modifyValue, value, uniqueKey)
-        break
-    }
-    fieldData[changeKey] = modifyValue
-  }
+    const afterLength = computeResultLength(fieldData.result)
+    fieldData.total = fieldData.total + afterLength - beforeLength
+    fieldData.nothing = afterLength === 0
 
-  const afterLength = computeResultLength(fieldData.result)
-  fieldData.total = fieldData.total + afterLength - beforeLength
-  fieldData.nothing = afterLength === 0
-
-  setter({
-    key: fieldName,
-    type: ENUM.SETTER_TYPE.MERGE,
-    value: fieldData
-  })
-
-  if (inBrowserClient && cacheTimeout) {
-    setDataToCache({
+    setter({
       key: fieldName,
+      type: ENUM.SETTER_TYPE.MERGE,
       value: fieldData,
-      expiredAt: Date.now() + cacheTimeout * 1000
+      callback: () => {
+        if (inBrowserClient && cacheTimeout) {
+          setDataToCache({
+            key: fieldName,
+            value: fieldData,
+            expiredAt: Date.now() + cacheTimeout * 1000
+          })
+        }
+
+        resolve()
+      }
     })
-  }
+  })
 }
