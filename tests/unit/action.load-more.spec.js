@@ -1,5 +1,5 @@
 import { initState, initData, loadMore } from '@/actions'
-import { generateFieldName, generateDefaultField, getDateFromCache } from '@/utils'
+import { generateFieldName, generateDefaultField } from '@/utils'
 import { setter, getter } from './env'
 import * as api from './api'
 
@@ -138,6 +138,46 @@ describe('load more', () => {
     expect(state).toEqual(generateDefaultField({
       noMore: true
     }))
+  })
+
+  it('如果 error，走到 catch', (done) => {
+    const func = 'testError'
+    const type = 'type'
+    const query = {
+      test_order: 99
+    }
+
+    const fieldName = generateFieldName({
+      func,
+      type,
+      query
+    })
+
+    setter({
+      key: fieldName,
+      type: 0,
+      value: generateDefaultField()
+    })
+
+    loadMore({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+      .catch(() => {
+        const state = getter(fieldName)
+
+        expect(state).toEqual(generateDefaultField({
+          error: {
+            message: 'error'
+          }
+        }))
+
+        done()
+      })
   })
 
   it('发请求前，loading 设置为 true', (done) => {

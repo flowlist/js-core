@@ -3,9 +3,9 @@ import { generateFieldName, generateDefaultField } from '@/utils'
 import { setter, getter } from './env'
 
 describe('init state', () => {
-  it('state 可以被正常初始化', () => {
-    const func = 'func-name-233'
-    const type = 'type-name-666'
+  it('state 可以被正常初始化', (done) => {
+    const func = 'func-init-state-resolve'
+    const type = 'type'
     const query = {
       a: 1,
       b: 2
@@ -18,15 +18,75 @@ describe('init state', () => {
       type,
       query
     })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
 
-    const state = getter(generateFieldName({
+        const field = generateDefaultField()
+
+        expect(state).toEqual(field)
+
+        done()
+      })
+  })
+
+  it('state 已初始化过了，不再重复初始化', (done) => {
+    const func = 'func-init-state-reject'
+    const type = 'type'
+    const query = {
+      a: 1,
+      b: 2
+    }
+
+    initState({
+      getter,
+      setter,
       func,
       type,
-      query
-    }))
+      query,
+      opts: {
+        total: 10
+      }
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
 
-    const field = generateDefaultField()
+        const field = generateDefaultField({
+          total: 10
+        })
 
-    expect(state).toEqual(field)
+        expect(state).toEqual(field)
+
+        initState({
+          getter,
+          setter,
+          func,
+          type,
+          query
+        })
+          .then()
+          .catch(() => {
+            const state = getter(generateFieldName({
+              func,
+              type,
+              query
+            }))
+
+            const field = generateDefaultField({
+              total: 10
+            })
+
+            expect(state).toEqual(field)
+
+            done()
+          })
+      })
   })
 })

@@ -155,9 +155,9 @@ describe('init data', () => {
         }))
 
         const field = generateDefaultField({
-          result: api.testArrData.result,
-          total: api.testArrData.total,
-          noMore: api.testArrData.no_more,
+          result: api.testArrData().result,
+          total: api.testArrData().total,
+          noMore: api.testArrData().no_more,
           fetched: true,
           page: 1
         })
@@ -248,9 +248,9 @@ describe('init data', () => {
         }))
 
         const field = generateDefaultField({
-          result: api.testArrData.result,
-          total: api.testArrData.total,
-          noMore: api.testArrData.no_more,
+          result: api.testArrData().result,
+          total: api.testArrData().total,
+          noMore: api.testArrData().no_more,
           fetched: true,
           page: 1
         })
@@ -273,9 +273,9 @@ describe('init data', () => {
             }))
 
             const field = generateDefaultField({
-              result: api.testArrData.result,
-              total: api.testArrData.total,
-              noMore: api.testArrData.no_more,
+              result: api.testArrData().result,
+              total: api.testArrData().total,
+              noMore: api.testArrData().no_more,
               fetched: true,
               page: 1
             })
@@ -330,9 +330,9 @@ describe('init data', () => {
         }))
 
         let field = generateDefaultField({
-          result: api.testArrData.result,
-          total: api.testArrData.total,
-          noMore: api.testArrData.no_more,
+          result: api.testArrData().result,
+          total: api.testArrData().total,
+          noMore: api.testArrData().no_more,
           fetched: true,
           page: 1
         })
@@ -408,9 +408,9 @@ describe('init data', () => {
         }))
 
         let field = generateDefaultField({
-          result: api.testArrData.result,
-          total: api.testArrData.total,
-          noMore: api.testArrData.no_more,
+          result: api.testArrData().result,
+          total: api.testArrData().total,
+          noMore: api.testArrData().no_more,
           fetched: true,
           page: 1
         })
@@ -433,9 +433,9 @@ describe('init data', () => {
             }))
 
             const field = generateDefaultField({
-              result: api.testArrData.result,
-              total: api.testArrData.total,
-              noMore: api.testArrData.no_more,
+              result: api.testArrData().result,
+              total: api.testArrData().total,
+              noMore: api.testArrData().no_more,
               fetched: true,
               page: 1
             })
@@ -478,7 +478,7 @@ describe('init data', () => {
       api,
       callback: ({ data, refresh }) => {
         expect(refresh).toBe(!!query.__refresh__)
-        expect(data).toEqual(api.testArrData)
+        expect(data).toEqual(api.testArrData())
         done()
       }
     })

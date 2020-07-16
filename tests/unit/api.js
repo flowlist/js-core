@@ -1,6 +1,6 @@
 import ItemFactory from './item-factory'
 
-export const testArrData = {
+export const testArrData = () => ({
   result: [
     {
       id: 1,
@@ -44,9 +44,9 @@ export const testArrData = {
   ],
   no_more: true,
   total: 3
-}
+})
 
-export const testCommentData = {
+export const testCommentData = () => ({
   result: [
     {
       parent_id: 1,
@@ -77,11 +77,11 @@ export const testCommentData = {
       ]
     }
   ]
-}
+})
 
 export const testArrFunc = () => {
   return new Promise((resolve, reject) => {
-    resolve(testArrData)
+    resolve(testArrData())
   })
 }
 

@@ -7,6 +7,8 @@ import {
   computeMatchedItemIndex,
   combineArrayData,
   updateObjectDeepValue,
+  getObjectDeepValue,
+  setDataToCache,
   computeResultLength,
   isArray
 } from './utils'
@@ -14,16 +16,22 @@ import { SET_DATA, SET_ERROR } from './setters'
 import ENUM from './enum'
 
 export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
-  const fieldName = generateFieldName({ func, type, query })
-  const fieldData = getter(fieldName)
-  if (fieldData) {
-    return
-  }
+  return new Promise((resolve, reject) => {
+    const fieldName = generateFieldName({ func, type, query })
+    const fieldData = getter(fieldName)
+    if (fieldData) {
+      reject()
+      return
+    }
 
-  setter({
-    key: fieldName,
-    type: ENUM.SETTER_TYPE.RESET,
-    value: generateDefaultField(opts)
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField(opts),
+      callback: () => {
+        resolve()
+      }
+    })
   })
 }
 
@@ -218,7 +226,7 @@ export const loadMore = ({
 })
 
 export const updateState = ({
-  getter, setter, type, func, query, id, method, value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
+  getter, setter, type, func, query, method, id = '', value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
 }) => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
@@ -231,16 +239,8 @@ export const updateState = ({
     const beforeLength = computeResultLength(fieldData.result)
     if (method === 'update') {
       // 修改 result 下的某个值的任意字段
-      if (isArray(fieldData.result)) {
-        const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
-        updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
-      } else {
-        const keys = changeKey.split('.')
-        keys.pop()
-        const changeArr = getObjectDeepValue(fieldData.result, keys)
-        const matchedIndex = computeMatchedItemIndex(id, changeArr, uniqueKey)
-        changeArr[matchedIndex] = value
-      }
+      const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
+      updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
     } else if (method === 'reset') {
       // 修改包括 field 下的任意字段
       updateObjectDeepValue(fieldData, changeKey, value)
