@@ -499,6 +499,8 @@ describe('init data', () => {
       query
     })
 
+    let counter = jest.spyOn(api, 'testArrFunc')
+
     initData({
       getter,
       setter,
@@ -516,14 +518,42 @@ describe('init data', () => {
         })
 
         const state = getter(fieldName)
-
         const cache = getDateFromCache({
           key: fieldName,
           now: 0
         })
 
         expect(state).toEqual(cache)
-        done()
+
+        initData({
+          getter,
+          setter,
+          func,
+          type,
+          query: {
+            ...query,
+            __refresh__: true
+          },
+          api,
+          cacheTimeout: 100
+        })
+          .then(() => {
+            const fieldName = generateFieldName({
+              func,
+              type,
+              query
+            })
+
+            const state = getter(fieldName)
+            const cache = getDateFromCache({
+              key: fieldName,
+              now: 0
+            })
+
+            expect(state).toEqual(cache)
+            expect(counter).toBeCalledTimes(1)
+            done()
+          })
       })
   })
 })

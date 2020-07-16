@@ -539,4 +539,81 @@ describe('update state', () => {
         done()
       })
   })
+
+  it('当 id 传值不存在，delete，insert-before，insert-after 无效', (done) => {
+    const func = 'update-state-call-bad-index'
+    const type = 'type'
+    const query = {
+      test_order: 9
+    }
+
+    const result = api.testArrData().result
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: { result }
+    })
+
+    updateState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      id: 9,
+      method: 'delete'
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.result).toEqual(result)
+
+        updateState({
+          getter,
+          setter,
+          func,
+          type,
+          query,
+          id: 9,
+          method: 'insert-before',
+          value: 999
+        })
+          .then(() => {
+            const state = getter(generateFieldName({
+              func,
+              type,
+              query
+            }))
+            expect(state.result).toEqual(result)
+
+            updateState({
+              getter,
+              setter,
+              func,
+              type,
+              query,
+              id: 9,
+              method: 'insert-after',
+              value: 233
+            })
+              .then(() => {
+                const state = getter(generateFieldName({
+                  func,
+                  type,
+                  query
+                }))
+                expect(state.result).toEqual(result)
+
+                done()
+              })
+          })
+      })
+  })
 })
