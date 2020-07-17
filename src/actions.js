@@ -2,13 +2,10 @@ import {
   generateDefaultField,
   generateFieldName,
   generateRequestParams,
-  getDateFromCache,
-  inBrowserClient,
   computeMatchedItemIndex,
   combineArrayData,
   updateObjectDeepValue,
   getObjectDeepValue,
-  setDataToCache,
   computeResultLength,
   isArray
 } from './utils'
@@ -36,7 +33,7 @@ export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
 }
 
 export const initData = ({
-  getter, setter, func, type, query, api, cacheTimeout, uniqueKey, callback
+  getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
@@ -70,10 +67,9 @@ export const initData = ({
 
   const getData = async () => {
     try {
-      if (cacheTimeout && inBrowserClient) {
-        data = getDateFromCache({
-          key: fieldName,
-          now: Date.now(),
+      if (cacheTimeout) {
+        data = cache.get({
+          key: fieldName
         })
         if (data) {
           fromLocal = true
@@ -88,6 +84,7 @@ export const initData = ({
         await SET_DATA({
           getter,
           setter,
+          cache,
           data,
           fieldName,
           type,
@@ -97,7 +94,7 @@ export const initData = ({
           insertBefore: false,
         })
 
-        if (inBrowserClient && callback) {
+        if (callback) {
           callback({
             params,
             data,
@@ -143,7 +140,7 @@ export const initData = ({
 })
 
 export const loadMore = ({
-  getter, setter, query, type, func, api, cacheTimeout, uniqueKey, errorRetry, callback
+  getter, setter, cache, query, type, func, api, cacheTimeout, uniqueKey, errorRetry, callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
@@ -193,6 +190,7 @@ export const loadMore = ({
       await SET_DATA({
         getter,
         setter,
+        cache,
         data,
         fieldName,
         type,
@@ -202,7 +200,7 @@ export const loadMore = ({
         insertBefore: !!query.is_up
       })
 
-      if (inBrowserClient && callback) {
+      if (callback) {
         callback({
           params,
           data,
@@ -226,7 +224,7 @@ export const loadMore = ({
 })
 
 export const updateState = ({
-  getter, setter, type, func, query, method, id = '', value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
+  getter, setter, cache, type, func, query, method, id = '', value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
 }) => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
@@ -286,11 +284,11 @@ export const updateState = ({
       type: ENUM.SETTER_TYPE.MERGE,
       value: fieldData,
       callback: () => {
-        if (inBrowserClient && cacheTimeout) {
-          setDataToCache({
+        if (cacheTimeout) {
+          cache.set({
             key: fieldName,
             value: fieldData,
-            expiredAt: Date.now() + cacheTimeout * 1000
+            timeout: cacheTimeout
           })
         }
 

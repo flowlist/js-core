@@ -1,6 +1,6 @@
 import { initState, initData } from '@/actions'
-import { generateFieldName, generateDefaultField, getDateFromCache } from '@/utils'
-import { setter, getter } from './env'
+import { generateFieldName, generateDefaultField } from '@/utils'
+import { setter, getter, cache } from './env'
 import * as api from './api'
 
 describe('init data', () => {
@@ -23,6 +23,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -63,6 +64,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -103,6 +105,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -140,6 +143,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -191,6 +195,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -233,6 +238,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -258,6 +264,7 @@ describe('init data', () => {
         expect(state).toEqual(field)
 
         initData({
+          cache,
           getter,
           setter,
           func,
@@ -306,6 +313,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -315,6 +323,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -340,6 +349,7 @@ describe('init data', () => {
         expect(state).toEqual(field)
 
         initData({
+          cache,
           getter,
           setter,
           func,
@@ -384,6 +394,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -393,6 +404,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -418,6 +430,7 @@ describe('init data', () => {
         expect(state).toEqual(field)
 
         initData({
+          cache,
           getter,
           setter,
           func,
@@ -470,6 +483,7 @@ describe('init data', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -502,6 +516,7 @@ describe('init data', () => {
     let counter = jest.spyOn(api, 'testArrFunc')
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -518,14 +533,12 @@ describe('init data', () => {
         })
 
         const state = getter(fieldName)
-        const cache = getDateFromCache({
-          key: fieldName,
-          now: 0
-        })
+        const cacheData = cache.get({ key: fieldName })
 
-        expect(state).toEqual(cache)
+        expect(state).toEqual(cacheData)
 
         initData({
+          cache,
           getter,
           setter,
           func,
@@ -545,12 +558,9 @@ describe('init data', () => {
             })
 
             const state = getter(fieldName)
-            const cache = getDateFromCache({
-              key: fieldName,
-              now: 0
-            })
+            const cacheData = cache.get({ key: fieldName })
 
-            expect(state).toEqual(cache)
+            expect(state).toEqual(cacheData)
             expect(counter).toBeCalledTimes(1)
             done()
           })

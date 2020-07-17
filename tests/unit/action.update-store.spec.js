@@ -1,6 +1,6 @@
 import { initState, updateState } from '@/actions'
-import { generateFieldName, getDateFromCache } from '@/utils'
-import { setter, getter } from './env'
+import { generateFieldName } from '@/utils'
+import { setter, getter, cache } from './env'
 import * as api from './api'
 
 describe('update state', () => {
@@ -12,6 +12,7 @@ describe('update state', () => {
     }
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -39,6 +40,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -50,6 +52,7 @@ describe('update state', () => {
     })
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -83,6 +86,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -94,6 +98,7 @@ describe('update state', () => {
     })
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -124,6 +129,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -140,6 +146,7 @@ describe('update state', () => {
     }
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -171,6 +178,7 @@ describe('update state', () => {
         ]
 
         updateState({
+          cache,
           getter,
           setter,
           func,
@@ -203,6 +211,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -219,6 +228,7 @@ describe('update state', () => {
     }
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -250,6 +260,7 @@ describe('update state', () => {
         ]
 
         updateState({
+          cache,
           getter,
           setter,
           func,
@@ -282,6 +293,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -293,6 +305,7 @@ describe('update state', () => {
     })
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -324,6 +337,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -340,6 +354,7 @@ describe('update state', () => {
     }
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -374,6 +389,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -390,6 +406,7 @@ describe('update state', () => {
     }
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -424,6 +441,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -450,6 +468,7 @@ describe('update state', () => {
     ]
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -484,6 +503,7 @@ describe('update state', () => {
     }
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -510,6 +530,7 @@ describe('update state', () => {
     ]
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -520,13 +541,12 @@ describe('update state', () => {
       value: newValArr
     })
       .then(() => {
-        const state = getDateFromCache({
+        const state = cache.get({
           key: generateFieldName({
             func,
             type,
             query
-          }),
-          now: 0
+          })
         })
 
         const newVal = api.testArrData().result
@@ -550,6 +570,7 @@ describe('update state', () => {
     const result = api.testArrData().result
 
     initState({
+      cache,
       getter,
       setter,
       func,
@@ -559,6 +580,7 @@ describe('update state', () => {
     })
 
     updateState({
+      cache,
       getter,
       setter,
       func,
@@ -576,6 +598,7 @@ describe('update state', () => {
         expect(state.result).toEqual(result)
 
         updateState({
+          cache,
           getter,
           setter,
           func,
@@ -594,6 +617,7 @@ describe('update state', () => {
             expect(state.result).toEqual(result)
 
             updateState({
+              cache,
               getter,
               setter,
               func,

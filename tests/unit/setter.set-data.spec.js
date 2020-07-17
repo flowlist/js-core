@@ -1,6 +1,6 @@
 import { SET_DATA } from '@/setters'
-import { generateDefaultField, generateFieldName, getDateFromCache } from '@/utils'
-import { setter, getter } from './env'
+import { generateDefaultField, generateFieldName } from '@/utils'
+import { setter, getter, cache } from './env'
 
 describe('set data', () => {
   it('如果数据从 localStorage 得来，直接 set', async () => {
@@ -10,6 +10,7 @@ describe('set data', () => {
     })
     const data = [{ id: 1 }, { id: 2 }]
     await SET_DATA({
+      cache,
       setter,
       data: generateDefaultField({
         result: data
@@ -33,6 +34,7 @@ describe('set data', () => {
     const data = [{ id: 1 }, { id: 2 }]
     try {
       await SET_DATA({
+        cache,
         setter,
         getter,
         data: generateDefaultField({
@@ -62,6 +64,7 @@ describe('set data', () => {
     const result = [{ id: 1 }, { id: 2 }]
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -94,6 +97,7 @@ describe('set data', () => {
     const result = [{ id: 1 }, { id: 2 }]
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -125,6 +129,7 @@ describe('set data', () => {
     const result = [{ id: 1 }, { id: 2 }]
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -156,6 +161,7 @@ describe('set data', () => {
     let result = [{ id: 1 }, { id: 2 }]
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -186,6 +192,7 @@ describe('set data', () => {
     result = []
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -219,6 +226,7 @@ describe('set data', () => {
     }
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -252,6 +260,7 @@ describe('set data', () => {
     }
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -282,6 +291,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -313,6 +323,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -345,6 +356,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       type: 'jump',
@@ -377,6 +389,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -410,6 +423,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       type: 'type',
@@ -420,10 +434,7 @@ describe('set data', () => {
       fieldName
     })
 
-    const result = getDateFromCache({
-      key: fieldName,
-      now: 0,
-    })
+    const result = cache.get({ key: fieldName })
 
     expect(result).toBeNull()
   })
@@ -440,6 +451,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       type: 'type',
@@ -450,10 +462,7 @@ describe('set data', () => {
       fieldName
     })
 
-    const result = getDateFromCache({
-      key: fieldName,
-      now: 0,
-    })
+    const result = cache.get({ key: fieldName })
 
     let field = getter(fieldName)
 
@@ -472,6 +481,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       page: 99,
@@ -493,6 +503,7 @@ describe('set data', () => {
     }))
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -512,6 +523,7 @@ describe('set data', () => {
     }))
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {
@@ -531,6 +543,7 @@ describe('set data', () => {
     }))
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       page: 99,
@@ -564,6 +577,7 @@ describe('set data', () => {
     })
 
     await SET_DATA({
+      cache,
       setter,
       getter,
       data: {

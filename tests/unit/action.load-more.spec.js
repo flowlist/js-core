@@ -1,6 +1,6 @@
 import { initState, initData, loadMore } from '@/actions'
 import { generateFieldName, generateDefaultField } from '@/utils'
-import { setter, getter } from './env'
+import { setter, getter, cache } from './env'
 import * as api from './api'
 
 describe('load more', () => {
@@ -12,6 +12,7 @@ describe('load more', () => {
     }
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -51,6 +52,7 @@ describe('load more', () => {
     })
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -88,6 +90,7 @@ describe('load more', () => {
     })
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -125,6 +128,7 @@ describe('load more', () => {
     })
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -160,6 +164,7 @@ describe('load more', () => {
     })
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -203,6 +208,7 @@ describe('load more', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -212,6 +218,7 @@ describe('load more', () => {
     })
       .then(() => {
         loadMore({
+          cache,
           getter,
           setter,
           func,
@@ -253,6 +260,7 @@ describe('load more', () => {
     })
 
     loadMore({
+      cache,
       getter,
       setter,
       func,
@@ -292,6 +300,7 @@ describe('load more', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -308,6 +317,7 @@ describe('load more', () => {
     })
       .then(() => {
         loadMore({
+          cache,
           getter,
           setter,
           func,
@@ -352,6 +362,7 @@ describe('load more', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -364,6 +375,7 @@ describe('load more', () => {
         expect(state.page).toBe(1)
 
         loadMore({
+          cache,
           getter,
           setter,
           func,
@@ -402,6 +414,7 @@ describe('load more', () => {
     })
 
     initData({
+      cache,
       getter,
       setter,
       func,
@@ -412,6 +425,7 @@ describe('load more', () => {
       .then(() => {
         const state = getter(fieldName)
         loadMore({
+          cache,
           getter,
           setter,
           func,

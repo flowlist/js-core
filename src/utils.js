@@ -113,47 +113,6 @@ export const combineArrayData = (fieldArray, value, changingKey) => {
 }
 
 /**
- * 从 localStorage 里获取数据
- * @param {string} key
- * @param {int} now
- * @return {null|object}
- */
-export const getDateFromCache = ({ key, now }) => {
-  try {
-    const expiredAt = localStorage.getItem(`vue-mixin-store-${key}-expired-at`)
-    const cacheStr = localStorage.getItem(`vue-mixin-store-${key}`)
-    if (!expiredAt || !cacheStr || now - expiredAt > 0) {
-      delDataFromCache(key)
-      return null
-    }
-    return JSON.parse(cacheStr)
-  } catch (e) {
-    delDataFromCache(key)
-    return null
-  }
-}
-
-/**
- * 设置 localStorage
- * @param {string} key
- * @param {object} value
- * @param {int} expiredAt
- */
-export const setDataToCache = ({ key, value, expiredAt }) => {
-  try {
-    localStorage.setItem(`vue-mixin-store-${key}`, JSON.stringify(value))
-    localStorage.setItem(`vue-mixin-store-${key}-expired-at`, expiredAt)
-  } catch (e) {
-    // do nothing
-  }
-}
-
-export const delDataFromCache = (key) => {
-  localStorage.removeItem(`vue-mixin-store-${key}`)
-  localStorage.removeItem(`vue-mixin-store-${key}-expired-at`)
-}
-
-/**
  * 判断参数是否为数组
  * @param {object|array} data
  * @return {boolean}
@@ -252,16 +211,3 @@ export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
     ...result
   }
 }
-
-export const inBrowserClient = typeof window !== 'undefined'
-
-export const observerInstance = inBrowserClient
-  ? window.IntersectionObserver
-  && new window.IntersectionObserver((entries) => {
-    entries.forEach(({ intersectionRatio, target }) => {
-      if (intersectionRatio <= 0 || !target) {
-        return
-      }
-      target.__flow_handler__ && target.__flow_handler__()
-    })
-  }) : null

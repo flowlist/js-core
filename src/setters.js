@@ -1,13 +1,11 @@
 import {
-  inBrowserClient,
   computeResultLength,
-  setDataToCache,
   setReactivityField,
 } from './utils'
 import ENUM from './enum'
 
 export const SET_DATA = ({
-  getter, setter, data, fieldName, type, fromLocal, cacheTimeout, page, insertBefore,
+  getter, setter, cache, data, fieldName, type, fromLocal, cacheTimeout, page, insertBefore,
 }) => {
   return new Promise((resolve, reject) => {
     if (fromLocal) {
@@ -49,11 +47,11 @@ export const SET_DATA = ({
       type: ENUM.SETTER_TYPE.RESET,
       value: fieldData,
       callback: () => {
-        if (cacheTimeout && inBrowserClient && !fieldData.nothing) {
-          setDataToCache({
+        if (cacheTimeout && !fieldData.nothing) {
+          cache.set({
             key: fieldName,
             value: fieldData,
-            expiredAt: Date.now() + cacheTimeout * 1000,
+            timeout: cacheTimeout,
           })
         }
 
