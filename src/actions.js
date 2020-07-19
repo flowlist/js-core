@@ -260,7 +260,7 @@ export const updateState = ({
   value,
   id = '',
   uniqueKey = ENUM.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME,
-  changeKey = ENUM.FIELD_DATA.FIELD_DATA,
+  changeKey = ENUM.FIELD_DATA.RESULT_KEY,
   cacheTimeout
 }) => {
   return new Promise((resolve,  reject) => {
