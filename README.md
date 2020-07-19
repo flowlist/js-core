@@ -1,29 +1,8 @@
-# js-core
+# @flowlist/js-core
 
-## Project setup
-```
-yarn install
-```
+<p>
+    <img src="https://www.travis-ci.org/flowlist/js-core.svg?branch=master" />
+</p>
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+## 信息流业务通用容器的基础实现
 
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Run your unit tests
-```
-yarn test:unit
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
