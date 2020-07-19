@@ -20,7 +20,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build --target lib --name jsCore src/index.js",
     "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "eslint --ext .js --ignore-path .gitignore . --fix"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",

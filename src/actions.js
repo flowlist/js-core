@@ -12,7 +12,14 @@ import {
 import { SET_DATA, SET_ERROR } from './setters'
 import ENUM from './enum'
 
-export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
+export const initState = ({
+  getter,
+  setter,
+  func,
+  type,
+  query,
+  opts = {}
+}) => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
@@ -33,7 +40,16 @@ export const initState = ({ getter, setter, func, type, query, opts = {} }) => {
 }
 
 export const initData = ({
-  getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, callback
+  getter,
+  setter,
+  cache,
+  func,
+  type,
+  query,
+  api,
+  cacheTimeout,
+  uniqueKey,
+  callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
@@ -140,7 +156,17 @@ export const initData = ({
 })
 
 export const loadMore = ({
-  getter, setter, cache, query, type, func, api, cacheTimeout, uniqueKey, errorRetry, callback
+  getter,
+  setter,
+  cache,
+  query,
+  type,
+  func,
+  api,
+  cacheTimeout,
+  uniqueKey,
+  errorRetry,
+  callback
 }) => new Promise((resolve, reject) => {
   const fieldName = generateFieldName({ func, type, query })
   const fieldData = getter(fieldName)
@@ -224,9 +250,20 @@ export const loadMore = ({
 })
 
 export const updateState = ({
-  getter, setter, cache, type, func, query, method, id = '', value, uniqueKey = 'id', changeKey = 'result', cacheTimeout
+  getter,
+  setter,
+  cache,
+  type,
+  func,
+  query,
+  method,
+  value,
+  id = '',
+  uniqueKey = ENUM.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME,
+  changeKey = ENUM.FIELD_DATA.FIELD_DATA,
+  cacheTimeout
 }) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve,  reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
     if (!fieldData) {
@@ -235,11 +272,11 @@ export const updateState = ({
     }
 
     const beforeLength = computeResultLength(fieldData.result)
-    if (method === 'update') {
+    if (method === ENUM.CHANGE_TYPE.UPDATE_RESULT) {
       // 修改 result 下的某个值的任意字段
       const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
       updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
-    } else if (method === 'reset') {
+    } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
       // 修改包括 field 下的任意字段
       updateObjectDeepValue(fieldData, changeKey, value)
     } else {
@@ -247,28 +284,28 @@ export const updateState = ({
       const matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey)
 
       switch (method) {
-        case 'push':
+        case ENUM.CHANGE_TYPE.RESULT_ADD_AFTER:
           isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value)
           break
-        case 'unshift':
+        case ENUM.CHANGE_TYPE.RESULT_ADD_BEFORE:
           isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value)
           break
-        case 'delete':
+        case ENUM.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
           if (matchedIndex >= 0) {
             modifyValue.splice(matchedIndex, 1)
           }
           break
-        case 'insert-before':
+        case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:
           if (matchedIndex >= 0) {
             modifyValue.splice(matchedIndex, 0, value)
           }
           break
-        case 'insert-after':
+        case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER:
           if (matchedIndex >= 0) {
             modifyValue.splice(matchedIndex + 1, 0, value)
           }
           break
-        case 'patch':
+        case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
           combineArrayData(modifyValue, value, uniqueKey)
           break
       }

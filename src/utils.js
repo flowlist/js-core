@@ -1,3 +1,5 @@
+import ENUM from './enum'
+
 export const generateDefaultField = (opts = {}) => ({
   ...{
     result: [],
@@ -128,7 +130,7 @@ export const isArray = (data) => Object.prototype.toString.call(data) === '[obje
  * @param {boolean} insertBefore
  */
 export const setReactivityField = (field, key, value, type, insertBefore) => {
-  if (type === 'jump') {
+  if (type === ENUM.FETCH_TYPE.PAGINATION) {
     field[key] = value
     return
   }
@@ -138,7 +140,7 @@ export const setReactivityField = (field, key, value, type, insertBefore) => {
     return
   }
 
-  if (key !== 'result') {
+  if (key !== ENUM.FIELD_DATA.RESULT_KEY) {
     field[key] = value
     return
   }
@@ -182,26 +184,26 @@ export const computeResultLength = (data) => {
 export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
   const result = {}
   if (field.fetched) {
-    const changing = uniqueKey || 'id'
-    if (type === 'seenIds') {
+    const changing = uniqueKey || ENUM.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME
+    if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
-    } else if (type === 'sinceId') {
+    } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
       result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing)
       result.is_up = query.is_up ? 1 : 0
-    } else if (type === 'jump') {
+    } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
       result.page = query.page
-    } else if (type === 'page') {
+    } else if (type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE) {
       result.page = field.page + 1
     }
   } else {
-    if (type === 'seenIds') {
+    if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = ''
-    } else if (type === 'sinceId') {
+    } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
       result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
       result.is_up = query.is_up ? 1 : 0
-    } else if (type === 'jump') {
+    } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
       result.page = query.page || field.page
-    } else if (type === 'page') {
+    } else if (type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE) {
       result.page = field.page
     }
   }

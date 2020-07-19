@@ -7,7 +7,8 @@ describe('generate field name', () => {
   it('query 为空', () => {
     const name = generateFieldName({
       func,
-      type
+      type,
+      query: undefined
     })
     expect(name)
       .toBe('func-type')

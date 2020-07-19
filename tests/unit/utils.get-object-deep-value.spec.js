@@ -36,4 +36,14 @@ describe('get object deep value', () => {
     const name = getObjectDeepValue(data, 'data.deep.key')
     expect(name).toBe('dio')
   })
+
+  it('keys 是 object key array', () => {
+    const name = getObjectDeepValue(data, ['data', 'unique_id'])
+    expect(name).toBe(456)
+  })
+
+  it('keys 是 deep key array', () => {
+    const name = getObjectDeepValue(data, ['data', 'deep', 'key'])
+    expect(name).toBe('dio')
+  })
 })

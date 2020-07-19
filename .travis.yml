@@ -1,0 +1,18 @@
+language: node_js
+
+node_js:
+  - 10.14.1
+
+cache:
+  bundler: true
+  yarn: true
+  directories:
+      - node_modules
+
+install:
+  - yarn install
+  - yarn add codecov -g
+
+script:
+  - yarn run test:unit
+  - codecov

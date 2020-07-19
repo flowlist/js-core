@@ -927,6 +927,20 @@ module.exports = __webpack_require__("96cf");
 // ESM COMPAT FLAG
 __webpack_require__.r(__webpack_exports__);
 
+// NAMESPACE OBJECT: ./src/utils.js
+var utils_namespaceObject = {};
+__webpack_require__.r(utils_namespaceObject);
+__webpack_require__.d(utils_namespaceObject, "generateDefaultField", function() { return generateDefaultField; });
+__webpack_require__.d(utils_namespaceObject, "generateFieldName", function() { return generateFieldName; });
+__webpack_require__.d(utils_namespaceObject, "getObjectDeepValue", function() { return getObjectDeepValue; });
+__webpack_require__.d(utils_namespaceObject, "updateObjectDeepValue", function() { return updateObjectDeepValue; });
+__webpack_require__.d(utils_namespaceObject, "computeMatchedItemIndex", function() { return computeMatchedItemIndex; });
+__webpack_require__.d(utils_namespaceObject, "combineArrayData", function() { return combineArrayData; });
+__webpack_require__.d(utils_namespaceObject, "isArray", function() { return isArray; });
+__webpack_require__.d(utils_namespaceObject, "setReactivityField", function() { return utils_setReactivityField; });
+__webpack_require__.d(utils_namespaceObject, "computeResultLength", function() { return computeResultLength; });
+__webpack_require__.d(utils_namespaceObject, "generateRequestParams", function() { return utils_generateRequestParams; });
+
 // NAMESPACE OBJECT: ./src/actions.js
 var actions_namespaceObject = {};
 __webpack_require__.r(actions_namespaceObject);
@@ -963,6 +977,36 @@ if (typeof window !== 'undefined') {
 var regenerator = __webpack_require__("a34a");
 var regenerator_default = /*#__PURE__*/__webpack_require__.n(regenerator);
 
+// CONCATENATED MODULE: ./src/enum.js
+/* harmony default export */ var src_enum = ({
+  SETTER_TYPE: {
+    RESET: 0,
+    MERGE: 1
+  },
+  FETCH_TYPE: {
+    PAGINATION: 'jump',
+    SINCE_FIRST_OR_END_ID: 'sinceId',
+    SCROLL_LOAD_MORE: 'page',
+    HAS_LOADED_IDS: 'seenIds'
+  },
+  CHANGE_TYPE: {
+    RESET_FIELD: 'reset',
+    UPDATE_RESULT: 'update',
+    RESULT_ADD_AFTER: 'push',
+    RESULT_ADD_BEFORE: 'unshift',
+    RESULT_REMOVE_BY_ID: 'delete',
+    RESULT_INSERT_TO_BEFORE: 'insert-before',
+    RESULT_INSERT_TO_AFTER: 'insert-after',
+    RESULT_LIST_MERGE: 'patch'
+  },
+  FIELD_DATA: {
+    RESULT_KEY: 'result',
+    EXTRA_KEY: 'extra'
+  },
+  FETCH_PARAMS_DEFAULT: {
+    CHANGE_KEY_NAME: 'id'
+  }
+});
 // CONCATENATED MODULE: ./src/utils.js
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -971,6 +1015,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 
 var generateDefaultField = function generateDefaultField() {
   var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -994,8 +1039,11 @@ var generateDefaultField = function generateDefaultField() {
  * @return {string}
  */
 
-var generateFieldName = function generateFieldName(func, type) {
-  var query = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+var generateFieldName = function generateFieldName(_ref) {
+  var func = _ref.func,
+      type = _ref.type,
+      _ref$query = _ref.query,
+      query = _ref$query === void 0 ? {} : _ref$query;
   var result = "".concat(func, "-").concat(type);
   Object.keys(query).filter(function (_) {
     return !~['undefined', 'object', 'function'].indexOf(_typeof(query[_])) && !~['page', 'is_up', 'since_id', 'seen_ids', '__refresh__', '__reload__'].indexOf(_);
@@ -1011,7 +1059,7 @@ var generateFieldName = function generateFieldName(func, type) {
  * @return {*}
  */
 
-var utils_getObjectDeepValue = function getObjectDeepValue(field, keys) {
+var getObjectDeepValue = function getObjectDeepValue(field, keys) {
   if (!keys) {
     return field;
   }
@@ -1048,7 +1096,7 @@ var computeMatchedItemIndex = function computeMatchedItemIndex(itemId, fieldArr,
   var s = -1;
 
   for (var i = 0; i < fieldArr.length; i++) {
-    if (utils_getObjectDeepValue(fieldArr[i], changingKey).toString() === itemId.toString()) {
+    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === itemId.toString()) {
       s = i;
       break;
     }
@@ -1059,9 +1107,9 @@ var computeMatchedItemIndex = function computeMatchedItemIndex(itemId, fieldArr,
 var combineArrayData = function combineArrayData(fieldArray, value, changingKey) {
   if (isArray(value)) {
     value.forEach(function (col) {
-      var stringifyId = utils_getObjectDeepValue(col, changingKey).toString();
+      var stringifyId = getObjectDeepValue(col, changingKey).toString();
       fieldArray.forEach(function (item, index) {
-        if (utils_getObjectDeepValue(item, changingKey).toString() === stringifyId) {
+        if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
           fieldArray[index] = _objectSpread(_objectSpread({}, item), col);
         }
       });
@@ -1070,60 +1118,12 @@ var combineArrayData = function combineArrayData(fieldArray, value, changingKey)
     Object.keys(value).forEach(function (uniqueId) {
       var stringifyId = uniqueId.toString();
       fieldArray.forEach(function (item, index) {
-        if (utils_getObjectDeepValue(item, changingKey).toString() === stringifyId) {
+        if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
           fieldArray[index] = _objectSpread(_objectSpread({}, item), value[uniqueId]);
         }
       });
     });
   }
-};
-/**
- * 从 localStorage 里获取数据
- * @param {string} key
- * @param {int} now
- * @return {null|object}
- */
-
-var getDateFromCache = function getDateFromCache(_ref) {
-  var key = _ref.key,
-      now = _ref.now;
-
-  try {
-    var expiredAt = localStorage.getItem("vue-mixin-store-".concat(key, "-expired-at"));
-    var cacheStr = localStorage.getItem("vue-mixin-store-".concat(key));
-
-    if (!expiredAt || !cacheStr || now - expiredAt > 0) {
-      delDataFromCache(key);
-      return null;
-    }
-
-    return JSON.parse(cacheStr);
-  } catch (e) {
-    delDataFromCache(key);
-    return null;
-  }
-};
-/**
- * 设置 localStorage
- * @param {string} key
- * @param {object} value
- * @param {int} expiredAt
- */
-
-var utils_setDataToCache = function setDataToCache(_ref2) {
-  var key = _ref2.key,
-      value = _ref2.value,
-      expiredAt = _ref2.expiredAt;
-
-  try {
-    localStorage.setItem("vue-mixin-store-".concat(key), JSON.stringify(value));
-    localStorage.setItem("vue-mixin-store-".concat(key, "-expired-at"), expiredAt);
-  } catch (e) {// do nothing
-  }
-};
-var delDataFromCache = function delDataFromCache(key) {
-  localStorage.removeItem("vue-mixin-store-".concat(key));
-  localStorage.removeItem("vue-mixin-store-".concat(key, "-expired-at"));
 };
 /**
  * 判断参数是否为数组
@@ -1143,8 +1143,8 @@ var isArray = function isArray(data) {
  * @param {boolean} insertBefore
  */
 
-var setReactivityField = function setReactivityField(field, key, value, type, insertBefore) {
-  if (type === 'jump') {
+var utils_setReactivityField = function setReactivityField(field, key, value, type, insertBefore) {
+  if (type === src_enum.FETCH_TYPE.PAGINATION) {
     field[key] = value;
     return;
   }
@@ -1154,7 +1154,7 @@ var setReactivityField = function setReactivityField(field, key, value, type, in
     return;
   }
 
-  if (key !== 'result') {
+  if (key !== src_enum.FIELD_DATA.RESULT_KEY) {
     field[key] = value;
     return;
   }
@@ -1173,7 +1173,7 @@ var setReactivityField = function setReactivityField(field, key, value, type, in
  * @return {number}
  */
 
-var utils_computeResultLength = function computeResultLength(data) {
+var computeResultLength = function computeResultLength(data) {
   var result = 0;
 
   if (isArray(data)) {
@@ -1195,61 +1195,50 @@ var utils_computeResultLength = function computeResultLength(data) {
  * @return {object}
  */
 
-var generateRequestParams = function generateRequestParams(_ref3) {
-  var field = _ref3.field,
-      uniqueKey = _ref3.uniqueKey,
-      query = _ref3.query,
-      type = _ref3.type;
+var utils_generateRequestParams = function generateRequestParams(_ref2) {
+  var field = _ref2.field,
+      uniqueKey = _ref2.uniqueKey,
+      query = _ref2.query,
+      type = _ref2.type;
   var result = {};
 
   if (field.fetched) {
-    var changing = uniqueKey || 'id';
+    var changing = uniqueKey || src_enum.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME;
 
-    if (type === 'seenIds') {
+    if (type === src_enum.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = field.result.map(function (_) {
-        return utils_getObjectDeepValue(_, changing);
+        return getObjectDeepValue(_, changing);
       }).join(',');
-    } else if (type === 'sinceId') {
-      result.since_id = utils_getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing);
+    } else if (type === src_enum.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
+      result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing);
       result.is_up = query.is_up ? 1 : 0;
-    } else if (type === 'jump') {
+    } else if (type === src_enum.FETCH_TYPE.PAGINATION) {
       result.page = query.page;
-    } else if (type === 'page') {
+    } else if (type === src_enum.FETCH_TYPE.SCROLL_LOAD_MORE) {
       result.page = field.page + 1;
     }
   } else {
-    if (type === 'seenIds') {
+    if (type === src_enum.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = '';
-    } else if (type === 'sinceId') {
+    } else if (type === src_enum.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
       result.since_id = query.sinceId || (query.is_up ? 999999999 : 0);
       result.is_up = query.is_up ? 1 : 0;
-    } else if (type === 'jump') {
+    } else if (type === src_enum.FETCH_TYPE.PAGINATION) {
       result.page = query.page || field.page;
-    } else if (type === 'page') {
+    } else if (type === src_enum.FETCH_TYPE.SCROLL_LOAD_MORE) {
       result.page = field.page;
     }
   }
 
   return _objectSpread(_objectSpread({}, query), result);
 };
-var inBrowserClient = typeof window !== 'undefined';
-var observerInstance = inBrowserClient ? window.IntersectionObserver && new window.IntersectionObserver(function (entries) {
-  entries.forEach(function (_ref4) {
-    var intersectionRatio = _ref4.intersectionRatio,
-        target = _ref4.target;
-
-    if (intersectionRatio <= 0 || !target) {
-      return;
-    }
-
-    target.__flow_handler__ && target.__flow_handler__();
-  });
-}) : null;
 // CONCATENATED MODULE: ./src/setters.js
+
 
 var setters_SET_DATA = function SET_DATA(_ref) {
   var getter = _ref.getter,
       setter = _ref.setter,
+      cache = _ref.cache,
       data = _ref.data,
       fieldName = _ref.fieldName,
       type = _ref.type,
@@ -1257,53 +1246,68 @@ var setters_SET_DATA = function SET_DATA(_ref) {
       cacheTimeout = _ref.cacheTimeout,
       page = _ref.page,
       insertBefore = _ref.insertBefore;
+  return new Promise(function (resolve, reject) {
+    if (fromLocal) {
+      setter({
+        key: fieldName,
+        type: src_enum.SETTER_TYPE.RESET,
+        value: data,
+        callback: function callback() {
+          resolve();
+        }
+      });
+      return;
+    }
 
-  if (fromLocal) {
+    var fieldData = getter(fieldName);
+
+    if (!fieldData) {
+      reject();
+      return;
+    }
+
+    var result = data.result,
+        extra = data.extra;
+    fieldData.nothing = fieldData.fetched ? false : computeResultLength(result) === 0;
+    fieldData.fetched = true;
+    fieldData.total = data.total || 0;
+
+    if (type === src_enum.FETCH_TYPE.PAGINATION) {
+      fieldData.noMore = false;
+      fieldData.page = +page;
+    } else {
+      fieldData.noMore = data.no_more || false;
+      fieldData.page = fieldData.page + 1;
+    }
+
+    fieldData.loading = false;
+    utils_setReactivityField(fieldData, src_enum.FIELD_DATA.RESULT_KEY, result, type, insertBefore);
+    extra && utils_setReactivityField(fieldData, src_enum.FIELD_DATA.EXTRA_KEY, extra, type, insertBefore);
     setter({
       key: fieldName,
-      type: 0,
-      value: data
-    });
-    return;
-  }
-
-  var fieldData = getter(fieldName);
-
-  if (!fieldData) {
-    return;
-  }
-
-  var result = data.result,
-      extra = data.extra;
-  fieldData.nothing = fieldData.fetched ? false : utils_computeResultLength(result) === 0;
-  fieldData.fetched = true;
-  fieldData.total = data.total || 0;
-  fieldData.noMore = type === 'jump' ? false : data.no_more || false;
-  fieldData.page = page ? parseInt(page) : fieldData.page + 1;
-  fieldData.loading = false;
-  setReactivityField(fieldData, 'result', result, type, insertBefore);
-  extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore);
-  setter({
-    key: fieldName,
-    type: 0,
-    value: fieldData
-  });
-
-  if (cacheTimeout && inBrowserClient && !fieldData.nothing) {
-    utils_setDataToCache({
-      key: fieldName,
+      type: src_enum.SETTER_TYPE.RESET,
       value: fieldData,
-      expiredAt: Date.now() + cacheTimeout * 1000
+      callback: function callback() {
+        if (cacheTimeout && !fieldData.nothing) {
+          cache.set({
+            key: fieldName,
+            value: fieldData,
+            timeout: cacheTimeout
+          });
+        }
+
+        resolve();
+      }
     });
-  }
+  });
 };
-var SET_ERROR = function SET_ERROR(_ref2) {
+var setters_SET_ERROR = function SET_ERROR(_ref2) {
   var setter = _ref2.setter,
       fieldName = _ref2.fieldName,
       error = _ref2.error;
   setter({
     key: fieldName,
-    type: 1,
+    type: src_enum.SETTER_TYPE.MERGE,
     value: {
       error: error,
       loading: false
@@ -1313,50 +1317,67 @@ var SET_ERROR = function SET_ERROR(_ref2) {
 // CONCATENATED MODULE: ./src/actions.js
 
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function actions_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function actions_objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { actions_ownKeys(Object(source), true).forEach(function (key) { actions_defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { actions_ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function actions_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
-
-function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
 
 
 var actions_initState = function initState(_ref) {
   var getter = _ref.getter,
       setter = _ref.setter,
-      query = _ref.query,
-      type = _ref.type,
       func = _ref.func,
-      opts = _ref.opts;
-  var fieldName = generateFieldName(func, type, query);
-  var fieldData = getter(fieldName);
+      type = _ref.type,
+      query = _ref.query,
+      _ref$opts = _ref.opts,
+      opts = _ref$opts === void 0 ? {} : _ref$opts;
+  return new Promise(function (resolve, reject) {
+    var fieldName = generateFieldName({
+      func: func,
+      type: type,
+      query: query
+    });
+    var fieldData = getter(fieldName);
 
-  if (fieldData) {
-    return;
-  }
+    if (fieldData) {
+      reject();
+      return;
+    }
 
-  setter({
-    key: fieldName,
-    type: 0,
-    value: generateDefaultField(opts || {})
+    setter({
+      key: fieldName,
+      type: src_enum.SETTER_TYPE.RESET,
+      value: generateDefaultField(opts),
+      callback: function callback() {
+        resolve();
+      }
+    });
   });
 };
 var actions_initData = function initData(_ref2) {
   var getter = _ref2.getter,
       setter = _ref2.setter,
-      query = _ref2.query,
-      type = _ref2.type,
+      cache = _ref2.cache,
       func = _ref2.func,
+      type = _ref2.type,
+      query = _ref2.query,
       api = _ref2.api,
       cacheTimeout = _ref2.cacheTimeout,
       uniqueKey = _ref2.uniqueKey,
       callback = _ref2.callback;
   return new Promise(function (resolve, reject) {
-    var fieldName = generateFieldName(func, type, query);
+    var fieldName = generateFieldName({
+      func: func,
+      type: type,
+      query: query
+    });
     var fieldData = getter(fieldName);
     var doRefresh = !!query.__refresh__;
     var needReset = !!query.__reload__; // 如果 error 了，就不再请求
@@ -1377,87 +1398,112 @@ var actions_initData = function initData(_ref2) {
       return resolve();
     }
 
-    var params = generateRequestParams({
-      fetched: false
-    }, uniqueKey, query, type);
-    params._extra = dontFetch ? fieldData ? fieldData.extra : null : null;
+    var params = utils_generateRequestParams({
+      field: actions_objectSpread(actions_objectSpread({}, fieldData), {}, {
+        fetched: false
+      }),
+      uniqueKey: uniqueKey,
+      query: query,
+      type: type
+    });
     var data;
     var fromLocal = false;
 
     var getData = /*#__PURE__*/function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regenerator_default.a.mark(function _callee() {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regenerator_default.a.mark(function _callee2() {
         var setData;
-        return regenerator_default.a.wrap(function _callee$(_context) {
+        return regenerator_default.a.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                _context.prev = 0;
+                _context2.prev = 0;
 
-                if (!(cacheTimeout && inBrowserClient)) {
-                  _context.next = 12;
+                if (!cacheTimeout) {
+                  _context2.next = 12;
                   break;
                 }
 
-                data = getDateFromCache({
-                  key: fieldName,
-                  now: Date.now()
+                data = cache.get({
+                  key: fieldName
                 });
 
                 if (!data) {
-                  _context.next = 7;
+                  _context2.next = 7;
                   break;
                 }
 
                 fromLocal = true;
-                _context.next = 10;
+                _context2.next = 10;
                 break;
 
               case 7:
-                _context.next = 9;
+                _context2.next = 9;
                 return api[func](params);
 
               case 9:
-                data = _context.sent;
+                data = _context2.sent;
 
               case 10:
-                _context.next = 15;
+                _context2.next = 15;
                 break;
 
               case 12:
-                _context.next = 14;
+                _context2.next = 14;
                 return api[func](params);
 
               case 14:
-                data = _context.sent;
+                data = _context2.sent;
 
               case 15:
-                setData = function setData() {
-                  setters_SET_DATA({
-                    getter: getter,
-                    setter: setter,
-                    data: data,
-                    fieldName: fieldName,
-                    type: type,
-                    fromLocal: fromLocal,
-                    cacheTimeout: cacheTimeout,
-                    page: params.page,
-                    insertBefore: !!query.is_up
-                  });
+                setData = /*#__PURE__*/function () {
+                  var _ref4 = _asyncToGenerator( /*#__PURE__*/regenerator_default.a.mark(function _callee() {
+                    return regenerator_default.a.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.next = 2;
+                            return setters_SET_DATA({
+                              getter: getter,
+                              setter: setter,
+                              cache: cache,
+                              data: data,
+                              fieldName: fieldName,
+                              type: type,
+                              fromLocal: fromLocal,
+                              cacheTimeout: cacheTimeout,
+                              page: params.page,
+                              insertBefore: false
+                            });
 
-                  if (inBrowserClient && callback) {
-                    callback({
-                      params: params,
-                      data: data,
-                      refresh: doRefresh
-                    });
-                  }
-                }; // 拿到数据后再重置 field
+                          case 2:
+                            if (callback) {
+                              callback({
+                                params: params,
+                                data: data,
+                                refresh: doRefresh
+                              });
+                            }
+
+                            resolve();
+
+                          case 4:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  }));
+
+                  return function setData() {
+                    return _ref4.apply(this, arguments);
+                  };
+                }(); // 拿到数据后再重置 field
 
 
                 if (needReset) {
                   setter({
                     key: fieldName,
-                    type: 0,
+                    type: src_enum.SETTER_TYPE.RESET,
                     value: generateDefaultField(),
                     callback: setData
                   });
@@ -1465,26 +1511,25 @@ var actions_initData = function initData(_ref2) {
                   setData();
                 }
 
-                resolve();
-                _context.next = 24;
+                _context2.next = 23;
                 break;
 
-              case 20:
-                _context.prev = 20;
-                _context.t0 = _context["catch"](0);
-                SET_ERROR({
+              case 19:
+                _context2.prev = 19;
+                _context2.t0 = _context2["catch"](0);
+                setters_SET_ERROR({
                   setter: setter,
                   fieldName: fieldName,
-                  error: _context.t0
+                  error: _context2.t0
                 });
-                reject(_context.t0);
+                reject(_context2.t0);
 
-              case 24:
+              case 23:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, null, [[0, 20]]);
+        }, _callee2, null, [[0, 19]]);
       }));
 
       return function getData() {
@@ -1496,7 +1541,7 @@ var actions_initData = function initData(_ref2) {
     if (!dontFetch && !needReset) {
       setter({
         key: fieldName,
-        type: 0,
+        type: src_enum.SETTER_TYPE.RESET,
         value: actions_objectSpread(actions_objectSpread({}, generateDefaultField()), {}, {
           loading: true,
           error: null
@@ -1508,26 +1553,43 @@ var actions_initData = function initData(_ref2) {
     }
   });
 };
-var actions_loadMore = function loadMore(_ref4) {
-  var getter = _ref4.getter,
-      setter = _ref4.setter,
-      query = _ref4.query,
-      type = _ref4.type,
-      func = _ref4.func,
-      api = _ref4.api,
-      cacheTimeout = _ref4.cacheTimeout,
-      uniqueKey = _ref4.uniqueKey,
-      force = _ref4.force,
-      callback = _ref4.callback;
+var actions_loadMore = function loadMore(_ref5) {
+  var getter = _ref5.getter,
+      setter = _ref5.setter,
+      cache = _ref5.cache,
+      query = _ref5.query,
+      type = _ref5.type,
+      func = _ref5.func,
+      api = _ref5.api,
+      cacheTimeout = _ref5.cacheTimeout,
+      uniqueKey = _ref5.uniqueKey,
+      errorRetry = _ref5.errorRetry,
+      callback = _ref5.callback;
   return new Promise(function (resolve, reject) {
-    var fieldName = generateFieldName(func, type, query);
+    var fieldName = generateFieldName({
+      func: func,
+      type: type,
+      query: query
+    });
     var fieldData = getter(fieldName);
 
-    if (!fieldData || fieldData.loading || fieldData.nothing || fieldData.noMore && !force) {
+    if (!fieldData) {
       return resolve();
     }
 
-    if (type === 'jump' && +query.page === fieldData.page) {
+    if (fieldData.loading) {
+      return resolve();
+    }
+
+    if (fieldData.nothing) {
+      return resolve();
+    }
+
+    if (fieldData.noMore && !errorRetry) {
+      return resolve();
+    }
+
+    if (type === src_enum.FETCH_TYPE.PAGINATION && +query.page === fieldData.page) {
       return resolve();
     }
 
@@ -1536,30 +1598,37 @@ var actions_loadMore = function loadMore(_ref4) {
       error: null
     };
 
-    if (type === 'jump') {
+    if (type === src_enum.FETCH_TYPE.PAGINATION) {
       loadingState.result = [];
       loadingState.extra = null;
     }
 
-    var params = generateRequestParams(fieldData, uniqueKey, query, type);
+    var params = utils_generateRequestParams({
+      field: fieldData,
+      uniqueKey: uniqueKey,
+      query: query,
+      type: type
+    });
     params._extra = fieldData.extra;
 
     var getData = /*#__PURE__*/function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regenerator_default.a.mark(function _callee2() {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regenerator_default.a.mark(function _callee3() {
         var data;
-        return regenerator_default.a.wrap(function _callee2$(_context2) {
+        return regenerator_default.a.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                _context2.prev = 0;
-                _context2.next = 3;
+                _context3.prev = 0;
+                _context3.next = 3;
                 return api[func](params);
 
               case 3:
-                data = _context2.sent;
-                setters_SET_DATA({
+                data = _context3.sent;
+                _context3.next = 6;
+                return setters_SET_DATA({
                   getter: getter,
                   setter: setter,
+                  cache: cache,
                   data: data,
                   fieldName: fieldName,
                   type: type,
@@ -1569,7 +1638,8 @@ var actions_loadMore = function loadMore(_ref4) {
                   insertBefore: !!query.is_up
                 });
 
-                if (inBrowserClient && callback) {
+              case 6:
+                if (callback) {
                   callback({
                     params: params,
                     data: data,
@@ -1578,142 +1648,141 @@ var actions_loadMore = function loadMore(_ref4) {
                 }
 
                 resolve();
-                _context2.next = 13;
+                _context3.next = 14;
                 break;
 
-              case 9:
-                _context2.prev = 9;
-                _context2.t0 = _context2["catch"](0);
-                SET_ERROR({
+              case 10:
+                _context3.prev = 10;
+                _context3.t0 = _context3["catch"](0);
+                setters_SET_ERROR({
                   setter: setter,
                   fieldName: fieldName,
-                  error: _context2.t0
+                  error: _context3.t0
                 });
-                reject(_context2.t0);
+                reject(_context3.t0);
 
-              case 13:
+              case 14:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, null, [[0, 9]]);
+        }, _callee3, null, [[0, 10]]);
       }));
 
       return function getData() {
-        return _ref5.apply(this, arguments);
+        return _ref6.apply(this, arguments);
       };
     }();
 
     setter({
       key: fieldName,
-      type: 1,
+      type: src_enum.SETTER_TYPE.MERGE,
       value: loadingState,
       callback: getData
     });
   });
 };
-var actions_updateState = function updateState() {
-  var _ref6 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
-    uniqueKey: 'id',
-    changeKey: 'result'
-  },
-      getter = _ref6.getter,
-      setter = _ref6.setter,
-      type = _ref6.type,
-      func = _ref6.func,
-      query = _ref6.query,
-      id = _ref6.id,
-      method = _ref6.method,
-      changeKey = _ref6.changeKey,
-      value = _ref6.value,
-      cacheTimeout = _ref6.cacheTimeout,
-      uniqueKey = _ref6.uniqueKey;
+var actions_updateState = function updateState(_ref7) {
+  var getter = _ref7.getter,
+      setter = _ref7.setter,
+      cache = _ref7.cache,
+      type = _ref7.type,
+      func = _ref7.func,
+      query = _ref7.query,
+      method = _ref7.method,
+      value = _ref7.value,
+      _ref7$id = _ref7.id,
+      id = _ref7$id === void 0 ? '' : _ref7$id,
+      _ref7$uniqueKey = _ref7.uniqueKey,
+      uniqueKey = _ref7$uniqueKey === void 0 ? src_enum.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME : _ref7$uniqueKey,
+      _ref7$changeKey = _ref7.changeKey,
+      changeKey = _ref7$changeKey === void 0 ? src_enum.FIELD_DATA.FIELD_DATA : _ref7$changeKey,
+      cacheTimeout = _ref7.cacheTimeout;
+  return new Promise(function (resolve, reject) {
+    var fieldName = generateFieldName({
+      func: func,
+      type: type,
+      query: query
+    });
+    var fieldData = getter(fieldName);
 
-  var fieldName = generateFieldName(func, type, query);
-  var fieldData = getter(fieldName);
+    if (!fieldData) {
+      reject();
+      return;
+    }
 
-  if (!fieldData) {
-    return;
-  }
+    var beforeLength = computeResultLength(fieldData.result);
 
-  var beforeLength = computeResultLength(fieldData.result);
-
-  if (method === 'update') {
-    // 修改 result 下的任意字段
-    if (isArray(fieldData.result)) {
+    if (method === src_enum.CHANGE_TYPE.UPDATE_RESULT) {
+      // 修改 result 下的某个值的任意字段
       var matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey);
       updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value);
+    } else if (method === src_enum.CHANGE_TYPE.RESET_FIELD) {
+      // 修改包括 field 下的任意字段
+      updateObjectDeepValue(fieldData, changeKey, value);
     } else {
-      var keys = changeKey.split('.');
-      keys.pop();
-      var changeArr = getObjectDeepValue(fieldData.result, keys);
+      var modifyValue = getObjectDeepValue(fieldData, changeKey);
 
-      var _matchedIndex = computeMatchedItemIndex(id, changeArr, uniqueKey);
+      var _matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey);
 
-      changeArr[_matchedIndex] = value;
-    }
-  } else if (method === 'modify') {
-    // 修改包括 field 下的任意字段
-    updateObjectDeepValue(fieldData, changeKey, value);
-  } else {
-    var modifyValue = getObjectDeepValue(fieldData, changeKey);
+      switch (method) {
+        case src_enum.CHANGE_TYPE.RESULT_ADD_AFTER:
+          isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value);
+          break;
 
-    var _matchedIndex2 = computeMatchedItemIndex(id, modifyValue, uniqueKey);
+        case src_enum.CHANGE_TYPE.RESULT_ADD_BEFORE:
+          isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value);
+          break;
 
-    switch (method) {
-      case 'push':
-        isArray(value) ? modifyValue = modifyValue.concat(value) : modifyValue.push(value);
-        break;
+        case src_enum.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
+          if (_matchedIndex >= 0) {
+            modifyValue.splice(_matchedIndex, 1);
+          }
 
-      case 'unshift':
-        isArray(value) ? modifyValue = value.concat(modifyValue) : modifyValue.unshift(value);
-        break;
+          break;
 
-      case 'delete':
-        if (_matchedIndex2 >= 0) {
-          modifyValue.splice(_matchedIndex2, 1);
-        }
+        case src_enum.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:
+          if (_matchedIndex >= 0) {
+            modifyValue.splice(_matchedIndex, 0, value);
+          }
 
-        break;
+          break;
 
-      case 'insert-before':
-        if (_matchedIndex2 >= 0) {
-          modifyValue.splice(_matchedIndex2, 0, value);
-        }
+        case src_enum.CHANGE_TYPE.RESULT_INSERT_TO_AFTER:
+          if (_matchedIndex >= 0) {
+            modifyValue.splice(_matchedIndex + 1, 0, value);
+          }
 
-        break;
+          break;
 
-      case 'insert-after':
-        if (_matchedIndex2 >= 0) {
-          modifyValue.splice(_matchedIndex2 + 1, 0, value);
-        }
+        case src_enum.CHANGE_TYPE.RESULT_LIST_MERGE:
+          combineArrayData(modifyValue, value, uniqueKey);
+          break;
+      }
 
-        break;
-
-      case 'patch':
-        combineArrayData(modifyValue, value, uniqueKey);
-        break;
+      fieldData[changeKey] = modifyValue;
     }
 
-    fieldData[changeKey] = modifyValue;
-  }
-
-  var afterLength = computeResultLength(fieldData.result);
-  fieldData.total = fieldData.total + afterLength - beforeLength;
-  fieldData.nothing = afterLength === 0;
-  setter({
-    key: fieldName,
-    type: 0,
-    value: fieldData
-  });
-
-  if (inBrowserClient && cacheTimeout) {
-    setDataToCache({
+    var afterLength = computeResultLength(fieldData.result);
+    fieldData.total = fieldData.total + afterLength - beforeLength;
+    fieldData.nothing = afterLength === 0;
+    setter({
       key: fieldName,
+      type: src_enum.SETTER_TYPE.MERGE,
       value: fieldData,
-      expiredAt: Date.now() + cacheTimeout * 1000
+      callback: function callback() {
+        if (cacheTimeout) {
+          cache.set({
+            key: fieldName,
+            value: fieldData,
+            timeout: cacheTimeout
+          });
+        }
+
+        resolve();
+      }
     });
-  }
+  });
 };
 // CONCATENATED MODULE: ./src/index.js
 function src_ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -1723,7 +1792,10 @@ function src_objectSpread(target) { for (var i = 1; i < arguments.length; i++) {
 function src_defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 
-/* harmony default export */ var src_0 = (src_objectSpread({}, actions_namespaceObject));
+
+/* harmony default export */ var src_0 = (src_objectSpread({
+  utils: utils_namespaceObject
+}, actions_namespaceObject));
 // CONCATENATED MODULE: ./node_modules/@vue/cli-service/lib/commands/build/entry-lib.js
 
 

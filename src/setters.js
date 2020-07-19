@@ -22,9 +22,7 @@ export const SET_DATA = ({
 
     const fieldData = getter(fieldName)
     if (!fieldData) {
-      reject({
-        message: 'field not init'
-      })
+      reject()
       return
     }
 
@@ -40,8 +38,8 @@ export const SET_DATA = ({
       fieldData.page = fieldData.page + 1
     }
     fieldData.loading = false
-    setReactivityField(fieldData, 'result', result, type, insertBefore)
-    extra && setReactivityField(fieldData, 'extra', extra, type, insertBefore)
+    setReactivityField(fieldData, ENUM.FIELD_DATA.RESULT_KEY, result, type, insertBefore)
+    extra && setReactivityField(fieldData, ENUM.FIELD_DATA.EXTRA_KEY, extra, type, insertBefore)
     setter({
       key: fieldName,
       type: ENUM.SETTER_TYPE.RESET,

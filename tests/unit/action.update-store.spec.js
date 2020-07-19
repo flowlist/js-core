@@ -640,4 +640,193 @@ describe('update state', () => {
           })
       })
   })
+
+  it('如果删除后列表为空，nothing 为 true', (done) => {
+    const func = 'update-state-change-nothing'
+    const type = 'type'
+    const query = {
+      test_order: 9
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: [api.testArrData().result[0]]
+      }
+    })
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      id: api.testArrData().result[0].id,
+      method: 'delete'
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.result).toEqual([])
+        expect(state.nothing).toBe(true)
+
+        done()
+      })
+  })
+
+  it('空列表里追加，nothing 为 false', (done) => {
+    const func = 'update-state-change-nothing'
+    const type = 'type'
+    const query = {
+      test_order: 10
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        nothing: true
+      }
+    })
+
+    const newValObj = {
+      id: 4,
+      txt: '嘎嘎嘎'
+    }
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'push',
+      value: newValObj
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.nothing).toBe(false)
+
+        done()
+      })
+  })
+
+  it('如果删除，total 减少', (done) => {
+    const func = 'update-state-change-total'
+    const type = 'type'
+    const query = {
+      test_order: 11
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: [api.testArrData().result[0]]
+      }
+    })
+
+    const state = getter(generateFieldName({
+      func,
+      type,
+      query
+    }))
+    const beforeTotal = state.total
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      id: api.testArrData().result[0].id,
+      method: 'delete'
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.total).toBe(beforeTotal - 1)
+
+        done()
+      })
+  })
+
+  it('列表追加，total 增加', (done) => {
+    const func = 'update-state-change-total'
+    const type = 'type'
+    const query = {
+      test_order: 12
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        nothing: true
+      }
+    })
+
+    const state = getter(generateFieldName({
+      func,
+      type,
+      query
+    }))
+    const beforeTotal = state.total
+
+    const newValObj = {
+      id: 4,
+      txt: '嘎嘎嘎'
+    }
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'push',
+      value: newValObj
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.total).toBe(beforeTotal + 1)
+
+        done()
+      })
+  })
 })
