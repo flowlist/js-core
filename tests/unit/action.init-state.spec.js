@@ -71,8 +71,7 @@ describe('init state', () => {
           type,
           query
         })
-          .then()
-          .catch(() => {
+          .then(() => {
             const state = getter(generateFieldName({
               func,
               type,

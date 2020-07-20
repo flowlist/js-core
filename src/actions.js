@@ -20,11 +20,11 @@ export const initState = ({
   query,
   opts = {}
 }) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
     if (fieldData) {
-      reject()
+      resolve()
       return
     }
 

@@ -1,5 +1,5 @@
 /*!
- * @flowlist/js-core v1.0.0
+ * @flowlist/js-core v1.0.1
  * (c) 2020 falstack
  * https://github.com/flowlist/js-core#readme
  */
@@ -1355,7 +1355,7 @@ var actions_initState = function initState(_ref) {
       query = _ref.query,
       _ref$opts = _ref.opts,
       opts = _ref$opts === void 0 ? {} : _ref$opts;
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     var fieldName = generateFieldName({
       func: func,
       type: type,
@@ -1364,7 +1364,7 @@ var actions_initState = function initState(_ref) {
     var fieldData = getter(fieldName);
 
     if (fieldData) {
-      reject();
+      resolve();
       return;
     }
 
