@@ -51,6 +51,9 @@ export const SET_DATA = ({
             value: fieldData,
             timeout: cacheTimeout,
           })
+            .then(resolve)
+            .catch(resolve)
+          return
         }
 
         resolve()

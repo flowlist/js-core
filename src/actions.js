@@ -82,20 +82,25 @@ export const initData = ({
 
   const getData = () => {
     const loadData = () => new Promise((res) => {
-      if (cacheTimeout) {
-        const data = cache.get({
-          key: fieldName
+      const getDataFromAPI = () => {
+        api[func](params).then(res).catch(error => {
+          SET_ERROR({ setter, fieldName, error })
+          reject(error)
         })
-        if (data) {
-          fromLocal = true
-          res(data)
-          return
-        }
       }
-      api[func](params).then(res).catch(error => {
-        SET_ERROR({ setter, fieldName, error })
-        reject(error)
-      })
+
+      if (cacheTimeout) {
+        cache.get({ key: fieldName })
+          .then(data => {
+            fromLocal = true
+            res(data)
+          })
+          .catch(() => {
+            getDataFromAPI()
+          })
+      } else {
+        getDataFromAPI()
+      }
     })
 
     loadData().then(data => {
@@ -327,6 +332,9 @@ export const updateState = ({
             value: fieldData,
             timeout: cacheTimeout
           })
+            .then(resolve)
+            .catch(resolve)
+          return
         }
 
         resolve()

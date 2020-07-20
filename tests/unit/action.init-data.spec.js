@@ -523,36 +523,38 @@ describe('init data', () => {
         })
 
         const state = getter(fieldName)
-        const cacheData = cache.get({ key: fieldName })
+        cache.get({ key: fieldName })
+          .then(cacheData => {
+            expect(state).toEqual(cacheData)
 
-        expect(state).toEqual(cacheData)
-
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query: {
-            ...query,
-            __refresh__: true
-          },
-          api,
-          cacheTimeout: 100
-        })
-          .then(() => {
-            const fieldName = generateFieldName({
+            initData({
+              cache,
+              getter,
+              setter,
               func,
               type,
-              query
+              query: {
+                ...query,
+                __refresh__: true
+              },
+              api,
+              cacheTimeout: 100
             })
+              .then(() => {
+                const fieldName = generateFieldName({
+                  func,
+                  type,
+                  query
+                })
 
-            const state = getter(fieldName)
-            const cacheData = cache.get({ key: fieldName })
-
-            expect(state).toEqual(cacheData)
-            expect(counter).toBeCalledTimes(1)
-            done()
+                const state = getter(fieldName)
+                cache.get({ key: fieldName })
+                  .then(cacheData => {
+                    expect(state).toEqual(cacheData)
+                    expect(counter).toBeCalledTimes(1)
+                    done()
+                  })
+              })
           })
       })
   })

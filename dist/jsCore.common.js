@@ -1,5 +1,5 @@
 /*!
- * @flowlist/js-core v1.0.2
+ * @flowlist/js-core v1.0.3
  * (c) 2020 falstack
  * https://github.com/flowlist/js-core#readme
  */
@@ -546,7 +546,8 @@ var setters_SET_DATA = function SET_DATA(_ref) {
             key: fieldName,
             value: fieldData,
             timeout: cacheTimeout
-          });
+          }).then(resolve).catch(resolve);
+          return;
         }
 
         resolve();
@@ -658,26 +659,29 @@ var actions_initData = function initData(_ref2) {
     var getData = function getData() {
       var loadData = function loadData() {
         return new Promise(function (res) {
-          if (cacheTimeout) {
-            var data = cache.get({
-              key: fieldName
+          var getDataFromAPI = function getDataFromAPI() {
+            api[func](params).then(res).catch(function (error) {
+              setters_SET_ERROR({
+                setter: setter,
+                fieldName: fieldName,
+                error: error
+              });
+              reject(error);
             });
+          };
 
-            if (data) {
+          if (cacheTimeout) {
+            cache.get({
+              key: fieldName
+            }).then(function (data) {
               fromLocal = true;
               res(data);
-              return;
-            }
-          }
-
-          api[func](params).then(res).catch(function (error) {
-            setters_SET_ERROR({
-              setter: setter,
-              fieldName: fieldName,
-              error: error
+            }).catch(function () {
+              getDataFromAPI();
             });
-            reject(error);
-          });
+          } else {
+            getDataFromAPI();
+          }
         });
       };
 
@@ -931,7 +935,8 @@ var actions_updateState = function updateState(_ref4) {
             key: fieldName,
             value: fieldData,
             timeout: cacheTimeout
-          });
+          }).then(resolve).catch(resolve);
+          return;
         }
 
         resolve();

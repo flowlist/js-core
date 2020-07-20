@@ -411,7 +411,7 @@ describe('set data', () => {
     }))
   })
 
-  it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', async () => {
+  it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', async (done) => {
     let fieldName = generateFieldName({
       func: 'func12',
       type: 'type'
@@ -434,12 +434,14 @@ describe('set data', () => {
       fieldName
     })
 
-    const result = cache.get({ key: fieldName })
-
-    expect(result).toBeNull()
+    cache.get({ key: fieldName })
+      .catch(result => {
+        expect(result).toBeNull()
+        done()
+      })
   })
 
-  it('set 之后，当设置 cacheTimeout，set cache 生效', async () => {
+  it('set 之后，当设置 cacheTimeout，set cache 生效', async (done) => {
     let fieldName = generateFieldName({
       func: 'func13',
       type: 'type'
@@ -462,11 +464,13 @@ describe('set data', () => {
       fieldName
     })
 
-    const result = cache.get({ key: fieldName })
+    cache.get({ key: fieldName })
+      .then(result => {
+        let field = getter(fieldName)
 
-    let field = getter(fieldName)
-
-    expect(result).toEqual(field)
+        expect(result).toEqual(field)
+        done()
+      })
   })
 
   it('set 之后，如果 type 是 jump，使用 query 里的 page，否则 page = field 的 page + 1', async () => {

@@ -541,22 +541,23 @@ describe('update state', () => {
       value: newValArr
     })
       .then(() => {
-        const state = cache.get({
+        cache.get({
           key: generateFieldName({
             func,
             type,
             query
           })
         })
+          .then(state => {
+            const newVal = api.testArrData().result
+            newVal[0].slug = 'e'
+            newVal[1].slug = 'f'
+            newVal[2].slug = 'g'
 
-        const newVal = api.testArrData().result
-        newVal[0].slug = 'e'
-        newVal[1].slug = 'f'
-        newVal[2].slug = 'g'
+            expect(state.result).toEqual(newVal)
 
-        expect(state.result).toEqual(newVal)
-
-        done()
+            done()
+          })
       })
   })
 
