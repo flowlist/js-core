@@ -78,26 +78,29 @@ export const initData = ({
     query,
     type
   })
-  let data
   let fromLocal = false
 
-  const getData = async () => {
-    try {
+  const getData = () => {
+    const loadData = () => new Promise((res) => {
       if (cacheTimeout) {
-        data = cache.get({
+        const data = cache.get({
           key: fieldName
         })
         if (data) {
           fromLocal = true
-        } else {
-          data = await api[func](params)
+          res(data)
+          return
         }
-      } else {
-        data = await api[func](params)
       }
+      api[func](params).then(res).catch(error => {
+        SET_ERROR({ setter, fieldName, error })
+        reject(error)
+      })
+    })
 
-      const setData = async () => {
-        await SET_DATA({
+    loadData().then(data => {
+      const setData = () => {
+        SET_DATA({
           getter,
           setter,
           cache,
@@ -109,16 +112,16 @@ export const initData = ({
           page: params.page,
           insertBefore: false,
         })
-
-        if (callback) {
-          callback({
-            params,
-            data,
-            refresh: doRefresh
+          .then(() => {
+            if (callback) {
+              callback({
+                params,
+                data,
+                refresh: doRefresh
+              })
+            }
+            resolve()
           })
-        }
-
-        resolve()
       }
 
       // 拿到数据后再重置 field
@@ -132,10 +135,7 @@ export const initData = ({
       } else {
         setData()
       }
-    } catch (error) {
-      SET_ERROR({ setter, fieldName, error })
-      reject(error)
-    }
+    })
   }
 
   // 需要预初始化 field
@@ -209,36 +209,36 @@ export const loadMore = ({
   })
   params._extra = fieldData.extra
 
-  const getData = async () => {
-    try {
-      const data = await api[func](params)
-
-      await SET_DATA({
-        getter,
-        setter,
-        cache,
-        data,
-        fieldName,
-        type,
-        fromLocal: false,
-        cacheTimeout,
-        page: params.page,
-        insertBefore: !!query.is_up
-      })
-
-      if (callback) {
-        callback({
-          params,
+  const getData = () => {
+    api[func](params)
+      .then(data => {
+        SET_DATA({
+          getter,
+          setter,
+          cache,
           data,
-          refresh: false
+          fieldName,
+          type,
+          fromLocal: false,
+          cacheTimeout,
+          page: params.page,
+          insertBefore: !!query.is_up
         })
-      }
-
-      resolve()
-    } catch (error) {
-      SET_ERROR({ setter, fieldName, error })
-      reject(error)
-    }
+          .then(() => {
+            if (callback) {
+              callback({
+                params,
+                data,
+                refresh: false
+              })
+            }
+            resolve()
+          })
+      })
+      .catch(error => {
+        SET_ERROR({ setter, fieldName, error })
+        reject(error)
+      })
   }
 
   setter({

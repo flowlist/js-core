@@ -321,16 +321,6 @@ describe('init data', () => {
       query,
       api
     })
-
-    initData({
-      cache,
-      getter,
-      setter,
-      func,
-      type,
-      query,
-      api
-    })
       .then(() => {
         let state = getter(generateFieldName({
           func,
