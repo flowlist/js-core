@@ -9,6 +9,23 @@
 
 ## 信息流业务通用容器的基础实现
 
+### Download
+
 ``` bash
 yarn add @flowlist/js-core
+```
+
+### Import
+```javascript
+import flow from '@flowlist/js-core'
+```
+
+### Methods
+
+#### - `initState`
+
+> 初始化数据列
+
+```javascript
+initState({ getter, setter, func, type, query, opts = {} })
 ```

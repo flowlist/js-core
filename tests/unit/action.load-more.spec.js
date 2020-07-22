@@ -174,7 +174,6 @@ describe('load more', () => {
     })
       .catch(() => {
         const state = getter(fieldName)
-
         expect(state).toEqual(generateDefaultField({
           error: {
             message: 'error'

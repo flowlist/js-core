@@ -19,27 +19,33 @@ export const setter = ({ key, type, value, callback }) => {
 
 export const cache = {
   set({ key, value, timeout }) {
-    try {
-      localStorage.setItem(`vue-mixin-store-${key}`, JSON.stringify(value))
-      localStorage.setItem(`vue-mixin-store-${key}-expired-at`, Date.now() + timeout * 1000)
-    } catch (e) {
-      // do nothing
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        localStorage.setItem(`vue-mixin-store-${key}`, JSON.stringify(value))
+        localStorage.setItem(`vue-mixin-store-${key}-expired-at`, Date.now() + timeout * 1000)
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
   },
 
   get({ key }) {
-    try {
-      const expiredAt = localStorage.getItem(`vue-mixin-store-${key}-expired-at`)
-      const cacheStr = localStorage.getItem(`vue-mixin-store-${key}`)
-      if (!expiredAt || !cacheStr || Date.now() - expiredAt > 0) {
+    return new Promise((resolve, reject) => {
+      try {
+        const expiredAt = localStorage.getItem(`vue-mixin-store-${key}-expired-at`)
+        const cacheStr = localStorage.getItem(`vue-mixin-store-${key}`)
+        if (!expiredAt || !cacheStr || Date.now() - expiredAt > 0) {
+          this.del(key)
+          reject(null)
+          return
+        }
+        resolve(JSON.parse(cacheStr))
+      } catch (e) {
         this.del(key)
-        return null
+        reject(e)
       }
-      return JSON.parse(cacheStr)
-    } catch (e) {
-      this.del(key)
-      return null
-    }
+    })
   },
 
   del({ key }) {
