@@ -1,16 +1,16 @@
 # @flowlist/js-core
 
-<p style="text-align: center">
+<p align="center">
     <a href="https://travis-ci.org/github/flowlist/js-core">
-        <img src="https://travis-ci.org/flowlist/js-core.svg?branch=master" />
+        <img alt="Build" src="https://travis-ci.org/flowlist/js-core.svg?branch=master" />
     </a>
     <a href="https://codecov.io/gh/flowlist/js-core">
-        <img src="https://codecov.io/gh/flowlist/js-core/branch/master/graph/badge.svg" />
+        <img alt="Coverage" src="https://codecov.io/gh/flowlist/js-core/branch/master/graph/badge.svg" />
     </a>
     <a href="https://www.npmjs.com/package/@flowlist/js-core">
-        <img src="https://badge.fury.io/js/%40flowlist%2Fjs-core.svg" />
+        <img alt="Version" src="https://badge.fury.io/js/%40flowlist%2Fjs-core.svg" />
     </a>
-    <img src="https://gitlicense.com/badge/flowlist/js-core"/>
+    <img alt="License" src="https://gitlicense.com/badge/flowlist/js-core"/>
 </p>
 
 ## 信息流业务通用容器的基础实现
