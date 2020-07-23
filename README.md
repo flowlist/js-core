@@ -1,9 +1,15 @@
 # @flowlist/js-core
 
-<p>
-    <img src="https://travis-ci.org/flowlist/js-core.svg?branch=master" />
-    <img src="https://codecov.io/gh/flowlist/js-core/branch/master/graph/badge.svg" />
-    <img src="https://badge.fury.io/js/%40flowlist%2Fjs-core.svg" />
+<p style="text-align: center">
+    <a href="https://travis-ci.org/github/flowlist/js-core">
+        <img src="https://travis-ci.org/flowlist/js-core.svg?branch=master" />
+    </a>
+    <a href="https://codecov.io/gh/flowlist/js-core">
+        <img src="https://codecov.io/gh/flowlist/js-core/branch/master/graph/badge.svg" />
+    </a>
+    <a href="https://www.npmjs.com/package/@flowlist/js-core">
+        <img src="https://badge.fury.io/js/%40flowlist%2Fjs-core.svg" />
+    </a>
     <img src="https://gitlicense.com/badge/flowlist/js-core"/>
 </p>
 
@@ -24,8 +30,32 @@ import flow from '@flowlist/js-core'
 
 #### - `initState`
 
-> 初始化数据列
+> 初始化数据容器
 
 ```javascript
-initState({ getter, setter, func, type, query, opts = {} })
+flow.initState({ getter, setter, func, type, query, opts = {} })
+```
+
+#### - `initData`
+
+> 加载首屏数据
+
+```javascript
+flow.initData({ getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, callback })
+```
+
+#### - `loadMore`
+
+> 加载分页数据
+
+```javascript
+flow.loadMore({ getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, errorRetry, callback })
+```
+
+#### - `updateState`
+
+> 更新数据容器
+
+```javascript
+flow.updateState({ getter, setter, cache, type, func, query, method, value, id, uniqueKey, changeKey, cacheTimeout })
 ```
