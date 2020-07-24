@@ -28,6 +28,85 @@ yarn add @flowlist/js-core
 import flow from '@flowlist/js-core'
 ```
 
+### Inject
+
+- getter：get state
+> 如 Vuex.getter
+
+- setter：set state
+> 如：React.setState
+
+- cache：cache instance
+> 包含 get<Promise>，set<Promise>，del 三个方法
+
+- api：named api list
+> 把需要调用的所有 API export 出来
+
+```javascript
+const globalData = {}
+
+export const getter = (fieldName) => {
+  const result = globalData[fieldName]
+  return result ? { ...result } : null
+}
+
+/**
+* 0 的时候是 reset
+* 1 的时候是 merge
+*/
+export const setter = ({ key, type, value, callback }) => {
+  if (type === 0) {
+    globalData[key] = value
+  } else if (type === 1) {
+    globalData[key] = {
+      ...(globalData[key] || {}),
+      ...value
+    }
+  }
+  callback && callback()
+}
+
+export const cache = {
+  /**
+  * timeout 是缓存超时的时长（秒）
+  */
+  set({ key, value, timeout }) {
+    return new Promise((resolve, reject) => {
+      try {
+        localStorage.setItem(`${key}`, JSON.stringify(value))
+        localStorage.setItem(`${key}-expired`, Date.now() + timeout * 1000)
+        resolve()
+      } catch (e) {
+        reject(e)
+      }
+    })
+  },
+
+  get({ key }) {
+    return new Promise((resolve, reject) => {
+      try {
+        const expiredAt = localStorage.getItem(`${key}-expired`)
+        const cacheStr = localStorage.getItem(`${key}`)
+        if (!expiredAt || !cacheStr || Date.now() - expiredAt > 0) {
+          this.del(key)
+          reject(null)
+          return
+        }
+        resolve(JSON.parse(cacheStr))
+      } catch (e) {
+        this.del(key)
+        reject(e)
+      }
+    })
+  },
+
+  del({ key }) {
+    localStorage.removeItem(`${key}`)
+    localStorage.removeItem(`${key}-expired`)
+  }
+}
+```
+
 ### Methods
 
 #### - `initState`
