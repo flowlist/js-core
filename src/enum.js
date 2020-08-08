@@ -1,13 +1,16 @@
+const FETCH_TYPE_ARRAY = ['jump', 'sinceId', 'page', 'seenIds']
+
 export default {
   SETTER_TYPE: {
     RESET: 0,
     MERGE: 1
   },
+  FETCH_TYPE_ARRAY,
   FETCH_TYPE: {
-    PAGINATION: 'jump',
-    SINCE_FIRST_OR_END_ID: 'sinceId',
-    SCROLL_LOAD_MORE: 'page',
-    HAS_LOADED_IDS: 'seenIds'
+    PAGINATION: FETCH_TYPE_ARRAY[0],
+    SINCE_FIRST_OR_END_ID: FETCH_TYPE_ARRAY[1],
+    SCROLL_LOAD_MORE: FETCH_TYPE_ARRAY[2],
+    HAS_LOADED_IDS: FETCH_TYPE_ARRAY[3]
   },
   CHANGE_TYPE: {
     RESET_FIELD: 'reset',
@@ -23,7 +26,5 @@ export default {
     RESULT_KEY: 'result',
     EXTRA_KEY: 'extra'
   },
-  FETCH_PARAMS_DEFAULT: {
-    CHANGE_KEY_NAME: 'id'
-  }
+  DEFAULT_UNIQUE_KEY_NAME: 'id'
 }

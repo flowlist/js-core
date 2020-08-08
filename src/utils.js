@@ -184,7 +184,7 @@ export const computeResultLength = (data) => {
 export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
   const result = {}
   if (field.fetched) {
-    const changing = uniqueKey || ENUM.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME
+    const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
     } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {

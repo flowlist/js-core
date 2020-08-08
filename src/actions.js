@@ -264,7 +264,7 @@ export const updateState = ({
   method,
   value,
   id = '',
-  uniqueKey = ENUM.FETCH_PARAMS_DEFAULT.CHANGE_KEY_NAME,
+  uniqueKey = ENUM.DEFAULT_UNIQUE_KEY_NAME,
   changeKey = ENUM.FIELD_DATA.RESULT_KEY,
   cacheTimeout
 }) => {
