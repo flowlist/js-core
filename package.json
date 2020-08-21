@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "dist/jsCore.umd.min.js",
   "description": "flowlist frontend javascript core",
   "files": [
@@ -27,13 +27,13 @@
     "lint": "eslint --ext .js --ignore-path .gitignore . --fix"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.4.0",
-    "@vue/cli-plugin-eslint": "~4.4.0",
-    "@vue/cli-plugin-unit-jest": "~4.4.0",
-    "@vue/cli-service": "~4.4.0",
-    "@vue/test-utils": "^1.0.3",
+    "@vue/cli-plugin-babel": "~4.5.4",
+    "@vue/cli-plugin-eslint": "~4.5.4",
+    "@vue/cli-plugin-unit-jest": "~4.5.4",
+    "@vue/cli-service": "~4.5.4",
+    "@vue/test-utils": "^1.0.4",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.6.0",
+    "eslint": "^7.7.0",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
     "faker": "^4.1.0",

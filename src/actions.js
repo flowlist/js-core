@@ -263,9 +263,9 @@ export const updateState = ({
   query,
   method,
   value,
-  id = '',
-  uniqueKey = ENUM.DEFAULT_UNIQUE_KEY_NAME,
-  changeKey = ENUM.FIELD_DATA.RESULT_KEY,
+  id,
+  uniqueKey,
+  changeKey,
   cacheTimeout
 }) => {
   return new Promise((resolve,  reject) => {
@@ -276,17 +276,21 @@ export const updateState = ({
       return
     }
 
+    const _id = id || ''
+    const _uniqueKey = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
+    const _changeKey = changeKey || ENUM.FIELD_DATA.RESULT_KEY
     const beforeLength = computeResultLength(fieldData.result)
+
     if (method === ENUM.CHANGE_TYPE.UPDATE_RESULT) {
       // 修改 result 下的某个值的任意字段
-      const matchedIndex = computeMatchedItemIndex(id, fieldData.result, uniqueKey)
-      updateObjectDeepValue(fieldData.result[matchedIndex], changeKey, value)
+      const matchedIndex = computeMatchedItemIndex(_id, fieldData.result, _uniqueKey)
+      updateObjectDeepValue(fieldData.result[matchedIndex], _changeKey, value)
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
       // 修改包括 field 下的任意字段
-      updateObjectDeepValue(fieldData, changeKey, value)
+      updateObjectDeepValue(fieldData, _changeKey, value)
     } else {
-      let modifyValue = getObjectDeepValue(fieldData, changeKey)
-      const matchedIndex = computeMatchedItemIndex(id, modifyValue, uniqueKey)
+      let modifyValue = getObjectDeepValue(fieldData, _changeKey)
+      const matchedIndex = computeMatchedItemIndex(_id, modifyValue, _uniqueKey)
 
       switch (method) {
         case ENUM.CHANGE_TYPE.RESULT_ADD_AFTER:
@@ -311,10 +315,10 @@ export const updateState = ({
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
-          combineArrayData(modifyValue, value, uniqueKey)
+          combineArrayData(modifyValue, value, _uniqueKey)
           break
       }
-      fieldData[changeKey] = modifyValue
+      fieldData[_changeKey] = modifyValue
     }
 
     const afterLength = computeResultLength(fieldData.result)
