@@ -830,4 +830,47 @@ describe('update state', () => {
         done()
       })
   })
+
+  it('调用 patch 方法修改 field 的值', (done) => {
+    const func = 'update-state-call-search'
+    const type = 'type'
+    const query = {
+      test_order: 13
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: api.testArrData().result
+      }
+    })
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'search',
+      id: 'value_2',
+      uniqueKey: 'obj.key'
+    })
+      .then((res) => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        expect(res).toEqual(state.result[1])
+
+        done()
+      })
+  })
 })

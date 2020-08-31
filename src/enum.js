@@ -13,6 +13,7 @@ export default {
     HAS_LOADED_IDS: FETCH_TYPE_ARRAY[3]
   },
   CHANGE_TYPE: {
+    SEARCH_FIELD: 'search',
     RESET_FIELD: 'reset',
     UPDATE_RESULT: 'update',
     RESULT_ADD_AFTER: 'push',

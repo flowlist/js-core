@@ -7,6 +7,7 @@ import {
   updateObjectDeepValue,
   getObjectDeepValue,
   computeResultLength,
+  searchValueByKey,
   isArray
 } from './utils'
 import { SET_DATA, SET_ERROR } from './setters'
@@ -202,8 +203,8 @@ export const loadMore = ({
   }
 
   if (type === ENUM.FETCH_TYPE.PAGINATION) {
-    loadingState.result = []
-    loadingState.extra = null
+    loadingState[ENUM.FIELD_DATA.RESULT_KEY] = []
+    loadingState[ENUM.FIELD_DATA.EXTRA_KEY] = null
   }
 
   const params = generateRequestParams({
@@ -212,7 +213,7 @@ export const loadMore = ({
     query,
     type
   })
-  params._extra = fieldData.extra
+  params[ENUM.FIELD_DATA.EXTRA_KEY] = fieldData[ENUM.FIELD_DATA.EXTRA_KEY]
 
   const getData = () => {
     api[func](params)
@@ -279,12 +280,14 @@ export const updateState = ({
     const _id = id || ''
     const _uniqueKey = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     const _changeKey = changeKey || ENUM.FIELD_DATA.RESULT_KEY
-    const beforeLength = computeResultLength(fieldData.result)
+    const beforeLength = computeResultLength(fieldData[ENUM.FIELD_DATA.RESULT_KEY])
 
-    if (method === ENUM.CHANGE_TYPE.UPDATE_RESULT) {
+    if (method === ENUM.CHANGE_TYPE.SEARCH_FIELD) {
+      resolve(searchValueByKey(fieldData[ENUM.FIELD_DATA.RESULT_KEY], _id, _uniqueKey))
+    } else if (method === ENUM.CHANGE_TYPE.UPDATE_RESULT) {
       // 修改 result 下的某个值的任意字段
-      const matchedIndex = computeMatchedItemIndex(_id, fieldData.result, _uniqueKey)
-      updateObjectDeepValue(fieldData.result[matchedIndex], _changeKey, value)
+      const matchedIndex = computeMatchedItemIndex(_id, fieldData[ENUM.FIELD_DATA.RESULT_KEY], _uniqueKey)
+      updateObjectDeepValue(fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex], _changeKey, value)
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
       // 修改包括 field 下的任意字段
       updateObjectDeepValue(fieldData, _changeKey, value)
@@ -321,7 +324,7 @@ export const updateState = ({
       fieldData[_changeKey] = modifyValue
     }
 
-    const afterLength = computeResultLength(fieldData.result)
+    const afterLength = computeResultLength(fieldData[ENUM.FIELD_DATA.RESULT_KEY])
     fieldData.total = fieldData.total + afterLength - beforeLength
     fieldData.nothing = afterLength === 0
 

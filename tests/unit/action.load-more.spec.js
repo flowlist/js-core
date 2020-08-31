@@ -432,7 +432,7 @@ describe('load more', () => {
           query,
           api,
           callback: ({ params }) => {
-            expect(params._extra).toEqual(state.extra)
+            expect(params.extra).toEqual(state.extra)
             done()
           }
         })

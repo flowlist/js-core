@@ -68,6 +68,17 @@ export const updateObjectDeepValue = (field, changeKey, value) => {
   }
 }
 
+export const searchValueByKey = (result, id, key) => {
+  if (isArray(result)) {
+    const index = computeMatchedItemIndex(id, result, key)
+    if (index < 0) {
+      return undefined
+    }
+    return result[index]
+  }
+  return result[id]
+}
+
 /**
  * 通过 id 匹配返回数组中某个对象的 index
  * @param {int|string} itemId
