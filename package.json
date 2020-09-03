@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/jsCore.umd.min.js",
   "description": "flowlist frontend javascript core",
   "files": [
@@ -33,7 +33,7 @@
     "@vue/cli-service": "~4.5.4",
     "@vue/test-utils": "^1.0.5",
     "babel-eslint": "^10.1.0",
-    "eslint": "^7.7.0",
+    "eslint": "^7.8.1",
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
     "faker": "^5.1.0",
