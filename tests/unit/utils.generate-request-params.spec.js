@@ -4,7 +4,7 @@ import {
 } from '@/utils'
 
 describe('generate request params', () => {
-  it('初次请求，type 为 page，page 是 generateDefaultField 的 默认值 + 1', () => {
+  it('初次请求，type 为 page，page 是 1', () => {
     let field = generateDefaultField()
     let query = {
       a: 'asd',
@@ -38,7 +38,7 @@ describe('generate request params', () => {
     expect(result).toEqual({
       a: 'asd',
       b: 'asddd',
-      page: 2
+      page: 1
     })
   })
 

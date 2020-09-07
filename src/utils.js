@@ -215,7 +215,7 @@ export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
     } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
       result.page = query.page || field.page
     } else if (type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE) {
-      result.page = field.page + 1
+      result.page = 1
     }
   }
 
