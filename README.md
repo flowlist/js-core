@@ -44,34 +44,71 @@ import flow from '@flowlist/js-core'
 
 ### Methods
 
-#### - `initState`
+- `initState`
 
 > 初始化数据容器
 
-```javascript
-flow.initState({ getter, setter, func, type, query, opts = {} })
-```
+| 参数 | 类型 | 介绍 |
+| --- | --- | --- |
+| getter | Function | 设置 state 的函数 |
+| setter | Function | 读取 state 的函数 |
+| func | String | API层的函数名 |
+| type | String\<ListType\> | 列表的类型 |
+| query | Object | 需要额外透传给 API 层的数据 |
 
-#### - `initData`
+- `initData`
 
 > 加载首屏数据
 
-```javascript
-flow.initData({ getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, callback })
-```
+| 参数 | 类型 | 介绍 |
+| --- | --- | --- |
+| getter | Function | 设置 state 的函数 |
+| setter | Function | 读取 state 的函数 |
+| cache | Object | 用于读写缓存的对象 |
+| func | String | API层的函数名 |
+| type | String\<ListType\> | 列表的类型 |
+| query | Object | 需要额外透传给 API 层的数据 |
+| api | Array\<API\> | 整个 API 层 |
+| cacheTimeout | Integer | 缓存持久化的时间（秒） |
+| uniqueKey | String | 列表里每个元素独一无二的 key |
+| callback | Function | 请求成功之后的回调函数 |
 
-#### - `loadMore`
+- `loadMore`
 
 > 加载分页数据
 
-```javascript
-flow.loadMore({ getter, setter, cache, func, type, query, api, cacheTimeout, uniqueKey, errorRetry, callback })
-```
+| 参数 | 类型 | 介绍 |
+| --- | --- | --- |
+| getter | Function | 设置 state 的函数 |
+| setter | Function | 读取 state 的函数 |
+| cache | Object | 用于读写缓存的对象 |
+| func | String | API层的函数名 |
+| type | String\<ListType\> | 列表的类型 |
+| query | Object | 需要额外透传给 API 层的数据 |
+| api | Array\<API\> | 整个 API 层 |
+| cacheTimeout | Integer | 缓存持久化的时间（秒） |
+| uniqueKey | String | 列表里每个元素独一无二的 key |
+| errorRetry | Boolean | 是否是重试 |
+| callback | Function | 请求成功之后的回调函数 |
 
-#### - `updateState`
+- `updateState`
 
 > 更新数据容器
 
 ```javascript
 flow.updateState({ getter, setter, cache, type, func, query, method, value, id, uniqueKey, changeKey, cacheTimeout })
 ```
+| 参数 | 类型 | 介绍 |
+| --- | --- | --- |
+| getter | Function | 设置 state 的函数 |
+| setter | Function | 读取 state 的函数 |
+| cache | Object | 用于读写缓存的对象 |
+| func | String | API层的函数名 |
+| type | String\<ListType\> | 列表的类型 |
+| query | Object | 需要额外透传给 API 层的数据 |
+| method | String | 需要调用的函数名 |
+| value | Any | 传值 |
+| id | String / Number | 用来索引的独一无二的 keyValue |
+| uniqueKey | String | 列表里每个元素独一无二的 keyName |
+| changeKey | String | 你想要修改的`field`是哪个字段，默认是`result` |
+| cacheTimeout | Integer | 缓存持久化的时间（秒） |
