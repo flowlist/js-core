@@ -558,4 +558,78 @@ describe('init data', () => {
           })
       })
   })
+
+  it('refresh 的时候 page 为最初的值', (done) => {
+    const func = 'testArrFunc'
+    const type = 'type'
+    const query = {
+      test_order: 10
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query
+    })
+
+    initData({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      api
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        const field = generateDefaultField({
+          result: api.testArrData().result,
+          total: api.testArrData().total,
+          noMore: api.testArrData().no_more,
+          fetched: true,
+          page: 1
+        })
+
+        expect(state).toEqual(field)
+
+        initData({
+          cache,
+          getter,
+          setter,
+          func,
+          type,
+          query: {
+            ...query,
+            __refresh__: true
+          },
+          api
+        })
+          .then(() => {
+            const state = getter(generateFieldName({
+              func,
+              type,
+              query
+            }))
+
+            const field = generateDefaultField({
+              result: api.testArrData().result,
+              total: api.testArrData().total,
+              noMore: api.testArrData().no_more,
+              fetched: true,
+              page: 1
+            })
+
+            expect(state).toEqual(field)
+            done()
+          })
+      })
+  })
 })
