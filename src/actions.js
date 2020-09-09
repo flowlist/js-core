@@ -73,7 +73,7 @@ export const initData = ({
   const params = generateRequestParams({
     field: {
       ...fieldData,
-      fetched: !doRefresh
+      fetched: false
     },
     uniqueKey,
     query,
