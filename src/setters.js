@@ -45,7 +45,7 @@ export const SET_DATA = ({
       type: ENUM.SETTER_TYPE.RESET,
       value: fieldData,
       callback: () => {
-        if (cacheTimeout && !fieldData.nothing) {
+        if (cacheTimeout && cache && !fieldData.nothing) {
           cache.set({
             key: fieldName,
             value: fieldData,

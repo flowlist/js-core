@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "dist/jsCore.umd.min.js",
   "description": "flowlist frontend javascript core",
   "files": [

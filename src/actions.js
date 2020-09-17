@@ -90,7 +90,7 @@ export const initData = ({
         })
       }
 
-      if (cacheTimeout) {
+      if (cacheTimeout && cache) {
         cache.get({ key: fieldName })
           .then(data => {
             fromLocal = true
@@ -333,7 +333,7 @@ export const updateState = ({
       type: ENUM.SETTER_TYPE.MERGE,
       value: fieldData,
       callback: () => {
-        if (cacheTimeout) {
+        if (cacheTimeout && cache) {
           cache.set({
             key: fieldName,
             value: fieldData,
