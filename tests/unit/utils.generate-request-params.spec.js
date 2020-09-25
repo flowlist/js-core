@@ -4,42 +4,17 @@ import {
 } from '@/utils'
 
 describe('generate request params', () => {
-  it('初次请求，type 为 page，page 是 1', () => {
+  it('初次请求，page 是 1', () => {
     let field = generateDefaultField()
     let query = {
       a: 'asd',
-      b: 'asddd',
-      page: 'abc'
+      b: 'asddd'
     }
     let result = generateRequestParams({
       field,
-      query,
-      type: 'page'
+      query
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 1
-    })
-
-    field = generateDefaultField({
-      page: 1
-    })
-    query = {
-      a: 'asd',
-      b: 'asddd',
-      page: 'abc'
-    }
-    result = generateRequestParams({
-      field,
-      query,
-      type: 'page'
-    })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 1
-    })
+    expect(result.page).toEqual(1)
   })
 
   it('初次请求，type 为 jump，page 优先使用 query 的值', () => {
@@ -54,11 +29,7 @@ describe('generate request params', () => {
       query,
       type: 'jump'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20
-    })
+    expect(result.page).toEqual(20)
 
     field = generateDefaultField({
       page: 10
@@ -72,11 +43,7 @@ describe('generate request params', () => {
       query,
       type: 'jump'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 10
-    })
+    expect(result.page).toEqual(10)
   })
 
   it('初次请求，type 为 seenIds，seen_ids 为空字符串', () => {
@@ -91,12 +58,7 @@ describe('generate request params', () => {
       query,
       type: 'seenIds'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      seen_ids: ''
-    })
+    expect(result.seen_ids).toEqual('')
   })
 
   it('初次请求，type 为 sinceId，since_id 为 0，is_up 为 0', () => {
@@ -111,13 +73,7 @@ describe('generate request params', () => {
       query,
       type: 'sinceId'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      since_id: 0,
-      is_up: 0
-    })
+    expect(result.is_up).toEqual(0)
   })
 
   it('初次请求，type 为 sinceId，is_up 为 true，since_id 为 999999999，is_up 为 1', () => {
@@ -133,13 +89,7 @@ describe('generate request params', () => {
       query,
       type: 'sinceId'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      since_id: 999999999,
-      is_up: 1
-    })
+    expect(result.is_up).toEqual(1)
   })
 
   it('二次请求，type 为 page，page 自动 + 1', () => {
@@ -149,19 +99,14 @@ describe('generate request params', () => {
     })
     let query = {
       a: 'asd',
-      b: 'asddd',
-      page: 'abc'
+      b: 'asddd'
     }
     let result = generateRequestParams({
       field,
       query,
       type: 'page'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 4
-    })
+    expect(result.page).toEqual(4)
   })
 
   it('二次请求，type 为 jump，page 使用 query 的值', () => {
@@ -178,11 +123,7 @@ describe('generate request params', () => {
       query,
       type: 'jump'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20
-    })
+    expect(result.page).toEqual(20)
   })
 
   it('二次请求，type 为 seenIds，seen_ids 为 result 的 id 用逗号分割', () => {
@@ -203,12 +144,7 @@ describe('generate request params', () => {
       query,
       type: 'seenIds'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      seen_ids: '5,7'
-    })
+    expect(result.seen_ids).toEqual('5,7')
   })
 
   it('二次请求，type 为 sinceId，since_id 为 result 的最后一个值的 id', () => {
@@ -230,13 +166,7 @@ describe('generate request params', () => {
       query,
       type: 'sinceId'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      is_up: 0,
-      since_id: 7
-    })
+    expect(result.since_id).toEqual(7)
   })
 
   it('二次请求，type 为 sinceId，is_up 为 true，since_id 为 result 的第一个值的 id', () => {
@@ -259,12 +189,6 @@ describe('generate request params', () => {
       query,
       type: 'sinceId'
     })
-    expect(result).toEqual({
-      a: 'asd',
-      b: 'asddd',
-      page: 20,
-      is_up: 1,
-      since_id: 5
-    })
+    expect(result.since_id).toEqual(5)
   })
 })

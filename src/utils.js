@@ -192,31 +192,19 @@ export const computeResultLength = (data) => {
  * @param {string} type
  * @return {object}
  */
-export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
+export const generateRequestParams = ({ field, uniqueKey, query }) => {
   const result = {}
   if (field.fetched) {
     const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
-    if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
-      result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
-    } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
-      result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing)
-      result.is_up = query.is_up ? 1 : 0
-    } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
-      result.page = query.page
-    } else if (type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE) {
-      result.page = field.page + 1
-    }
+    result.seen_ids = field.result.length ? field.result.map((_) => getObjectDeepValue(_, changing)).join(',') : ''
+    result.since_id = field.result.length ? getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing) : query.sinceId || (query.is_up ? 999999999 : 0)
+    result.is_up = query.is_up ? 1 : 0
+    result.page = query.page || field.page + 1
   } else {
-    if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
-      result.seen_ids = ''
-    } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
-      result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
-      result.is_up = query.is_up ? 1 : 0
-    } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
-      result.page = query.page || field.page
-    } else if (type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE) {
-      result.page = 1
-    }
+    result.seen_ids = ''
+    result.since_id = query.sinceId || (query.is_up ? 999999999 : 0)
+    result.is_up = query.is_up ? 1 : 0
+    result.page = query.page || field.page || 1
   }
 
   return {
