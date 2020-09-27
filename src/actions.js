@@ -84,7 +84,9 @@ export const initData = ({
   const getData = () => {
     const loadData = () => new Promise((res) => {
       const getDataFromAPI = () => {
-        api[func](params).then(res).catch(error => {
+        const funcCaller = typeof func === 'string' ? api[func] : func
+
+        funcCaller(params).then(res).catch(error => {
           SET_ERROR({ setter, fieldName, error })
           reject(error)
         })
@@ -216,7 +218,9 @@ export const loadMore = ({
   params[ENUM.FIELD_DATA.EXTRA_KEY] = fieldData[ENUM.FIELD_DATA.EXTRA_KEY]
 
   const getData = () => {
-    api[func](params)
+    const funcCaller = typeof func === 'string' ? api[func] : func
+
+    funcCaller(params)
       .then(data => {
         SET_DATA({
           getter,
