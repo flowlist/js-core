@@ -27,14 +27,15 @@ export const SET_DATA = ({
     }
 
     const { result, extra } = data
-    fieldData.nothing = fieldData.fetched ? false : computeResultLength(result) === 0
+    const isEmpty = computeResultLength(result) === 0
+    fieldData.nothing = fieldData.fetched ? false : isEmpty
     fieldData.fetched = true
     fieldData.total = data.total || 0
     if (type === ENUM.FETCH_TYPE.PAGINATION) {
       fieldData.noMore = false
       fieldData.page = +page
     } else {
-      fieldData.noMore = data.no_more || false
+      fieldData.noMore = data.no_more || isEmpty
       fieldData.page = fieldData.page + 1
     }
     fieldData.loading = false

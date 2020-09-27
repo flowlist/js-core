@@ -1,4 +1,4 @@
-const FETCH_TYPE_ARRAY = ['jump', 'sinceId', 'page', 'seenIds']
+const FETCH_TYPE_ARRAY = ['jump', 'sinceId', 'page', 'seenIds', 'auto']
 
 export default {
   SETTER_TYPE: {
@@ -10,7 +10,8 @@ export default {
     PAGINATION: FETCH_TYPE_ARRAY[0],
     SINCE_FIRST_OR_END_ID: FETCH_TYPE_ARRAY[1],
     SCROLL_LOAD_MORE: FETCH_TYPE_ARRAY[2],
-    HAS_LOADED_IDS: FETCH_TYPE_ARRAY[3]
+    HAS_LOADED_IDS: FETCH_TYPE_ARRAY[3],
+    AUTO: FETCH_TYPE_ARRAY[4]
   },
   CHANGE_TYPE: {
     SEARCH_FIELD: 'search',

@@ -208,6 +208,7 @@ describe('set data', () => {
       page: field.page,
       fetched: field.fetched,
       loading: field.loading,
+      noMore: true,
       nothing: true
     }))
 
@@ -242,6 +243,7 @@ describe('set data', () => {
       page: field.page,
       fetched: field.fetched,
       loading: field.loading,
+      noMore: true,
       nothing: true
     }))
 
@@ -309,6 +311,7 @@ describe('set data', () => {
       fetched: field.fetched,
       loading: field.loading,
       nothing: field.nothing,
+      noMore: true,
       total: 100
     }))
 
@@ -340,6 +343,7 @@ describe('set data', () => {
       fetched: field.fetched,
       loading: field.loading,
       nothing: field.nothing,
+      noMore: true,
       total: 0
     }))
   })
@@ -521,6 +525,7 @@ describe('set data', () => {
     expect(field).toEqual(generateDefaultField({
       result: field.result,
       page: 100,
+      noMore: true,
       fetched: field.fetched,
       loading: field.loading,
       nothing: field.nothing
@@ -541,6 +546,7 @@ describe('set data', () => {
     expect(field).toEqual(generateDefaultField({
       result: field.result,
       page: 101,
+      noMore: true,
       fetched: field.fetched,
       loading: field.loading,
       nothing: field.nothing
@@ -601,6 +607,7 @@ describe('set data', () => {
       fetched: field.fetched,
       loading: field.loading,
       nothing: field.nothing,
+      noMore: true,
       extra: {
         a: 1
       }
