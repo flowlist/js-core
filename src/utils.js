@@ -23,7 +23,8 @@ export const generateDefaultField = (opts = {}) => ({
  * @return {string}
  */
 export const generateFieldName = ({ func, type, query = {} }) => {
-  let result = `${func}-${type}`
+  const funcName = typeof func === 'string' ? func : 'custom-func'
+  let result = `${funcName}-${type}`
   Object.keys(query)
     .filter(
       (_) => !~['undefined', 'object', 'function'].indexOf(typeof query[_])

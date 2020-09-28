@@ -52,4 +52,28 @@ describe('generate field name', () => {
     expect(name)
       .toBe('func-type-count-10-empty--is_end-false-sort-hottest')
   })
+
+  it('func 为函数，函数名为 custom-func', () => {
+    const func = () => {}
+    const name = generateFieldName({
+      func,
+      type,
+      query: {
+        sort: 'hottest',
+        empty: '',
+        axios: () => {
+        },
+        object: {
+          a: 1,
+        },
+        count: 10,
+        rank: null,
+        defined: undefined,
+        is_end: false,
+        arr: [1, 2, 3],
+      }
+    })
+    expect(name)
+      .toBe('custom-func-type-count-10-empty--is_end-false-sort-hottest')
+  })
 })
