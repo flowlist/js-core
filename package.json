@@ -1,7 +1,7 @@
 {
   "name": "@flowlist/js-core",
-  "version": "1.3.1",
-  "main": "dist/jsCore.umd.min.js",
+  "version": "1.4.0",
+  "main": "dist/index.js",
   "description": "flowlist frontend javascript core",
   "files": [
     "dist"
@@ -11,7 +11,8 @@
     "url": "git+https://github.com/flowlist/js-core.git"
   },
   "keywords": [
-    "flowlist"
+    "flowlist",
+    "listview"
   ],
   "author": "falstack",
   "license": "MIT",
@@ -22,7 +23,7 @@
   "scripts": {
     "deploy": "bash deploy.sh",
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build --target lib --name jsCore src/index.js",
+    "build": "webpack",
     "test:unit": "vue-cli-service test:unit",
     "lint": "eslint --ext .js --ignore-path .gitignore . --fix"
   },
@@ -37,6 +38,7 @@
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-vue": "^6.2.2",
     "faker": "^5.1.0",
-    "jest-localstorage-mock": "^2.4.2"
+    "jest-localstorage-mock": "^2.4.2",
+    "webpack-cli": "^3.3.12"
   }
 }
