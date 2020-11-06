@@ -18,7 +18,7 @@ export const initState = ({
   setter,
   func,
   type,
-  query,
+  query = {},
   opts = {}
 }) => {
   return new Promise((resolve) => {
@@ -46,7 +46,7 @@ export const initData = ({
   cache,
   func,
   type,
-  query,
+  query = {},
   api,
   cacheTimeout,
   uniqueKey,
@@ -167,7 +167,7 @@ export const loadMore = ({
   getter,
   setter,
   cache,
-  query,
+  query = {},
   type,
   func,
   api,
@@ -265,7 +265,7 @@ export const updateState = ({
   cache,
   type,
   func,
-  query,
+  query = {},
   method,
   value,
   id,
