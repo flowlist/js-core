@@ -148,7 +148,16 @@ export const setReactivityField = (field, key, value, type, insertBefore) => {
   }
 
   if (isArray(value)) {
-    field[key] = insertBefore ? value.concat(field[key] || []) : (field[key] || []).concat(value)
+    // dont use concat to support taro react mobx
+    if (insertBefore) {
+      const tmp = field[key] || []
+      value.reverse().forEach(item => {
+        tmp.unshift(item)
+      })
+      field[key] = tmp
+    } else {
+      field[key] = (field[key] || []).concat(value)
+    }
     return
   }
 
