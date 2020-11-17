@@ -45,14 +45,14 @@ export const generateFieldName = ({ func, type, query = {} }) => {
  */
 export const getObjectDeepValue = (field, keys) => {
   if (!keys) {
-    return field
+    return field || ''
   }
-  let result = field
+  let result = field || ''
   const keysArr = isArray(keys) ? keys : keys.split('.')
   keysArr.forEach((key) => {
     result = result[key]
   })
-  return result
+  return result || ''
 }
 
 export const updateObjectDeepValue = (field, changeKey, value) => {
@@ -90,7 +90,7 @@ export const searchValueByKey = (result, id, key) => {
 export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
   let s = -1
   for (let i = 0; i < fieldArr.length; i++) {
-    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === itemId.toString()) {
+    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === (itemId || '').toString()) {
       s = i
       break
     }
@@ -113,7 +113,7 @@ export const combineArrayData = (fieldArray, value, changingKey) => {
     })
   } else {
     Object.keys(value).forEach(uniqueId => {
-      const stringifyId = uniqueId.toString()
+      const stringifyId = (uniqueId || '').toString()
       fieldArray.forEach((item, index) => {
         if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
           fieldArray[index] = {
