@@ -873,4 +873,47 @@ describe('update state', () => {
         done()
       })
   })
+
+  it('调用 delete 方法修改 field 的值', (done) => {
+    const func = 'update-state-call-delete-array'
+    const type = 'type'
+    const query = {
+      test_order: 14
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: api.testArrData().result
+      }
+    })
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      id: [api.testArrData().result[1].id, api.testArrData().result[2].id],
+      method: 'delete'
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+        expect(state.result).toEqual([
+          api.testArrData().result[0]
+        ])
+
+        done()
+      })
+  })
 })

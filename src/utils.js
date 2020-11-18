@@ -89,6 +89,9 @@ export const searchValueByKey = (result, id, key) => {
  */
 export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
   let s = -1
+  if (isArray(itemId)) {
+    return s
+  }
   for (let i = 0; i < fieldArr.length; i++) {
     if (getObjectDeepValue(fieldArr[i], changingKey).toString() === (itemId || '').toString()) {
       s = i

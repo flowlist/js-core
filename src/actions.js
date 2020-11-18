@@ -309,6 +309,8 @@ export const updateState = ({
         case ENUM.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
           if (matchedIndex >= 0) {
             modifyValue.splice(matchedIndex, 1)
+          } else if (isArray(_id)) {
+            modifyValue = modifyValue.filter(_ => _id.indexOf(_[_uniqueKey]) === -1)
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:

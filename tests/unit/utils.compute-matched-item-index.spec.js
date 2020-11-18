@@ -23,4 +23,8 @@ describe('compute matched item index', () => {
   it('id 溢出时返回 -1', () => {
     expect(computeMatchedItemIndex(4, result, 'id')).toBe(-1)
   })
+
+  it('id 是 array 返回 -1', () => {
+    expect(computeMatchedItemIndex([1, 2, 3], result, 'id')).toBe(-1)
+  })
 })
