@@ -5,6 +5,7 @@ import {
   computeMatchedItemIndex,
   combineArrayData,
   updateObjectDeepValue,
+  mergeObjectDeepValue,
   getObjectDeepValue,
   computeResultLength,
   searchValueByKey,
@@ -288,10 +289,14 @@ export const updateState = ({
 
     if (method === ENUM.CHANGE_TYPE.SEARCH_FIELD) {
       resolve(searchValueByKey(fieldData[ENUM.FIELD_DATA.RESULT_KEY], _id, _uniqueKey))
-    } else if (method === ENUM.CHANGE_TYPE.UPDATE_RESULT) {
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_UPDATE_KV) {
       // 修改 result 下的某个值的任意字段
       const matchedIndex = computeMatchedItemIndex(_id, fieldData[ENUM.FIELD_DATA.RESULT_KEY], _uniqueKey)
       updateObjectDeepValue(fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex], _changeKey, value)
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE) {
+      // 修改 result 下的某个值的任意字段
+      const matchedIndex = computeMatchedItemIndex(_id, fieldData[ENUM.FIELD_DATA.RESULT_KEY], _uniqueKey)
+      mergeObjectDeepValue(fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex], _changeKey, value)
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
       // 修改包括 field 下的任意字段
       updateObjectDeepValue(fieldData, _changeKey, value)

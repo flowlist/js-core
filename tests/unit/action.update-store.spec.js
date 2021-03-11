@@ -916,4 +916,56 @@ describe('update state', () => {
         done()
       })
   })
+
+  it('调用 merge 方法修改 result 的值', (done) => {
+    const func = 'merge-state-call-update'
+    const type = 'type'
+    const query = {
+      test_order: 15
+    }
+
+    initState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: api.testArrData().result
+      }
+    })
+
+    updateState({
+      cache,
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'merge',
+      id: 2,
+      changeKey: 'obj',
+      value: {
+        ddd: '2333',
+        key: 'value_2_changed'
+      }
+    })
+      .then(() => {
+        const state = getter(generateFieldName({
+          func,
+          type,
+          query
+        }))
+
+        const condition = [...api.testArrData().result]
+        condition[1].obj = {
+          ddd: '2333',
+          key: 'value_2_changed'
+        }
+
+        expect(state.result).toEqual(condition)
+        done()
+      })
+  })
 })

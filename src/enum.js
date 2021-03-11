@@ -16,13 +16,14 @@ export default {
   CHANGE_TYPE: {
     SEARCH_FIELD: 'search',
     RESET_FIELD: 'reset',
-    UPDATE_RESULT: 'update',
+    RESULT_UPDATE_KV: 'update',
     RESULT_ADD_AFTER: 'push',
     RESULT_ADD_BEFORE: 'unshift',
     RESULT_REMOVE_BY_ID: 'delete',
     RESULT_INSERT_TO_BEFORE: 'insert-before',
     RESULT_INSERT_TO_AFTER: 'insert-after',
-    RESULT_LIST_MERGE: 'patch'
+    RESULT_LIST_MERGE: 'patch',
+    RESULT_ITEM_MERGE: 'merge'
   },
   FIELD_DATA: {
     RESULT_KEY: 'result',

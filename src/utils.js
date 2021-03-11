@@ -69,6 +69,26 @@ export const updateObjectDeepValue = (field, changeKey, value) => {
   }
 }
 
+export const mergeObjectDeepValue = (field, changeKey, value) => {
+  if (/\./.test(changeKey)) {
+    const keys = changeKey.split('.')
+    const prefix = keys.pop()
+    let result = field
+    keys.forEach(key => {
+      result = result[key]
+    })
+    result[prefix] = {
+      ...result[prefix],
+      ...value
+    }
+  } else {
+    field[changeKey] = {
+      ...field[changeKey],
+      ...value
+    }
+  }
+}
+
 export const searchValueByKey = (result, id, key) => {
   if (isArray(result)) {
     const index = computeMatchedItemIndex(id, result, key)
