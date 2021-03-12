@@ -23,8 +23,9 @@ export const generateDefaultField = (opts = {}) => ({
  * @return {string}
  */
 export const generateFieldName = ({ func, type, query = {} }) => {
-  const funcName = typeof func === 'string' ? func : 'custom-func'
-  let result = `${funcName}-${type}`
+  func = typeof func === 'string' ? func : 'custom-func'
+  type = type || 'auto'
+  let result = `${func}-${type}`
   Object.keys(query)
     .filter(
       (_) => !~['undefined', 'object', 'function'].indexOf(typeof query[_])
@@ -218,6 +219,7 @@ export const computeResultLength = (data) => {
  */
 export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
   const result = {}
+  query = query || {}
   if (field.fetched) {
     const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     if (type === ENUM.FETCH_TYPE.AUTO) {
