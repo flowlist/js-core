@@ -341,7 +341,7 @@ export const updateState = ({
 
     setter({
       key: fieldName,
-      type: ENUM.SETTER_TYPE.MERGE,
+      type: ENUM.SETTER_TYPE.RESET,
       value: fieldData,
       callback: () => {
         if (cacheTimeout && cache) {
