@@ -296,7 +296,10 @@ export const updateState = ({
     } else if (method === ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE) {
       // 修改 result 下的某个值的任意字段
       const matchedIndex = computeMatchedItemIndex(_id, fieldData[ENUM.FIELD_DATA.RESULT_KEY], _uniqueKey)
-      mergeObjectDeepValue(fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex], _changeKey, value)
+      fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex] = {
+        ...fieldData[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex],
+        ...value
+      }
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
       // 修改包括 field 下的任意字段
       updateObjectDeepValue(fieldData, _changeKey, value)

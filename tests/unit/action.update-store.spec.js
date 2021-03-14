@@ -945,7 +945,6 @@ describe('update state', () => {
       query,
       method: 'merge',
       id: 2,
-      changeKey: 'obj',
       value: {
         ddd: '2333',
         key: 'value_2_changed'
@@ -959,10 +958,8 @@ describe('update state', () => {
         }))
 
         const condition = [...api.testArrData().result]
-        condition[1].obj = {
-          ddd: '2333',
-          key: 'value_2_changed'
-        }
+        condition[1].ddd = '2333'
+        condition[1].key = 'value_2_changed'
 
         expect(state.result).toEqual(condition)
         done()
