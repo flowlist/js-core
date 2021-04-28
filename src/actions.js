@@ -5,7 +5,6 @@ import {
   computeMatchedItemIndex,
   combineArrayData,
   updateObjectDeepValue,
-  mergeObjectDeepValue,
   getObjectDeepValue,
   computeResultLength,
   searchValueByKey,
