@@ -1,4 +1,5 @@
-import { isArray, generateDefaultField } from '@/utils'
+// @ts-nocheck
+import { isArray, generateDefaultField } from '../../src/utils'
 
 describe('safe utils', () => {
   it('isArray', () => {

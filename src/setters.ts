@@ -3,10 +3,25 @@ import {
   setReactivityField,
 } from './utils'
 import ENUM from './enum'
+import type { fetchTypes, defaultField } from './utils'
+import type { cacheType, setterFuncParams } from './index'
+
+type setDataType = {
+  getter: (str: string) => defaultField
+  setter: (obj: setterFuncParams) => {}
+  cache: cacheType
+  data: any
+  fieldName: string
+  type: fetchTypes
+  fromLocal: boolean
+  cacheTimeout: number
+  page: number
+  insertBefore: boolean
+}
 
 export const SET_DATA = ({
   getter, setter, cache, data, fieldName, type, fromLocal, cacheTimeout, page, insertBefore,
-}) => {
+}: setDataType): Promise<any> => {
   return new Promise((resolve, reject) => {
     if (fromLocal) {
       setter({
@@ -14,7 +29,7 @@ export const SET_DATA = ({
         type: ENUM.SETTER_TYPE.RESET,
         value: data,
         callback: () => {
-          resolve()
+          resolve(null)
         }
       })
       return
@@ -39,7 +54,9 @@ export const SET_DATA = ({
       fieldData.page = fieldData.page + 1
     }
     fieldData.loading = false
+    // @ts-ignore
     setReactivityField(fieldData, ENUM.FIELD_DATA.RESULT_KEY, result, type, insertBefore)
+    // @ts-ignore
     extra && setReactivityField(fieldData, ENUM.FIELD_DATA.EXTRA_KEY, extra, type, insertBefore)
     setter({
       key: fieldName,
@@ -57,13 +74,19 @@ export const SET_DATA = ({
           return
         }
 
-        resolve()
+        resolve(null)
       }
     })
   })
 }
 
-export const SET_ERROR = ({ setter, fieldName, error }) => {
+type setErrorType = {
+  setter: (obj: setterFuncParams) => {}
+  fieldName: string
+  error: null | Error
+}
+
+export const SET_ERROR = ({ setter, fieldName, error }: setErrorType): void => {
   setter({
     key: fieldName,
     type: ENUM.SETTER_TYPE.MERGE,

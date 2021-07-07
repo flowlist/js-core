@@ -1,3 +1,4 @@
+// @ts-nocheck
 const faker = require('faker')
 faker.locale = 'zh_CN'
 
@@ -17,8 +18,8 @@ export default new class {
         width,
         height,
         data: Object.assign(faker.helpers.createCard(), {
-          number_id: faker.random.number(),
-          uuid: faker.random.uuid(),
+          number_id: faker.datatype.number(),
+          uuid: faker.datatype.uuid(),
           follow: false
         }),
         like: false

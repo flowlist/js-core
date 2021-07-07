@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ItemFactory from './item-factory'
 
 export const testArrData = () => ({

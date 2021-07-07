@@ -1,4 +1,5 @@
-import { setReactivityField } from '@/utils'
+// @ts-nocheck
+import { setReactivityField } from '../../src/utils'
 
 describe('set reactivity field', () => {
   it('type 是 jump 原先的值会被覆盖', () => {

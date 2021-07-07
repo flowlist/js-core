@@ -1,4 +1,5 @@
-import { searchValueByKey } from '@/utils'
+// @ts-nocheck
+import { searchValueByKey } from '../../src/utils'
 
 describe('safe utils', () => {
   it('isObject', () => {

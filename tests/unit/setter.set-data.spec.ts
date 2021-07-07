@@ -1,5 +1,6 @@
-import { SET_DATA } from '@/setters'
-import { generateDefaultField, generateFieldName } from '@/utils'
+// @ts-nocheck
+import { SET_DATA } from '../../src/setters'
+import { generateDefaultField, generateFieldName } from '../../src/utils'
 import { setter, getter, cache } from './env'
 
 describe('set data', () => {

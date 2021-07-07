@@ -1,6 +1,30 @@
 import ENUM from './enum'
 
-export const generateDefaultField = (opts = {}) => ({
+export type objectKey = string | number
+
+export type keyMap = Record<objectKey, any>
+
+export type morphArray = any[]
+
+export type fieldResult = morphArray | keyMap
+
+export type defaultField = {
+  result: fieldResult
+  noMore: boolean
+  nothing: boolean
+  loading: boolean
+  error: null | Error
+  extra: null | any
+  fetched: boolean
+  page: number
+  total: number
+}
+
+export type fetchTypes = 'jump' | 'sinceId' | 'page' | 'seenIds' | 'auto'
+
+export type fieldKeys = 'result' | 'noMore' | 'nothing' | 'loading' | 'error' | 'extra' | 'page' | 'total'
+
+export const generateDefaultField = (opts = {}): defaultField => ({
   ...{
     result: [],
     noMore: false,
@@ -15,6 +39,14 @@ export const generateDefaultField = (opts = {}) => ({
   ...opts
 })
 
+export type generateFieldProps = {
+  func: string | (() => {})
+  type: fetchTypes,
+  query: keyMap
+}
+
+
+let seed = 0
 /**
  * 根据参数生成 field 的 namespace
  * @param {string} func
@@ -22,8 +54,8 @@ export const generateDefaultField = (opts = {}) => ({
  * @param {object} query
  * @return {string}
  */
-export const generateFieldName = ({ func, type, query = {} }) => {
-  func = typeof func === 'string' ? func : 'custom-func'
+export const generateFieldName = ({ func, type, query = {} }: generateFieldProps): string => {
+  func = typeof func === 'string' ? func : `custom-func-${seed++}`
   type = type || 'auto'
   let result = `${func}-${type}`
   Object.keys(query)
@@ -35,6 +67,7 @@ export const generateFieldName = ({ func, type, query = {} }) => {
     .forEach((key) => {
       result += `-${key}-${query[key]}`
     })
+
   return result
 }
 
@@ -44,41 +77,45 @@ export const generateFieldName = ({ func, type, query = {} }) => {
  * @param {string} keys
  * @return {*}
  */
-export const getObjectDeepValue = (field, keys) => {
+export const getObjectDeepValue = (field: keyMap, keys: string | string[]): any => {
   if (!keys) {
     return field || ''
   }
+
   let result = field || ''
-  const keysArr = isArray(keys) ? keys : keys.split('.')
-  keysArr.forEach((key) => {
-    result = result[key]
+  const keysArr = isArray(keys) ? keys as string[] : (keys as string).split('.')
+
+  keysArr.forEach((key: string) => {
+    result = (result as any)[key]
   })
+
   return result || ''
 }
 
-export const updateObjectDeepValue = (field, changeKey, value) => {
+export const updateObjectDeepValue = (field: keyMap, changeKey: string, value: any): void => {
   if (/\./.test(changeKey)) {
     const keys = changeKey.split('.')
     const prefix = keys.pop()
     let result = field
+
     keys.forEach(key => {
       result = result[key]
     })
-    result[prefix] = value
+    result[prefix as string] = value
   } else {
     field[changeKey] = value
   }
 }
 
-export const searchValueByKey = (result, id, key) => {
+export const searchValueByKey = (result: fieldResult, id: objectKey, key: objectKey): any => {
   if (isArray(result)) {
-    const index = computeMatchedItemIndex(id, result, key)
+    const index = computeMatchedItemIndex(id, result as morphArray, key)
     if (index < 0) {
       return undefined
     }
-    return result[index]
+    return (result as morphArray)[index]
   }
-  return result[id]
+  return (result as keyMap)[id]
 }
 
 /**
@@ -88,13 +125,11 @@ export const searchValueByKey = (result, id, key) => {
  * @param {int|string} changingKey
  * @return {number}
  */
-export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
+export const computeMatchedItemIndex = (itemId: objectKey, fieldArr: morphArray, changingKey: objectKey): number => {
   let s = -1
-  if (isArray(itemId)) {
-    return s
-  }
+
   for (let i = 0; i < fieldArr.length; i++) {
-    if (getObjectDeepValue(fieldArr[i], changingKey).toString() === (itemId || '').toString()) {
+    if (getObjectDeepValue(fieldArr[i], changingKey.toString()).toString() === (itemId || '').toString()) {
       s = i
       break
     }
@@ -102,9 +137,9 @@ export const computeMatchedItemIndex = (itemId, fieldArr, changingKey) => {
   return s
 }
 
-export const combineArrayData = (fieldArray, value, changingKey) => {
+export const combineArrayData = (fieldArray: any[], value: fieldResult, changingKey: string): void => {
   if (isArray(value)) {
-    value.forEach(col => {
+    value.forEach((col: keyMap) => {
       const stringifyId = getObjectDeepValue(col, changingKey).toString()
       fieldArray.forEach((item, index) => {
         if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
@@ -122,7 +157,7 @@ export const combineArrayData = (fieldArray, value, changingKey) => {
         if (getObjectDeepValue(item, changingKey).toString() === stringifyId) {
           fieldArray[index] = {
             ...item,
-            ...value[uniqueId]
+            ...(value as keyMap)[uniqueId]
           }
         }
       })
@@ -135,7 +170,7 @@ export const combineArrayData = (fieldArray, value, changingKey) => {
  * @param {object|array} data
  * @return {boolean}
  */
-export const isArray = (data) => Object.prototype.toString.call(data) === '[object Array]'
+export const isArray = (data: any): boolean => Object.prototype.toString.call(data) === '[object Array]'
 
 /**
  * 设置一个响应式的数据到对象上
@@ -145,24 +180,24 @@ export const isArray = (data) => Object.prototype.toString.call(data) === '[obje
  * @param {string} type
  * @param {boolean} insertBefore
  */
-export const setReactivityField = (field, key, value, type, insertBefore) => {
+export const setReactivityField = (field: defaultField, key: fieldKeys, value: any, type: fetchTypes, insertBefore: boolean) => {
   if (type === ENUM.FETCH_TYPE.PAGINATION) {
-    field[key] = value
+    (field[key] as any) = value
     return
   }
 
   if (isArray(value)) {
-    field[key] = insertBefore ? value.concat(field[key] || []) : (field[key] || []).concat(value)
+    (field[key] as morphArray) = insertBefore ? value.concat(field[key] || []) : (field[key] || []).concat(value)
     return
   }
 
   if (key !== ENUM.FIELD_DATA.RESULT_KEY) {
-    field[key] = value
+    (field[key] as any) = value
     return
   }
 
   if (isArray(field[key])) {
-    field[key] = {}
+    (field[key] as keyMap) = {}
   }
 
   Object.keys(value).forEach((subKey) => {
@@ -177,18 +212,31 @@ export const setReactivityField = (field, key, value, type, insertBefore) => {
  * @param {array|object} data
  * @return {number}
  */
-export const computeResultLength = (data) => {
+export const computeResultLength = (data: fieldResult): number => {
   let result = 0
   if (isArray(data)) {
     result = data.length
   } else {
     Object.keys(data).forEach((key) => {
-      result += data[key].length
+      result += (data as keyMap)[key].length
     })
   }
   return result
 }
 
+export type generateParamsType = {
+  field: defaultField,
+  uniqueKey: string
+  query: keyMap,
+  type: fetchTypes
+}
+
+export type generateParamsResp = {
+  seen_ids?: string
+  since_id?: objectKey
+  is_up?: 0 | 1
+  page?: number
+}
 /**
  * 拼接请求的参数
  * @param {object} field
@@ -197,20 +245,20 @@ export const computeResultLength = (data) => {
  * @param {string} type
  * @return {object}
  */
-export const generateRequestParams = ({ field, uniqueKey, query, type }) => {
-  const result = {}
+export const generateRequestParams = ({ field, uniqueKey, query, type }: generateParamsType): generateParamsResp => {
+  const result: generateParamsResp = {}
   query = query || {}
   if (field.fetched) {
     const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     if (type === ENUM.FETCH_TYPE.AUTO) {
-      result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
-      result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing)
+      result.seen_ids = field.result.map((_: keyMap) => getObjectDeepValue(_, changing)).join(',')
+      result.since_id = getObjectDeepValue((field.result as morphArray)[query.is_up ? 0 : field.result.length - 1], changing)
       result.is_up = query.is_up ? 1 : 0
       result.page = query.page || field.page + 1
     } else if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
-      result.seen_ids = field.result.map((_) => getObjectDeepValue(_, changing)).join(',')
+      result.seen_ids = field.result.map((_: keyMap) => getObjectDeepValue(_, changing)).join(',')
     } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
-      result.since_id = getObjectDeepValue(field.result[query.is_up ? 0 : field.result.length - 1], changing)
+      result.since_id = getObjectDeepValue((field.result as morphArray)[query.is_up ? 0 : field.result.length - 1], changing)
       result.is_up = query.is_up ? 1 : 0
     } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
       result.page = query.page

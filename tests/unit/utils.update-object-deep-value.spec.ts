@@ -1,4 +1,5 @@
-import { updateObjectDeepValue } from '@/utils'
+// @ts-nocheck
+import { updateObjectDeepValue } from '../../src/utils'
 
 describe('update object deep value', () => {
   const data = {

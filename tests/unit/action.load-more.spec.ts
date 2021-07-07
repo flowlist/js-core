@@ -1,5 +1,6 @@
-import { initState, initData, loadMore } from '@/actions'
-import { generateFieldName, generateDefaultField } from '@/utils'
+// @ts-nocheck
+import { initState, initData, loadMore } from '../../src/actions'
+import { generateFieldName, generateDefaultField } from '../../src/utils'
 import { setter, getter, cache } from './env'
 import * as api from './api'
 

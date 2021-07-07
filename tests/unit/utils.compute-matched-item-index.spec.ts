@@ -1,4 +1,5 @@
-import { computeMatchedItemIndex } from '@/utils'
+// @ts-nocheck
+import { computeMatchedItemIndex } from '../../src/utils'
 
 describe('compute matched item index', () => {
   const result = [

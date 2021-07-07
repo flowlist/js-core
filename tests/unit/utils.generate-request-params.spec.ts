@@ -1,7 +1,8 @@
+// @ts-nocheck
 import {
   generateRequestParams,
   generateDefaultField,
-} from '@/utils'
+} from '../../src/utils'
 
 describe('generate request params', () => {
   it('初次请求，type 为 page，page 是 1', () => {

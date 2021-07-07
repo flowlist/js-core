@@ -1,5 +1,6 @@
-import { SET_ERROR } from '@/setters'
-import { generateDefaultField, generateFieldName } from '@/utils'
+// @ts-nocheck
+import { SET_ERROR } from '../../src/setters'
+import { generateDefaultField, generateFieldName } from '../../src/utils'
 import { setter, getter } from './env'
 
 describe('set error', () => {

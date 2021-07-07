@@ -1,4 +1,5 @@
-import { computeResultLength } from '@/utils'
+// @ts-nocheck
+import { computeResultLength } from '../../src/utils'
 
 describe('compute result length', () => {
   it('空数组返回 0', () => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const globalData = {}
 
 export const getter = (fieldName) => {

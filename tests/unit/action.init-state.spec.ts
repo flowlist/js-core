@@ -1,5 +1,6 @@
-import { initState } from '@/actions'
-import { generateFieldName, generateDefaultField } from '@/utils'
+// @ts-nocheck
+import { initState } from '../../src/actions'
+import { generateFieldName, generateDefaultField } from '../../src/utils'
 import { setter, getter } from './env'
 
 describe('init state', () => {

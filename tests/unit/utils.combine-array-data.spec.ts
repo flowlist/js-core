@@ -1,4 +1,5 @@
-import { combineArrayData } from '@/utils'
+// @ts-nocheck
+import { combineArrayData } from '../../src/utils'
 
 describe('combine-array-data', () => {
   it('value 是数组', () => {

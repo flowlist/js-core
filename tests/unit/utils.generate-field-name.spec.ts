@@ -1,4 +1,5 @@
-import { generateFieldName } from '@/utils'
+// @ts-nocheck
+import { generateFieldName } from '../../src/utils'
 
 describe('generate field name', () => {
   const func = 'func'
@@ -74,6 +75,6 @@ describe('generate field name', () => {
       }
     })
     expect(name)
-      .toBe('custom-func-type-count-10-empty--is_end-false-sort-hottest')
+      .toBe('custom-func-0-type-count-10-empty--is_end-false-sort-hottest')
   })
 })

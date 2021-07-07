@@ -1,4 +1,5 @@
-import { getObjectDeepValue } from '@/utils'
+// @ts-nocheck
+import { getObjectDeepValue } from '../../src/utils'
 
 describe('get object deep value', () => {
   const data = {
