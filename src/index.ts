@@ -1,3 +1,4 @@
 export * from './actions'
-export * from './utils'
+export * as utils from './utils'
 export { default as ENUM } from './enum'
+export * from './types'

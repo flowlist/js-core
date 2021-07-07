@@ -22,9 +22,11 @@ describe('set data', () => {
 
     const field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: data
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: data
+      })
+    )
   })
 
   it('如果 field 未初始化，则直接返回', async () => {
@@ -76,11 +78,13 @@ describe('set data', () => {
 
     const field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: true
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: true
+      })
+    )
   })
 
   it('如果 fetched 已经是 true 了，那么 nothing 永远是 false', async () => {
@@ -109,12 +113,14 @@ describe('set data', () => {
 
     const field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      nothing: false
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        nothing: false
+      })
+    )
   })
 
   it('set 之后，loading 为 false', async () => {
@@ -141,12 +147,14 @@ describe('set data', () => {
 
     const field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: false
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: false
+      })
+    )
   })
 
   it('set 之后，nothing 为 数据的返回数', async () => {
@@ -173,13 +181,15 @@ describe('set data', () => {
 
     let field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: false
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: false
+      })
+    )
 
     fieldName = generateFieldName({
       func: 'func6',
@@ -204,14 +214,16 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      noMore: true,
-      nothing: true
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        noMore: true,
+        nothing: true
+      })
+    )
 
     fieldName = generateFieldName({
       func: 'func7',
@@ -239,14 +251,16 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      noMore: true,
-      nothing: true
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        noMore: true,
+        nothing: true
+      })
+    )
 
     fieldName = generateFieldName({
       func: 'func8',
@@ -273,13 +287,15 @@ describe('set data', () => {
     })
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: false
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: false
+      })
+    )
   })
 
   it('set 之后，total 为 返回值或 0', async () => {
@@ -306,15 +322,17 @@ describe('set data', () => {
 
     let field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing,
-      noMore: true,
-      total: 100
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing,
+        noMore: true,
+        total: 100
+      })
+    )
 
     fieldName = generateFieldName({
       func: 'func10',
@@ -338,15 +356,17 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing,
-      noMore: true,
-      total: 0
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing,
+        noMore: true,
+        total: 0
+      })
+    )
   })
 
   it('set 之后，noMore 由 type 和 result 定', async () => {
@@ -374,14 +394,16 @@ describe('set data', () => {
 
     let field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing,
-      noMore: false
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing,
+        noMore: false
+      })
+    )
 
     fieldName = generateFieldName({
       func: 'func12',
@@ -406,18 +428,20 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing,
-      noMore: true
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing,
+        noMore: true
+      })
+    )
   })
 
   it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', async (done) => {
-    let fieldName = generateFieldName({
+    const fieldName = generateFieldName({
       func: 'func12',
       type: 'type'
     })
@@ -439,15 +463,14 @@ describe('set data', () => {
       fieldName
     })
 
-    cache.get({ key: fieldName })
-      .catch(result => {
-        expect(result).toBeNull()
-        done()
-      })
+    cache.get({ key: fieldName }).catch((result) => {
+      expect(result).toBeNull()
+      done()
+    })
   })
 
   it('set 之后，当设置 cacheTimeout，set cache 生效', async (done) => {
-    let fieldName = generateFieldName({
+    const fieldName = generateFieldName({
       func: 'func13',
       type: 'type'
     })
@@ -469,17 +492,16 @@ describe('set data', () => {
       fieldName
     })
 
-    cache.get({ key: fieldName })
-      .then(result => {
-        let field = getter(fieldName)
+    cache.get({ key: fieldName }).then((result) => {
+      const field = getter(fieldName)
 
-        expect(result).toEqual(field)
-        done()
-      })
+      expect(result).toEqual(field)
+      done()
+    })
   })
 
   it('set 之后，如果 type 是 jump，使用 query 里的 page，否则 page = field 的 page + 1', async () => {
-    let fieldName = generateFieldName({
+    const fieldName = generateFieldName({
       func: 'func14',
       type: 'jump'
     })
@@ -503,13 +525,15 @@ describe('set data', () => {
 
     let field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: 99,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: 99,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing
+      })
+    )
 
     await SET_DATA({
       cache,
@@ -523,14 +547,16 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: 100,
-      noMore: true,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: 100,
+        noMore: true,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing
+      })
+    )
 
     await SET_DATA({
       cache,
@@ -544,14 +570,16 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: 101,
-      noMore: true,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: 101,
+        noMore: true,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing
+      })
+    )
 
     await SET_DATA({
       cache,
@@ -567,17 +595,19 @@ describe('set data', () => {
 
     field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: 99,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: 99,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing
+      })
+    )
   })
 
   it('set 之后，如果设置了 extra，则写入 extra', async () => {
-    let fieldName = generateFieldName({
+    const fieldName = generateFieldName({
       func: 'func15',
       type: 'type'
     })
@@ -600,18 +630,20 @@ describe('set data', () => {
       fieldName
     })
 
-    let field = getter(fieldName)
+    const field = getter(fieldName)
 
-    expect(field).toEqual(generateDefaultField({
-      result: field.result,
-      page: field.page,
-      fetched: field.fetched,
-      loading: field.loading,
-      nothing: field.nothing,
-      noMore: true,
-      extra: {
-        a: 1
-      }
-    }))
+    expect(field).toEqual(
+      generateDefaultField({
+        result: field.result,
+        page: field.page,
+        fetched: field.fetched,
+        loading: field.loading,
+        nothing: field.nothing,
+        noMore: true,
+        extra: {
+          a: 1
+        }
+      })
+    )
   })
 })

@@ -23,7 +23,10 @@ export const cache = {
     return new Promise((resolve, reject) => {
       try {
         localStorage.setItem(`vue-mixin-store-${key}`, JSON.stringify(value))
-        localStorage.setItem(`vue-mixin-store-${key}-expired-at`, Date.now() + timeout * 1000)
+        localStorage.setItem(
+          `vue-mixin-store-${key}-expired-at`,
+          Date.now() + timeout * 1000
+        )
         resolve()
       } catch (e) {
         reject(e)
@@ -34,7 +37,9 @@ export const cache = {
   get({ key }) {
     return new Promise((resolve, reject) => {
       try {
-        const expiredAt = localStorage.getItem(`vue-mixin-store-${key}-expired-at`)
+        const expiredAt = localStorage.getItem(
+          `vue-mixin-store-${key}-expired-at`
+        )
         const cacheStr = localStorage.getItem(`vue-mixin-store-${key}`)
         if (!expiredAt || !cacheStr || Date.now() - expiredAt > 0) {
           this.del(key)

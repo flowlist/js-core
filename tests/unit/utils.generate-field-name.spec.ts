@@ -11,8 +11,7 @@ describe('generate field name', () => {
       type,
       query: undefined
     })
-    expect(name)
-      .toBe('func-type')
+    expect(name).toBe('func-type')
   })
 
   it('query 过滤保留字', () => {
@@ -24,11 +23,10 @@ describe('generate field name', () => {
         count: 10,
         page: 1,
         is_up: false,
-        __refresh__: true,
+        __refresh__: true
       }
     })
-    expect(name)
-      .toBe('func-type-count-10-sort-desc')
+    expect(name).toBe('func-type-count-10-sort-desc')
   })
 
   it('query 过滤 function、object、array、undefined', () => {
@@ -38,20 +36,18 @@ describe('generate field name', () => {
       query: {
         sort: 'hottest',
         empty: '',
-        axios: () => {
-        },
+        axios: () => {},
         object: {
-          a: 1,
+          a: 1
         },
         count: 10,
         rank: null,
         defined: undefined,
         is_end: false,
-        arr: [1, 2, 3],
+        arr: [1, 2, 3]
       }
     })
-    expect(name)
-      .toBe('func-type-count-10-empty--is_end-false-sort-hottest')
+    expect(name).toBe('func-type-count-10-empty--is_end-false-sort-hottest')
   })
 
   it('func 为函数，函数名为 custom-func', () => {
@@ -62,19 +58,19 @@ describe('generate field name', () => {
       query: {
         sort: 'hottest',
         empty: '',
-        axios: () => {
-        },
+        axios: () => {},
         object: {
-          a: 1,
+          a: 1
         },
         count: 10,
         rank: null,
         defined: undefined,
         is_end: false,
-        arr: [1, 2, 3],
+        arr: [1, 2, 3]
       }
     })
-    expect(name)
-      .toBe('custom-func-0-type-count-10-empty--is_end-false-sort-hottest')
+    expect(name).toBe(
+      'custom-func-0-type-count-10-empty--is_end-false-sort-hottest'
+    )
   })
 })

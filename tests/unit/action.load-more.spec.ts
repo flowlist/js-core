@@ -22,11 +22,13 @@ describe('load more', () => {
       api
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
 
     expect(state).toEqual(null)
   })
@@ -64,9 +66,11 @@ describe('load more', () => {
 
     const state = getter(fieldName)
 
-    expect(state).toEqual(generateDefaultField({
-      loading: true
-    }))
+    expect(state).toEqual(
+      generateDefaultField({
+        loading: true
+      })
+    )
   })
 
   it('如果 nothing，return', () => {
@@ -102,9 +106,11 @@ describe('load more', () => {
 
     const state = getter(fieldName)
 
-    expect(state).toEqual(generateDefaultField({
-      nothing: true
-    }))
+    expect(state).toEqual(
+      generateDefaultField({
+        nothing: true
+      })
+    )
   })
 
   it('如果 noMore，return', () => {
@@ -140,9 +146,11 @@ describe('load more', () => {
 
     const state = getter(fieldName)
 
-    expect(state).toEqual(generateDefaultField({
-      noMore: true
-    }))
+    expect(state).toEqual(
+      generateDefaultField({
+        noMore: true
+      })
+    )
   })
 
   it('如果 error，走到 catch', (done) => {
@@ -172,17 +180,18 @@ describe('load more', () => {
       type,
       query,
       api
-    })
-      .catch(() => {
-        const state = getter(fieldName)
-        expect(state).toEqual(generateDefaultField({
+    }).catch(() => {
+      const state = getter(fieldName)
+      expect(state).toEqual(
+        generateDefaultField({
           error: {
             message: 'error'
           }
-        }))
+        })
+      )
 
-        done()
-      })
+      done()
+    })
   })
 
   it('发请求前，loading 设置为 true', (done) => {
@@ -215,26 +224,24 @@ describe('load more', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        loadMore({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api
-        })
-          .then(() => {
-            const state = getter(fieldName)
-            expect(state.loading).toBe(false)
-            done()
-          })
-
+    }).then(() => {
+      loadMore({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api
+      }).then(() => {
         const state = getter(fieldName)
-        expect(state.loading).toBe(true)
+        expect(state.loading).toBe(false)
+        done()
       })
+
+      const state = getter(fieldName)
+      expect(state.loading).toBe(true)
+    })
   })
 
   it('如果 type 是 jump，page 相同 则 return', () => {
@@ -271,9 +278,11 @@ describe('load more', () => {
 
     const state = getter(fieldName)
 
-    expect(state).toEqual(generateDefaultField({
-      page: 10
-    }))
+    expect(state).toEqual(
+      generateDefaultField({
+        page: 10
+      })
+    )
   })
 
   it('如果 type 是 jump，清空之前的 field', (done) => {
@@ -314,29 +323,28 @@ describe('load more', () => {
           total: state.total
         }).toEqual(data)
       }
-    })
-      .then(() => {
-        loadMore({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query: {
-            ...query,
-            page: query + 1
-          },
-          api,
-          callback: ({ data }) => {
-            const state = getter(fieldName)
-            expect({
-              result: state.result,
-              total: state.total
-            }).toEqual(data)
-            done()
-          }
-        })
+    }).then(() => {
+      loadMore({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query: {
+          ...query,
+          page: query + 1
+        },
+        api,
+        callback: ({ data }) => {
+          const state = getter(fieldName)
+          expect({
+            result: state.result,
+            total: state.total
+          }).toEqual(data)
+          done()
+        }
       })
+    })
   })
 
   it('如果 type 是 page，page 自动递增', (done) => {
@@ -369,26 +377,24 @@ describe('load more', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        const state = getter(fieldName)
-        expect(state.page).toBe(1)
+    }).then(() => {
+      const state = getter(fieldName)
+      expect(state.page).toBe(1)
 
-        loadMore({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api
-        })
-          .then(() => {
-            const state = getter(fieldName)
-            expect(state.page).toBe(2)
-            done()
-          })
+      loadMore({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api
+      }).then(() => {
+        const state = getter(fieldName)
+        expect(state.page).toBe(2)
+        done()
       })
+    })
   })
 
   it('如果返回值中有 extra，会在下次请求的参数中携带', (done) => {
@@ -421,22 +427,21 @@ describe('load more', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        const state = getter(fieldName)
-        loadMore({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api,
-          callback: ({ params }) => {
-            expect(params.extra).toEqual(state.extra)
-            done()
-          }
-        })
+    }).then(() => {
+      const state = getter(fieldName)
+      loadMore({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api,
+        callback: ({ params }) => {
+          expect(params.extra).toEqual(state.extra)
+          done()
+        }
       })
+    })
   })
 })

@@ -22,11 +22,13 @@ describe('update state', () => {
     })
       .then()
       .catch(() => {
-        const state = getter(generateFieldName({
-          func,
-          type,
-          query
-        }))
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
 
         expect(state).toEqual(null)
         done()
@@ -63,20 +65,21 @@ describe('update state', () => {
       id: 2,
       changeKey: 'obj.key',
       value: 'changed'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        const condition = [...api.testArrData().result]
-        condition[1].obj.key = 'changed'
+      const condition = [...api.testArrData().result]
+      condition[1].obj.key = 'changed'
 
-        expect(state.result).toEqual(condition)
-        done()
-      })
+      expect(state.result).toEqual(condition)
+      done()
+    })
   })
 
   it('调用 reset 方法修改 field 的值', (done) => {
@@ -109,17 +112,18 @@ describe('update state', () => {
       id: 2,
       changeKey: 'extra',
       value: 'changed'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        expect(state.extra).toEqual('changed')
-        done()
-      })
+      expect(state.extra).toEqual('changed')
+      done()
+    })
   })
 
   it('调用 push 方法修改 field 的值', (done) => {
@@ -155,53 +159,52 @@ describe('update state', () => {
       query,
       method: 'push',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+      expect(state.result).toEqual([...api.testArrData().result, newValObj])
+
+      const newValArr = [
+        {
+          id: 5,
+          txt: '哈哈哈'
+        },
+        {
+          id: 6,
+          txt: '嘿嘿嘿'
+        }
+      ]
+
+      updateState({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        method: 'push',
+        value: newValArr
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
         expect(state.result).toEqual([
           ...api.testArrData().result,
-          newValObj
+          newValObj,
+          ...newValArr
         ])
-
-        const newValArr = [
-          {
-            id: 5,
-            txt: '哈哈哈'
-          },
-          {
-            id: 6,
-            txt: '嘿嘿嘿'
-          }
-        ]
-
-        updateState({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          method: 'push',
-          value: newValArr
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-            expect(state.result).toEqual([
-              ...api.testArrData().result,
-              newValObj,
-              ...newValArr
-            ])
-            done()
-          })
+        done()
       })
+    })
   })
 
   it('调用 unshift 方法修改 field 的值', (done) => {
@@ -237,53 +240,52 @@ describe('update state', () => {
       query,
       method: 'unshift',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+      expect(state.result).toEqual([newValObj, ...api.testArrData().result])
+
+      const newValArr = [
+        {
+          id: 5,
+          txt: '哈哈哈'
+        },
+        {
+          id: 6,
+          txt: '嘿嘿嘿'
+        }
+      ]
+
+      updateState({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        method: 'unshift',
+        value: newValArr
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
         expect(state.result).toEqual([
+          ...newValArr,
           newValObj,
           ...api.testArrData().result
         ])
-
-        const newValArr = [
-          {
-            id: 5,
-            txt: '哈哈哈'
-          },
-          {
-            id: 6,
-            txt: '嘿嘿嘿'
-          }
-        ]
-
-        updateState({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          method: 'unshift',
-          value: newValArr
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-            expect(state.result).toEqual([
-              ...newValArr,
-              newValObj,
-              ...api.testArrData().result
-            ])
-            done()
-          })
+        done()
       })
+    })
   })
 
   it('调用 delete 方法修改 field 的值', (done) => {
@@ -314,20 +316,21 @@ describe('update state', () => {
       query,
       id: api.testArrData().result[1].id,
       method: 'delete'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.result).toEqual([
-          api.testArrData().result[0],
-          api.testArrData().result[2]
-        ])
+        })
+      )
+      expect(state.result).toEqual([
+        api.testArrData().result[0],
+        api.testArrData().result[2]
+      ])
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 insert-before 方法修改 field 的值', (done) => {
@@ -364,22 +367,23 @@ describe('update state', () => {
       id: api.testArrData().result[1].id,
       method: 'insert-before',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.result).toEqual([
-          api.testArrData().result[0],
-          newValObj,
-          api.testArrData().result[1],
-          api.testArrData().result[2]
-        ])
+        })
+      )
+      expect(state.result).toEqual([
+        api.testArrData().result[0],
+        newValObj,
+        api.testArrData().result[1],
+        api.testArrData().result[2]
+      ])
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 insert-after 方法修改 field 的值', (done) => {
@@ -416,22 +420,23 @@ describe('update state', () => {
       id: api.testArrData().result[1].id,
       method: 'insert-after',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.result).toEqual([
-          api.testArrData().result[0],
-          api.testArrData().result[1],
-          newValObj,
-          api.testArrData().result[2]
-        ])
+        })
+      )
+      expect(state.result).toEqual([
+        api.testArrData().result[0],
+        api.testArrData().result[1],
+        newValObj,
+        api.testArrData().result[2]
+      ])
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 patch 方法修改 field 的值', (done) => {
@@ -477,23 +482,24 @@ describe('update state', () => {
       query,
       method: 'patch',
       value: newValArr
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        const newVal = api.testArrData().result
-        newVal[0].slug = 'e'
-        newVal[1].slug = 'f'
-        newVal[2].slug = 'g'
+      const newVal = api.testArrData().result
+      newVal[0].slug = 'e'
+      newVal[1].slug = 'f'
+      newVal[2].slug = 'g'
 
-        expect(state.result).toEqual(newVal)
+      expect(state.result).toEqual(newVal)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('记录 cache', (done) => {
@@ -540,26 +546,26 @@ describe('update state', () => {
       cacheTimeout: 100,
       method: 'patch',
       value: newValArr
-    })
-      .then(() => {
-        cache.get({
+    }).then(() => {
+      cache
+        .get({
           key: generateFieldName({
             func,
             type,
             query
           })
         })
-          .then(state => {
-            const newVal = api.testArrData().result
-            newVal[0].slug = 'e'
-            newVal[1].slug = 'f'
-            newVal[2].slug = 'g'
+        .then((state) => {
+          const newVal = api.testArrData().result
+          newVal[0].slug = 'e'
+          newVal[1].slug = 'f'
+          newVal[2].slug = 'g'
 
-            expect(state.result).toEqual(newVal)
+          expect(state.result).toEqual(newVal)
 
-            done()
-          })
-      })
+          done()
+        })
+    })
   })
 
   it('当 id 传值不存在，delete，insert-before，insert-after 无效', (done) => {
@@ -590,13 +596,34 @@ describe('update state', () => {
       query,
       id: 9,
       method: 'delete'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+      expect(state.result).toEqual(result)
+
+      updateState({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        id: 9,
+        method: 'insert-before',
+        value: 999
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
         expect(state.result).toEqual(result)
 
         updateState({
@@ -607,40 +634,22 @@ describe('update state', () => {
           type,
           query,
           id: 9,
-          method: 'insert-before',
-          value: 999
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
+          method: 'insert-after',
+          value: 233
+        }).then(() => {
+          const state = getter(
+            generateFieldName({
               func,
               type,
               query
-            }))
-            expect(state.result).toEqual(result)
-
-            updateState({
-              cache,
-              getter,
-              setter,
-              func,
-              type,
-              query,
-              id: 9,
-              method: 'insert-after',
-              value: 233
             })
-              .then(() => {
-                const state = getter(generateFieldName({
-                  func,
-                  type,
-                  query
-                }))
-                expect(state.result).toEqual(result)
+          )
+          expect(state.result).toEqual(result)
 
-                done()
-              })
-          })
+          done()
+        })
       })
+    })
   })
 
   it('如果删除后列表为空，nothing 为 true', (done) => {
@@ -671,18 +680,19 @@ describe('update state', () => {
       query,
       id: api.testArrData().result[0].id,
       method: 'delete'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.result).toEqual([])
-        expect(state.nothing).toBe(true)
+        })
+      )
+      expect(state.result).toEqual([])
+      expect(state.nothing).toBe(true)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('空列表里追加，nothing 为 false', (done) => {
@@ -718,17 +728,18 @@ describe('update state', () => {
       query,
       method: 'push',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.nothing).toBe(false)
+        })
+      )
+      expect(state.nothing).toBe(false)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('如果删除，total 减少', (done) => {
@@ -750,11 +761,13 @@ describe('update state', () => {
       }
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
     const beforeTotal = state.total
 
     updateState({
@@ -766,17 +779,18 @@ describe('update state', () => {
       query,
       id: api.testArrData().result[0].id,
       method: 'delete'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.total).toBe(beforeTotal - 1)
+        })
+      )
+      expect(state.total).toBe(beforeTotal - 1)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('列表追加，total 增加', (done) => {
@@ -798,11 +812,13 @@ describe('update state', () => {
       }
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
     const beforeTotal = state.total
 
     const newValObj = {
@@ -819,17 +835,18 @@ describe('update state', () => {
       query,
       method: 'push',
       value: newValObj
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.total).toBe(beforeTotal + 1)
+        })
+      )
+      expect(state.total).toBe(beforeTotal + 1)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 patch 方法修改 field 的值', (done) => {
@@ -861,18 +878,19 @@ describe('update state', () => {
       method: 'search',
       id: 'value_2',
       uniqueKey: 'obj.key'
-    })
-      .then((res) => {
-        const state = getter(generateFieldName({
+    }).then((res) => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        expect(res).toEqual(state.result[1])
+      expect(res).toEqual(state.result[1])
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 delete 方法修改 field 的值', (done) => {
@@ -903,19 +921,18 @@ describe('update state', () => {
       query,
       id: [api.testArrData().result[1].id, api.testArrData().result[2].id],
       method: 'delete'
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-        expect(state.result).toEqual([
-          api.testArrData().result[0]
-        ])
+        })
+      )
+      expect(state.result).toEqual([api.testArrData().result[0]])
 
-        done()
-      })
+      done()
+    })
   })
 
   it('调用 merge 方法修改 result 的值', (done) => {
@@ -950,20 +967,21 @@ describe('update state', () => {
         ddd: '2333',
         key: 'value_2_changed'
       }
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        const condition = [...api.testArrData().result]
-        condition[1].ddd = '2333'
-        condition[1].key = 'value_2_changed'
+      const condition = [...api.testArrData().result]
+      condition[1].ddd = '2333'
+      condition[1].key = 'value_2_changed'
 
-        expect(state.result).toEqual(condition)
-        done()
-      })
+      expect(state.result).toEqual(condition)
+      done()
+    })
   })
 })

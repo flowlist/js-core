@@ -10,9 +10,9 @@ module.exports = {
   testURL: 'http://localhost/',
   watchPlugins: [
     'jest-watch-typeahead/filename',
-    'jest-watch-typeahead/testname',
+    'jest-watch-typeahead/testname'
   ],
   collectCoverageFrom: ['src/*'],
   coverageDirectory: './coverage/',
-  collectCoverage: true,
+  collectCoverage: true
 }

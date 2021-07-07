@@ -22,10 +22,10 @@ describe('safe utils', () => {
   it('isArray undefined', () => {
     const result = [
       {
-        id: 1,
+        id: 1
       },
       {
-        id: 2,
+        id: 2
       },
       {
         id: 3
@@ -38,12 +38,12 @@ describe('safe utils', () => {
     const result = [
       {
         data: {
-          id: 1,
+          id: 1
         }
       },
       {
         data: {
-          id: 2,
+          id: 2
         }
       },
       {

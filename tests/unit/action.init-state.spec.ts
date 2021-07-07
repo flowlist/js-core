@@ -18,20 +18,21 @@ describe('init state', () => {
       func,
       type,
       query
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        const field = generateDefaultField()
+      const field = generateDefaultField()
 
-        expect(state).toEqual(field)
+      expect(state).toEqual(field)
 
-        done()
-      })
+      done()
+    })
   })
 
   it('state 已初始化过了，不再重复初始化', (done) => {
@@ -51,13 +52,35 @@ describe('init state', () => {
       opts: {
         total: 10
       }
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+
+      const field = generateDefaultField({
+        total: 10
+      })
+
+      expect(state).toEqual(field)
+
+      initState({
+        getter,
+        setter,
+        func,
+        type,
+        query
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
 
         const field = generateDefaultField({
           total: 10
@@ -65,28 +88,8 @@ describe('init state', () => {
 
         expect(state).toEqual(field)
 
-        initState({
-          getter,
-          setter,
-          func,
-          type,
-          query
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-
-            const field = generateDefaultField({
-              total: 10
-            })
-
-            expect(state).toEqual(field)
-
-            done()
-          })
+        done()
       })
+    })
   })
 })

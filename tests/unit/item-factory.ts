@@ -4,9 +4,10 @@ faker.locale = 'zh_CN'
 
 let GLOBAL_ID = 0
 
-export default new class {
+export default new (class {
   get(count) {
-    let items = [], i
+    let items = [],
+      i
     for (i = 0; i < count; i++) {
       const width = 100 + ~~(Math.random() * 50)
       const height = 100
@@ -29,7 +30,7 @@ export default new class {
   }
 
   getRandomColor() {
-    var colors = [
+    const colors = [
       'rgba(21,174,103,.5)',
       'rgba(245,163,59,.5)',
       'rgba(255,230,135,.5)',
@@ -39,4 +40,4 @@ export default new class {
     ]
     return colors[~~(Math.random() * colors.length)]
   }
-}()
+})()

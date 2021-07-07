@@ -27,16 +27,20 @@ describe('combine-array-data', () => {
       }
     ]
 
-    combineArrayData(field, [
-      {
-        id: 1,
-        txt: 'change1'
-      },
-      {
-        id: 2,
-        txt: 'change2'
-      }
-    ], 'id')
+    combineArrayData(
+      field,
+      [
+        {
+          id: 1,
+          txt: 'change1'
+        },
+        {
+          id: 2,
+          txt: 'change2'
+        }
+      ],
+      'id'
+    )
 
     expect(field).toEqual([
       {
@@ -88,20 +92,24 @@ describe('combine-array-data', () => {
       }
     ]
 
-    combineArrayData(field, [
-      {
-        obj: {
-          slug: 'a'
+    combineArrayData(
+      field,
+      [
+        {
+          obj: {
+            slug: 'a'
+          },
+          txt: 'change1'
         },
-        txt: 'change1'
-      },
-      {
-        obj: {
-          slug: 'b'
-        },
-        txt: 'change2'
-      }
-    ], 'obj.slug')
+        {
+          obj: {
+            slug: 'b'
+          },
+          txt: 'change2'
+        }
+      ],
+      'obj.slug'
+    )
 
     expect(field).toEqual([
       {
@@ -153,14 +161,18 @@ describe('combine-array-data', () => {
       }
     ]
 
-    combineArrayData(field, {
-      1: {
-        txt: 'change1'
+    combineArrayData(
+      field,
+      {
+        1: {
+          txt: 'change1'
+        },
+        2: {
+          txt: 'change2'
+        }
       },
-      2: {
-        txt: 'change2'
-      }
-    }, 'id')
+      'id'
+    )
 
     expect(field).toEqual([
       {
@@ -212,14 +224,18 @@ describe('combine-array-data', () => {
       }
     ]
 
-    combineArrayData(field, {
-      a: {
-        txt: 'change1'
+    combineArrayData(
+      field,
+      {
+        a: {
+          txt: 'change1'
+        },
+        b: {
+          txt: 'change2'
+        }
       },
-      b: {
-        txt: 'change2'
-      }
-    }, 'obj.slug')
+      'obj.slug'
+    )
 
     expect(field).toEqual([
       {

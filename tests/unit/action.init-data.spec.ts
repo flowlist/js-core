@@ -33,11 +33,13 @@ describe('init data', () => {
       api
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
 
     const field = generateDefaultField({
       error: true
@@ -74,11 +76,13 @@ describe('init data', () => {
       api
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
 
     const field = generateDefaultField({
       loading: true
@@ -115,11 +119,13 @@ describe('init data', () => {
       api
     })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
 
     const field = generateDefaultField({
       fetched: true
@@ -151,31 +157,34 @@ describe('init data', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-
-        const field = generateDefaultField({
-          result: api.testArrData().result,
-          total: api.testArrData().total,
-          noMore: api.testArrData().no_more,
-          fetched: true,
-          page: 1
         })
+      )
 
-        expect(state).toEqual(field)
-        done()
+      const field = generateDefaultField({
+        result: api.testArrData().result,
+        total: api.testArrData().total,
+        noMore: api.testArrData().no_more,
+        fetched: true,
+        page: 1
       })
 
-    const state = getter(generateFieldName({
-      func,
-      type,
-      query
-    }))
+      expect(state).toEqual(field)
+      done()
+    })
+
+    const state = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
 
     expect(state.loading).toBe(true)
   })
@@ -205,12 +214,14 @@ describe('init data', () => {
       api
     })
       .then(() => {})
-      .catch(error => {
-        const state = getter(generateFieldName({
-          func,
-          type,
-          query
-        }))
+      .catch((error) => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
 
         const field = generateDefaultField({ error })
 
@@ -246,13 +257,41 @@ describe('init data', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+
+      const field = generateDefaultField({
+        result: api.testArrData().result,
+        total: api.testArrData().total,
+        noMore: api.testArrData().no_more,
+        fetched: true,
+        page: 1
+      })
+
+      expect(state).toEqual(field)
+
+      initData({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
 
         const field = generateDefaultField({
           result: api.testArrData().result,
@@ -263,35 +302,9 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(field)
-
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-
-            const field = generateDefaultField({
-              result: api.testArrData().result,
-              total: api.testArrData().total,
-              noMore: api.testArrData().no_more,
-              fetched: true,
-              page: 1
-            })
-
-            expect(state).toEqual(field)
-            done()
-          })
+        done()
       })
+    })
   })
 
   it('如果 refresh，但不 reload，发请求之前 field 就初始化', (done) => {
@@ -321,47 +334,50 @@ describe('init data', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        let state = getter(generateFieldName({
+    }).then(() => {
+      let state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
-
-        let field = generateDefaultField({
-          result: api.testArrData().result,
-          total: api.testArrData().total,
-          noMore: api.testArrData().no_more,
-          fetched: true,
-          page: 1
         })
+      )
 
-        expect(state).toEqual(field)
-
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api
-        })
-
-        state = getter(generateFieldName({
-          func,
-          type,
-          query
-        }))
-
-        field = generateDefaultField({
-          loading: true
-        })
-
-        expect(state).toEqual(field)
-        done()
+      let field = generateDefaultField({
+        result: api.testArrData().result,
+        total: api.testArrData().total,
+        noMore: api.testArrData().no_more,
+        fetched: true,
+        page: 1
       })
+
+      expect(state).toEqual(field)
+
+      initData({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api
+      })
+
+      state = getter(
+        generateFieldName({
+          func,
+          type,
+          query
+        })
+      )
+
+      field = generateDefaultField({
+        loading: true
+      })
+
+      expect(state).toEqual(field)
+      done()
+    })
   })
 
   it('如果 refresh，且 reload，发请求之后 field 才初始化', (done) => {
@@ -402,15 +418,43 @@ describe('init data', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        let state = getter(generateFieldName({
+    }).then(() => {
+      let state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        let field = generateDefaultField({
+      const field = generateDefaultField({
+        result: api.testArrData().result,
+        total: api.testArrData().total,
+        noMore: api.testArrData().no_more,
+        fetched: true,
+        page: 1
+      })
+
+      expect(state).toEqual(field)
+
+      initData({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query,
+        api
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
+
+        const field = generateDefaultField({
           result: api.testArrData().result,
           total: api.testArrData().total,
           noMore: api.testArrData().no_more,
@@ -419,49 +463,25 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(field)
+        done()
+      })
 
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query,
-          api
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-
-            const field = generateDefaultField({
-              result: api.testArrData().result,
-              total: api.testArrData().total,
-              noMore: api.testArrData().no_more,
-              fetched: true,
-              page: 1
-            })
-
-            expect(state).toEqual(field)
-            done()
-          })
-
-        state = getter(generateFieldName({
+      state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
 
-        expect(state).toEqual(field)
-      })
+      expect(state).toEqual(field)
+    })
   })
 
   it('调用 callback', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
-    let query = {
+    const query = {
       test_order: 8
     }
 
@@ -492,7 +512,7 @@ describe('init data', () => {
   it('设置缓存', (done) => {
     const func = 'testArrFunc'
     const type = 'cache'
-    let query = {
+    const query = {
       test_order: 9
     }
 
@@ -504,7 +524,7 @@ describe('init data', () => {
       query
     })
 
-    let counter = jest.spyOn(api, 'testArrFunc')
+    const counter = jest.spyOn(api, 'testArrFunc')
 
     initData({
       cache,
@@ -515,49 +535,45 @@ describe('init data', () => {
       query,
       api,
       cacheTimeout: 100
-    })
-      .then(() => {
-        const fieldName = generateFieldName({
+    }).then(() => {
+      const fieldName = generateFieldName({
+        func,
+        type,
+        query
+      })
+
+      const state = getter(fieldName)
+      cache.get({ key: fieldName }).then((cacheData) => {
+        expect(state).toEqual(cacheData)
+
+        initData({
+          cache,
+          getter,
+          setter,
           func,
           type,
-          query
-        })
-
-        const state = getter(fieldName)
-        cache.get({ key: fieldName })
-          .then(cacheData => {
-            expect(state).toEqual(cacheData)
-
-            initData({
-              cache,
-              getter,
-              setter,
-              func,
-              type,
-              query: {
-                ...query,
-                __refresh__: true
-              },
-              api,
-              cacheTimeout: 100
-            })
-              .then(() => {
-                const fieldName = generateFieldName({
-                  func,
-                  type,
-                  query
-                })
-
-                const state = getter(fieldName)
-                cache.get({ key: fieldName })
-                  .then(cacheData => {
-                    expect(state).toEqual(cacheData)
-                    expect(counter).toBeCalledTimes(1)
-                    done()
-                  })
-              })
+          query: {
+            ...query,
+            __refresh__: true
+          },
+          api,
+          cacheTimeout: 100
+        }).then(() => {
+          const fieldName = generateFieldName({
+            func,
+            type,
+            query
           })
+
+          const state = getter(fieldName)
+          cache.get({ key: fieldName }).then((cacheData) => {
+            expect(state).toEqual(cacheData)
+            expect(counter).toBeCalledTimes(1)
+            done()
+          })
+        })
       })
+    })
   })
 
   it('refresh 的时候 page 为最初的值', (done) => {
@@ -583,13 +599,44 @@ describe('init data', () => {
       type,
       query,
       api
-    })
-      .then(() => {
-        const state = getter(generateFieldName({
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
           func,
           type,
           query
-        }))
+        })
+      )
+
+      const field = generateDefaultField({
+        result: api.testArrData().result,
+        total: api.testArrData().total,
+        noMore: api.testArrData().no_more,
+        fetched: true,
+        page: 1
+      })
+
+      expect(state).toEqual(field)
+
+      initData({
+        cache,
+        getter,
+        setter,
+        func,
+        type,
+        query: {
+          ...query,
+          __refresh__: true
+        },
+        api
+      }).then(() => {
+        const state = getter(
+          generateFieldName({
+            func,
+            type,
+            query
+          })
+        )
 
         const field = generateDefaultField({
           result: api.testArrData().result,
@@ -600,37 +647,8 @@ describe('init data', () => {
         })
 
         expect(state).toEqual(field)
-
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query: {
-            ...query,
-            __refresh__: true
-          },
-          api
-        })
-          .then(() => {
-            const state = getter(generateFieldName({
-              func,
-              type,
-              query
-            }))
-
-            const field = generateDefaultField({
-              result: api.testArrData().result,
-              total: api.testArrData().total,
-              noMore: api.testArrData().no_more,
-              fetched: true,
-              page: 1
-            })
-
-            expect(state).toEqual(field)
-            done()
-          })
+        done()
       })
+    })
   })
 })
