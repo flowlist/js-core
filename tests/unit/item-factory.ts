@@ -1,14 +1,13 @@
-// @ts-nocheck
-const faker = require('faker')
+import { faker } from '@faker-js/faker'
+
 faker.locale = 'zh_CN'
 
 let GLOBAL_ID = 0
 
 export default new (class {
-  get(count) {
-    let items = [],
-      i
-    for (i = 0; i < count; i++) {
+  get(count: number) {
+    const items = []
+    for (let i = 0; i < count; i++) {
       const width = 100 + ~~(Math.random() * 50)
       const height = 100
       items[i] = {
@@ -18,11 +17,11 @@ export default new (class {
         },
         width,
         height,
-        data: Object.assign(faker.helpers.createCard(), {
+        data: {
           number_id: faker.datatype.number(),
           uuid: faker.datatype.uuid(),
           follow: false
-        }),
+        },
         like: false
       }
     }

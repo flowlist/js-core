@@ -5,28 +5,13 @@ import type { setDataType, setErrorType } from './types'
 export const SET_DATA = ({
   getter,
   setter,
-  cache,
   data,
   fieldName,
   type,
-  fromLocal,
-  cacheTimeout,
   page,
   insertBefore
 }: setDataType): Promise<any> => {
   return new Promise((resolve, reject) => {
-    if (fromLocal) {
-      setter({
-        key: fieldName,
-        type: ENUM.SETTER_TYPE.RESET,
-        value: data,
-        callback: () => {
-          resolve(null)
-        }
-      })
-      return
-    }
-
     const fieldData = getter(fieldName)
     if (!fieldData) {
       reject()
@@ -68,18 +53,6 @@ export const SET_DATA = ({
       type: ENUM.SETTER_TYPE.RESET,
       value: fieldData,
       callback: () => {
-        if (cacheTimeout && cache && !fieldData.nothing) {
-          cache
-            .set({
-              key: fieldName,
-              value: fieldData,
-              timeout: cacheTimeout
-            })
-            .then(resolve)
-            .catch(resolve)
-          return
-        }
-
         resolve(null)
       }
     })

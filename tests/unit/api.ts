@@ -81,7 +81,7 @@ export const testCommentData = () => ({
 })
 
 export const testArrFunc = () => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     resolve(testArrData())
   })
 }
@@ -137,7 +137,7 @@ export const getObjectByPage = ({ page, count }) => {
 }
 
 let SINCE_HAS_FETCHED = 0
-export const getListBySinceId = ({ since_id, is_up, count }) => {
+export const getListBySinceId = ({ count }) => {
   return new Promise((resolve) => {
     const total = 87
     const hasFetch = SINCE_HAS_FETCHED

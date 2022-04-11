@@ -66,24 +66,9 @@ export type initStateType = {
   opts?: keyMap
 }
 
-export type cacheType = {
-  get: ({ key }: { key: string }) => Promise<any>
-  set: ({
-    key,
-    value,
-    timeout
-  }: {
-    key: string
-    value: any
-    timeout?: number
-  }) => Promise<any>
-  del: ({ key }: { key: string }) => void
-}
-
 export type initDataType = {
   getter: (str: string) => defaultField
   setter: (obj: setterFuncParams) => void
-  cache: cacheType
   func: string | (() => {})
   type: fetchTypes
   query?: keyMap
@@ -96,7 +81,6 @@ export type initDataType = {
 export type loadMoreType = {
   getter: (str: string) => defaultField
   setter: (obj: setterFuncParams) => void
-  cache: cacheType
   func: string | (() => {})
   type: fetchTypes
   query?: keyMap
@@ -110,7 +94,6 @@ export type loadMoreType = {
 export type updateStateType = {
   getter: (str: string) => defaultField
   setter: (obj: setterFuncParams) => void
-  cache: cacheType
   func: string | (() => {})
   type: fetchTypes
   query?: keyMap
@@ -125,12 +108,9 @@ export type updateStateType = {
 export type setDataType = {
   getter: (str: string) => defaultField
   setter: (obj: setterFuncParams) => void
-  cache: cacheType
   data: any
   fieldName: string
   type: fetchTypes
-  fromLocal: boolean
-  cacheTimeout: number
   page: number
   insertBefore: boolean
 }

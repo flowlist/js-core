@@ -50,12 +50,10 @@ export const initState = ({
 export const initData = ({
   getter,
   setter,
-  cache,
   func,
   type,
   query = {},
   api,
-  cacheTimeout,
   uniqueKey,
   callback
 }: initDataType): Promise<any> =>
@@ -87,7 +85,6 @@ export const initData = ({
       query,
       type
     })
-    let fromLocal = false
 
     const getData = () => {
       const loadData = () =>
@@ -103,19 +100,7 @@ export const initData = ({
               })
           }
 
-          if (cacheTimeout && cache) {
-            cache
-              .get({ key: fieldName })
-              .then((data) => {
-                fromLocal = true
-                res(data)
-              })
-              .catch(() => {
-                getDataFromAPI()
-              })
-          } else {
-            getDataFromAPI()
-          }
+          getDataFromAPI()
         })
 
       loadData().then((data) => {
@@ -123,12 +108,9 @@ export const initData = ({
           SET_DATA({
             getter,
             setter,
-            cache,
             data,
             fieldName,
             type,
-            fromLocal,
-            cacheTimeout,
             page: params.page || 0,
             insertBefore: false
           }).then(() => {
@@ -177,12 +159,10 @@ export const initData = ({
 export const loadMore = ({
   getter,
   setter,
-  cache,
   query = {},
   type,
   func,
   api,
-  cacheTimeout,
   uniqueKey,
   errorRetry,
   callback
@@ -245,12 +225,9 @@ export const loadMore = ({
           SET_DATA({
             getter,
             setter,
-            cache,
             data,
             fieldName,
             type,
-            fromLocal: false,
-            cacheTimeout,
             page: params.page || 0,
             insertBefore: !!query.is_up
           }).then(() => {
@@ -281,7 +258,6 @@ export const loadMore = ({
 export const updateState = ({
   getter,
   setter,
-  cache,
   type,
   func,
   query = {},
@@ -289,8 +265,7 @@ export const updateState = ({
   value,
   id,
   uniqueKey,
-  changeKey,
-  cacheTimeout
+  changeKey
 }: updateStateType) => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
@@ -397,18 +372,6 @@ export const updateState = ({
       type: ENUM.SETTER_TYPE.MERGE,
       value: fieldData,
       callback: () => {
-        if (cacheTimeout && cache) {
-          cache
-            .set({
-              key: fieldName,
-              value: fieldData,
-              timeout: cacheTimeout
-            })
-            .then(resolve)
-            .catch(resolve)
-          return
-        }
-
         resolve(null)
       }
     })

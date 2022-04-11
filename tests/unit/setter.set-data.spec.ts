@@ -4,31 +4,6 @@ import { generateDefaultField, generateFieldName } from '../../src/utils'
 import { setter, getter, cache } from './env'
 
 describe('set data', () => {
-  it('如果数据从 localStorage 得来，直接 set', async () => {
-    const fieldName = generateFieldName({
-      func: 'func1',
-      type: 'type'
-    })
-    const data = [{ id: 1 }, { id: 2 }]
-    await SET_DATA({
-      cache,
-      setter,
-      data: generateDefaultField({
-        result: data
-      }),
-      fieldName,
-      fromLocal: true
-    })
-
-    const field = getter(fieldName)
-
-    expect(field).toEqual(
-      generateDefaultField({
-        result: data
-      })
-    )
-  })
-
   it('如果 field 未初始化，则直接返回', async () => {
     const fieldName = generateFieldName({
       func: 'func2',
@@ -438,66 +413,6 @@ describe('set data', () => {
         noMore: true
       })
     )
-  })
-
-  it('set 之后，当 nothing 为 true，即使加了 cacheTimeout，cache 也不生效', async (done) => {
-    const fieldName = generateFieldName({
-      func: 'func12',
-      type: 'type'
-    })
-    setter({
-      key: fieldName,
-      type: 0,
-      value: generateDefaultField()
-    })
-
-    await SET_DATA({
-      cache,
-      setter,
-      getter,
-      type: 'type',
-      data: {
-        result: []
-      },
-      cacheTimeout: 1000,
-      fieldName
-    })
-
-    cache.get({ key: fieldName }).catch((result) => {
-      expect(result).toBeNull()
-      done()
-    })
-  })
-
-  it('set 之后，当设置 cacheTimeout，set cache 生效', async (done) => {
-    const fieldName = generateFieldName({
-      func: 'func13',
-      type: 'type'
-    })
-    setter({
-      key: fieldName,
-      type: 0,
-      value: generateDefaultField()
-    })
-
-    await SET_DATA({
-      cache,
-      setter,
-      getter,
-      type: 'type',
-      data: {
-        result: [{ a: 1 }]
-      },
-      cacheTimeout: 1000,
-      fieldName
-    })
-
-    cache.get({ key: fieldName }).then((result) => {
-      const field = getter(fieldName)
-
-      expect(result).toEqual(field)
-      done()
-    })
   })
 
   it('set 之后，如果 type 是 jump，使用 query 里的 page，否则 page = field 的 page + 1', async () => {

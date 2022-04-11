@@ -27,7 +27,6 @@ export const generateDefaultField = (opts = {}): defaultField => ({
   ...opts
 })
 
-let seed = 0
 /**
  * 根据参数生成 field 的 namespace
  * @param {string} func
@@ -40,7 +39,10 @@ export const generateFieldName = ({
   type,
   query = {}
 }: generateFieldProps): string => {
-  func = typeof func === 'string' ? func : `custom-func-${seed++}`
+  func =
+    typeof func === 'string'
+      ? func
+      : `api-${Math.random().toString(36).substring(2)}`
   type = type || 'auto'
   let result = `${func}-${type}`
   Object.keys(query)

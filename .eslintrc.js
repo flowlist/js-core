@@ -21,17 +21,14 @@ module.exports = {
   overrides: [
     {
       files: ['**/*.ts', '**/*.tsx', '**/*.vue'],
-      extends: [
-        ...defaultExtends,
-        '@vue/typescript/recommended',
-        '@vue/prettier/@typescript-eslint'
-      ],
+      extends: [...defaultExtends, '@vue/typescript/recommended'],
       rules: {
         ...rules,
         '@typescript-eslint/ban-types': 'off',
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/explicit-module-boundary-types': 'off'
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/no-extra-semi': 'off'
       },
       parserOptions
     },

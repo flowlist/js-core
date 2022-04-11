@@ -213,7 +213,7 @@ describe('init data', () => {
       query,
       api
     })
-      .then(() => {})
+      .then()
       .catch((error) => {
         const state = getter(
           generateFieldName({
@@ -506,73 +506,6 @@ describe('init data', () => {
         expect(data).toEqual(api.testArrData())
         done()
       }
-    })
-  })
-
-  it('设置缓存', (done) => {
-    const func = 'testArrFunc'
-    const type = 'cache'
-    const query = {
-      test_order: 9
-    }
-
-    initState({
-      getter,
-      setter,
-      func,
-      type,
-      query
-    })
-
-    const counter = jest.spyOn(api, 'testArrFunc')
-
-    initData({
-      cache,
-      getter,
-      setter,
-      func,
-      type,
-      query,
-      api,
-      cacheTimeout: 100
-    }).then(() => {
-      const fieldName = generateFieldName({
-        func,
-        type,
-        query
-      })
-
-      const state = getter(fieldName)
-      cache.get({ key: fieldName }).then((cacheData) => {
-        expect(state).toEqual(cacheData)
-
-        initData({
-          cache,
-          getter,
-          setter,
-          func,
-          type,
-          query: {
-            ...query,
-            __refresh__: true
-          },
-          api,
-          cacheTimeout: 100
-        }).then(() => {
-          const fieldName = generateFieldName({
-            func,
-            type,
-            query
-          })
-
-          const state = getter(fieldName)
-          cache.get({ key: fieldName }).then((cacheData) => {
-            expect(state).toEqual(cacheData)
-            expect(counter).toBeCalledTimes(1)
-            done()
-          })
-        })
-      })
     })
   })
 
