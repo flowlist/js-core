@@ -12,6 +12,10 @@ import type {
   generateParamsResp
 } from './types'
 
+export const isObjectResult = (data: Record<string, any>): boolean => {
+  return data.result === undefined
+}
+
 export const generateDefaultField = (opts = {}): defaultField => ({
   ...{
     result: [],
@@ -265,11 +269,10 @@ export const computeResultLength = (data: fieldResult): number => {
 export const generateRequestParams = ({
   field,
   uniqueKey,
-  query,
+  query = {},
   type
 }: generateParamsType): generateParamsResp => {
   const result: generateParamsResp = {}
-  query = query || {}
   if (field.fetched) {
     const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     if (type === ENUM.FETCH_TYPE.AUTO) {

@@ -14,7 +14,7 @@
     "paths": {}
   },
   "include": [
-    "src/index.ts",
+    "index.ts",
     "tests/**/*.ts"
   ],
   "exclude": [

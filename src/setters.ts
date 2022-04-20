@@ -1,4 +1,4 @@
-import { computeResultLength, setReactivityField } from './utils'
+import { computeResultLength, setReactivityField, isObjectResult } from './utils'
 import ENUM from './enum'
 import type { setDataType, setErrorType } from './types'
 
@@ -18,18 +18,31 @@ export const SET_DATA = ({
       return
     }
 
-    const { result, extra } = data
-    const isEmpty = computeResultLength(result) === 0
-    fieldData.nothing = fieldData.fetched ? false : isEmpty
-    fieldData.fetched = true
-    fieldData.total = data.total || 0
-    if (type === ENUM.FETCH_TYPE.PAGINATION) {
-      fieldData.noMore = false
-      fieldData.page = +page
+    let result
+    let extra
+
+    if (isObjectResult(data)) {
+      result = data
+      fieldData.nothing = false
+      fieldData.fetched = true
+      fieldData.noMore = true
+      fieldData.page = -1
     } else {
-      fieldData.noMore = data.no_more || isEmpty
-      fieldData.page = fieldData.page + 1
+      result = data.result
+      extra = data.extra
+      const isEmpty = computeResultLength(result) === 0
+      fieldData.nothing = fieldData.fetched ? false : isEmpty
+      fieldData.fetched = true
+      fieldData.total = data.total || 0
+      if (type === ENUM.FETCH_TYPE.PAGINATION) {
+        fieldData.noMore = false
+        fieldData.page = +page
+      } else {
+        fieldData.noMore = data.no_more || isEmpty
+        fieldData.page = fieldData.page + 1
+      }
     }
+
     fieldData.loading = false
     setReactivityField(
       fieldData,

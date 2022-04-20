@@ -25,8 +25,8 @@ export const initState = ({
   setter,
   func,
   type,
-  query = {},
-  opts = {}
+  query,
+  opts
 }: initStateType): Promise<null> => {
   return new Promise((resolve) => {
     const fieldName = generateFieldName({ func, type, query })
@@ -52,7 +52,7 @@ export const initData = ({
   setter,
   func,
   type,
-  query = {},
+  query,
   api,
   uniqueKey,
   callback
@@ -60,8 +60,8 @@ export const initData = ({
   new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
-    const doRefresh = !!query.__refresh__
-    const needReset = !!query.__reload__
+    const doRefresh = !!query?.__refresh__
+    const needReset = !!query?.__reload__
     // 如果 error 了，就不再请求
     if (fieldData && fieldData.error && !doRefresh) {
       return resolve(null)
@@ -159,7 +159,7 @@ export const initData = ({
 export const loadMore = ({
   getter,
   setter,
-  query = {},
+  query,
   type,
   func,
   api,
@@ -187,7 +187,11 @@ export const loadMore = ({
       return resolve(null)
     }
 
-    if (type === ENUM.FETCH_TYPE.PAGINATION && +query.page === fieldData.page) {
+    if (
+      type === ENUM.FETCH_TYPE.PAGINATION &&
+      query &&
+      +query.page === fieldData.page
+    ) {
       return resolve(null)
     }
 
@@ -229,7 +233,7 @@ export const loadMore = ({
             fieldName,
             type,
             page: params.page || 0,
-            insertBefore: !!query.is_up
+            insertBefore: !!query?.is_up
           }).then(() => {
             if (callback) {
               callback({
@@ -260,7 +264,7 @@ export const updateState = ({
   setter,
   type,
   func,
-  query = {},
+  query,
   method,
   value,
   id,
@@ -272,6 +276,11 @@ export const updateState = ({
     const fieldData = getter(fieldName)
     if (!fieldData) {
       reject()
+      return
+    }
+
+    if (fieldData.page === -1) {
+      resolve(null)
       return
     }
 

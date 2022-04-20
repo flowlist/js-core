@@ -33,13 +33,13 @@ export type fieldKeys =
 export type generateFieldProps = {
   func: string | (() => {})
   type: fetchTypes
-  query: keyMap
+  query?: keyMap
 }
 
 export type generateParamsType = {
   field: defaultField
   uniqueKey: string
-  query: keyMap
+  query?: keyMap
   type: fetchTypes
 }
 

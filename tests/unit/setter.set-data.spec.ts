@@ -155,7 +155,6 @@ describe('set data', () => {
     })
 
     let field = getter(fieldName)
-
     expect(field).toEqual(
       generateDefaultField({
         result: field.result,
@@ -558,6 +557,43 @@ describe('set data', () => {
         extra: {
           a: 1
         }
+      })
+    )
+  })
+
+  it('如果 data 是 object，则 page 是 -1', async () => {
+    const fieldName = generateFieldName({
+      func: 'func16',
+      type: 'type'
+    })
+    setter({
+      key: fieldName,
+      type: 0,
+      value: generateDefaultField()
+    })
+
+    const result = {
+      k: 123,
+      v: 456
+    }
+
+    await SET_DATA({
+      cache,
+      setter,
+      getter,
+      data: result,
+      fieldName
+    })
+
+    const field = getter(fieldName)
+
+    expect(field).toEqual(
+      generateDefaultField({
+        result: result,
+        page: -1,
+        fetched: true,
+        loading: false,
+        noMore: true
       })
     )
   })
