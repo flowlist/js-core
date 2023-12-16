@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "main": "dist/js-core.umd.js",
   "module": "dist/js-core.es.js",
   "types": "dist/index.d.ts",

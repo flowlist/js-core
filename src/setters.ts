@@ -1,4 +1,8 @@
-import { computeResultLength, setReactivityField, isObjectResult } from './utils'
+import {
+  computeResultLength,
+  setReactivityField,
+  isObjectResult
+} from './utils'
 import ENUM from './enum'
 import type { setDataType, setErrorType } from './types'
 
@@ -38,7 +42,10 @@ export const SET_DATA = ({
         fieldData.noMore = false
         fieldData.page = +page
       } else {
-        fieldData.noMore = data.no_more || isEmpty
+        fieldData.noMore =
+          typeof data.no_more === 'undefined'
+            ? isEmpty
+            : data.no_more || isEmpty
         fieldData.page = fieldData.page + 1
       }
     }
