@@ -5,23 +5,37 @@
 export type ObjectKey = string | number
 
 /**
- * 通用键值对映射
+ * 通用键值对映射（注意：尽管 ObjectKey 包含 number，
+ * 但在实际对象中，number 键会被转为 string。
+ * 此处使用 string 以符合 Record 的实际行为 [[3]]）
  */
-export type KeyMap = Record<ObjectKey, unknown>
+export type KeyMap = Record<string, unknown>
 
 /**
  * 形态数组
  */
 export type MorphArray = unknown[]
 
-type FuncType = string | ((params: unknown) => Promise<unknown>)
+/**
+ * 数据源类型：可以是 API 路径字符串，或返回 Promise 的函数
+ */
+type DataSource = string | ((params: unknown) => Promise<unknown>)
 
-type GetterType = <T = unknown, E = unknown>(
-  str: string
+/**
+ * 字段获取器：根据字段名获取状态对象
+ */
+type FieldGetter<T = unknown, E = unknown> = (
+  key: string
 ) => DefaultField<T, E> | undefined
 
-type SetterType = (obj: SetterFuncParams) => void
+/**
+ * 状态设置器函数类型
+ */
+type FieldSetter = (obj: SetterFuncParams) => void
 
+/**
+ * 获取数据后的回调函数
+ */
 type FetchResultCallback = (obj: {
   params: GenerateParamsResp
   data: unknown
@@ -51,7 +65,7 @@ export type FieldKeys =
  * 生成字段名称的参数
  */
 export interface GenerateFieldProps {
-  func: FuncType
+  func: DataSource
   type: FetchType
   query?: KeyMap
 }
@@ -61,7 +75,7 @@ export interface GenerateFieldProps {
  */
 export interface GenerateParamsType {
   field: DefaultField<unknown, unknown>
-  uniqueKey: string
+  uniqueKey?: string
   query?: KeyMap
   type: FetchType
 }
@@ -81,7 +95,7 @@ export interface GenerateParamsResp {
  */
 export interface SetterFuncParams {
   key: string
-  type: number // 未来可考虑用枚举
+  type: number
   value: unknown
   callback?: (obj?: KeyMap) => void
 }
@@ -111,13 +125,25 @@ export interface ApiResponse<T = unknown, E = unknown> {
   no_more?: boolean
 }
 
+// --- 公共配置基类 ---
+interface BaseFetchConfig {
+  getter: FieldGetter
+  setter: FieldSetter
+  func: DataSource
+  type: FetchType
+  query?: KeyMap
+  api?: KeyMap
+  uniqueKey?: string
+  callback?: FetchResultCallback
+}
+
 /**
  * 初始化状态的参数
  */
 export interface InitStateType {
-  getter: GetterType
-  setter: SetterType
-  func: FuncType
+  getter: FieldGetter
+  setter: FieldSetter
+  func: DataSource
   type: FetchType
   query?: KeyMap
   opts?: Partial<DefaultField<unknown, unknown>>
@@ -126,39 +152,22 @@ export interface InitStateType {
 /**
  * 初始化数据的参数
  */
-export interface InitDataType {
-  getter: GetterType
-  setter: SetterType
-  func: FuncType
-  type: FetchType
-  query?: KeyMap
-  api: KeyMap
-  uniqueKey: string
-  callback?: FetchResultCallback
-}
+export type InitDataType = BaseFetchConfig
 
 /**
  * 加载更多的参数
  */
-export interface LoadMoreType {
-  getter: GetterType
-  setter: SetterType
-  func: FuncType
-  type: FetchType
-  query?: KeyMap
-  api: KeyMap
-  uniqueKey: string
-  errorRetry: boolean
-  callback?: FetchResultCallback
+export interface LoadMoreType extends BaseFetchConfig {
+  errorRetry?: boolean
 }
 
 /**
  * 更新状态的参数
  */
 export interface UpdateStateType<T = unknown, E = unknown> {
-  getter: (str: string) => DefaultField<T, E> | undefined
-  setter: SetterType
-  func: FuncType
+  getter: FieldGetter<T, E>
+  setter: FieldSetter
+  func: DataSource
   type: FetchType
   query?: KeyMap
   method: string
@@ -172,8 +181,8 @@ export interface UpdateStateType<T = unknown, E = unknown> {
  * 设置数据的参数
  */
 export interface SetDataType<T = unknown, E = unknown> {
-  getter: (str: string) => DefaultField<T, E> | undefined
-  setter: SetterType
+  getter: FieldGetter<T, E>
+  setter: FieldSetter
   data: T | ApiResponse<T, E>
   fieldName: string
   type: FetchType
@@ -185,7 +194,7 @@ export interface SetDataType<T = unknown, E = unknown> {
  * 设置错误的参数
  */
 export interface SetErrorType {
-  setter: SetterType
+  setter: FieldSetter
   fieldName: string
   error: Error
 }

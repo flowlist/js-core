@@ -98,16 +98,16 @@ export const initData = ({
         new Promise<unknown>((res, rej) => {
           const getDataFromAPI = () => {
             const funcCaller =
-              typeof func === 'string'
-                ? (api[func] as (p: unknown) => Promise<unknown>)
-                : func
+              typeof func === 'string' && api ? api[func] : func
 
-            funcCaller(params)
-              .then(res)
-              .catch((error: Error) => {
-                SET_ERROR({ setter, fieldName, error })
-                rej(error)
-              })
+            if (typeof funcCaller === 'function') {
+              funcCaller(params)
+                .then(res)
+                .catch((error: Error) => {
+                  SET_ERROR({ setter, fieldName, error })
+                  rej(error)
+                })
+            }
           }
 
           getDataFromAPI()
@@ -236,36 +236,35 @@ export const loadMore = ({
     }
 
     const getData = () => {
-      const funcCaller =
-        typeof func === 'string'
-          ? (api[func] as (p: unknown) => Promise<unknown>)
-          : func
+      const funcCaller = typeof func === 'string' && api ? api[func] : func
 
-      funcCaller(params)
-        .then((data: unknown) => {
-          SET_DATA({
-            getter,
-            setter,
-            data,
-            fieldName,
-            type,
-            page: params.page || 0,
-            insertBefore: !!query?.is_up
-          }).then(() => {
-            if (callback) {
-              callback({
-                params,
-                data,
-                refresh: false
-              })
-            }
-            resolve()
+      if (typeof funcCaller === 'function') {
+        funcCaller(params)
+          .then((data: unknown) => {
+            SET_DATA({
+              getter,
+              setter,
+              data,
+              fieldName,
+              type,
+              page: params.page || 0,
+              insertBefore: !!query?.is_up
+            }).then(() => {
+              if (callback) {
+                callback({
+                  params,
+                  data,
+                  refresh: false
+                })
+              }
+              resolve()
+            })
           })
-        })
-        .catch((error: Error) => {
-          SET_ERROR({ setter, fieldName, error })
-          reject(error)
-        })
+          .catch((error: Error) => {
+            SET_ERROR({ setter, fieldName, error })
+            reject(error)
+          })
+      }
     }
 
     setter({

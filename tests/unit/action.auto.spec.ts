@@ -39,7 +39,9 @@ describe('actions', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Setup default mocks for utils
-    require('../../src/utils').generateFieldName.mockReturnValue('mock-field-name')
+    require('../../src/utils').generateFieldName.mockReturnValue(
+      'mock-field-name'
+    )
     require('../../src/utils').generateDefaultField.mockImplementation(
       actualUtils.generateDefaultField
     )
