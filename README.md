@@ -1,114 +1,86 @@
 # @flowlist/js-core
 
-<p align="center">
-    <a target="_blank" href="https://travis-ci.org/github/flowlist/js-core">
-        <img alt="Build" src="https://travis-ci.org/flowlist/js-core.svg?branch=master" />
-    </a>
-    <a target="_blank" href="https://codecov.io/gh/flowlist/js-core">
-        <img alt="Coverage" src="https://codecov.io/gh/flowlist/js-core/branch/master/graph/badge.svg" />
-    </a>
-    <a target="_blank" href="https://www.npmjs.com/package/@flowlist/js-core">
-        <img alt="Version" src="https://badge.fury.io/js/%40flowlist%2Fjs-core.svg" />
-    </a>
-    <a target="_blank" href="https://github.com/flowlist/js-core/blob/master/LICENSE">
-        <img alt="License" src="https://gitlicense.com/badge/flowlist/js-core"/>
-    </a>
-</p>
+[![npm version](https://img.shields.io/npm/v/@flowlist/js-core.svg)](https://www.npmjs.com/package/@flowlist/js-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-## 信息流业务通用容器的基础实现
+A lightweight, type-safe JavaScript core library for managing data flow in list-based UIs. It provides a unified interface for initializing, loading, paginating, and updating list data with built-in state management and caching support.
 
-### Download
+## ✨ Features
 
-``` bash
+- 🧠 **Declarative Data Flow**: Define how your list data is fetched and updated.
+- 📦 **Built-in State Management**: Handles loading, error, pagination, and cache states automatically.
+- 🔁 **Multiple Fetch Strategies**: Supports pagination, infinite scroll, since-id, seen-ids, and more.
+- 🔄 **Flexible Updates**: Add, remove, update, or merge list items with ease.
+- 💾 **Cache Ready**: Designed to work seamlessly with external cache layers.
+- 🧪 **TypeScript First**: Full TypeScript support with comprehensive type definitions.
+- 🧩 **Framework Agnostic**: Works with React, Vue, Svelte, or vanilla JS.
+
+## 🚀 Installation
+
+```bash
+# Using npm
+npm install @flowlist/js-core
+
+# Using yarn
 yarn add @flowlist/js-core
 ```
 
-### Import
-```javascript
+## 📦 Usage
+
+```ts
 import flow from '@flowlist/js-core'
+
+// Example with a hypothetical state management system (e.g., React useState, Zustand, etc.)
+const { getter, setter, api, cache } = yourAppStateManager
+
+// 1. Initialize the data container
+await flow.initState({
+  getter,
+  setter,
+  func: 'fetchPosts',
+  type: 'page', // or 'sinceId', 'seenIds', 'auto', etc.
+  query: { userId: 123 }
+})
+
+// 2. Load initial data
+await flow.initData({
+  getter,
+  setter,
+  cache,
+  func: 'fetchPosts',
+  type: 'page',
+  query: { userId: 123 },
+  api,
+  uniqueKey: 'id',
+  cacheTimeout: 300 // 5 minutes
+})
+
+// 3. Load more data (e.g., on scroll)
+await flow.loadMore({
+  getter,
+  setter,
+  cache,
+  func: 'fetchPosts',
+  type: 'page',
+  query: { userId: 123 },
+  api,
+  uniqueKey: 'id',
+  errorRetry: false
+})
+
+// 4. Update list data locally
+await flow.updateState({
+  getter,
+  setter,
+  cache,
+  func: 'fetchPosts',
+  type: 'page',
+  query: { userId: 123 },
+  method: 'push', // or 'delete', 'update', 'merge', etc.
+  value: newPost,
+  id: newPost.id,
+  uniqueKey: 'id',
+  changeKey: 'result',
+  cacheTimeout: 300
+})
 ```
-
-### Inject
-
-- getter：get state
-> 如 [Vuex.getter](https://github.com/flowlist/js-core/blob/master/tests/unit/env.js#L3)
-
-- setter：set state
-> 如：[React.setState](https://github.com/flowlist/js-core/blob/master/tests/unit/env.js#L8)
-
-- cache：cache instance
-> [包含 get<Promise>，set<Promise>，del 三个方法](https://github.com/flowlist/js-core/blob/master/tests/unit/env.js#L20)
-
-- api：named api list
-> [把需要调用的所有 API export 出来](https://github.com/flowlist/js-core/blob/master/tests/unit/api.js)
-
-### Methods
-
-- `initState`
-
-> 初始化数据容器
-
-| 参数 | 类型 | 介绍 |
-| --- | --- | --- |
-| getter | Function | 设置 state 的函数 |
-| setter | Function | 读取 state 的函数 |
-| func | String | API层的函数名 |
-| type | String\<ListType\> | 列表的类型 |
-| query | Object | 需要额外透传给 API 层的数据 |
-
-- `initData`
-
-> 加载首屏数据
-
-| 参数 | 类型 | 介绍 |
-| --- | --- | --- |
-| getter | Function | 设置 state 的函数 |
-| setter | Function | 读取 state 的函数 |
-| cache | Object | 用于读写缓存的对象 |
-| func | String | API层的函数名 |
-| type | String\<ListType\> | 列表的类型 |
-| query | Object | 需要额外透传给 API 层的数据 |
-| api | Array\<API\> | 整个 API 层 |
-| cacheTimeout | Integer | 缓存持久化的时间（秒） |
-| uniqueKey | String | 列表里每个元素独一无二的 key |
-| callback | Function | 请求成功之后的回调函数 |
-
-- `loadMore`
-
-> 加载分页数据
-
-| 参数 | 类型 | 介绍 |
-| --- | --- | --- |
-| getter | Function | 设置 state 的函数 |
-| setter | Function | 读取 state 的函数 |
-| cache | Object | 用于读写缓存的对象 |
-| func | String | API层的函数名 |
-| type | String\<ListType\> | 列表的类型 |
-| query | Object | 需要额外透传给 API 层的数据 |
-| api | Array\<API\> | 整个 API 层 |
-| cacheTimeout | Integer | 缓存持久化的时间（秒） |
-| uniqueKey | String | 列表里每个元素独一无二的 key |
-| errorRetry | Boolean | 是否是重试 |
-| callback | Function | 请求成功之后的回调函数 |
-
-- `updateState`
-
-> 更新数据容器
-
-```javascript
-flow.updateState({ getter, setter, cache, type, func, query, method, value, id, uniqueKey, changeKey, cacheTimeout })
-```
-| 参数 | 类型 | 介绍 |
-| --- | --- | --- |
-| getter | Function | 设置 state 的函数 |
-| setter | Function | 读取 state 的函数 |
-| cache | Object | 用于读写缓存的对象 |
-| func | String | API层的函数名 |
-| type | String\<ListType\> | 列表的类型 |
-| query | Object | 需要额外透传给 API 层的数据 |
-| method | String | 需要调用的函数名 |
-| value | Any | 传值 |
-| id | String / Number | 用来索引的独一无二的 keyValue |
-| uniqueKey | String | 列表里每个元素独一无二的 keyName |
-| changeKey | String | 你想要修改的`field`是哪个字段，默认是`result` |
-| cacheTimeout | Integer | 缓存持久化的时间（秒） |

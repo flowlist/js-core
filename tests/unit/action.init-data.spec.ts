@@ -133,7 +133,7 @@ describe('init data', () => {
 
     expect(state).toEqual(field)
   })
-
+  // 报错
   it('如果正常初始化，就正常请求，loading 为 true', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -229,7 +229,7 @@ describe('init data', () => {
         done()
       })
   })
-
+  // 报错
   it('如果 refresh，即使 fetched 了也要发请求', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -306,7 +306,7 @@ describe('init data', () => {
       })
     })
   })
-
+  // 报错
   it('如果 refresh，但不 reload，发请求之前 field 就初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -379,7 +379,7 @@ describe('init data', () => {
       done()
     })
   })
-
+  // 报错
   it('如果 refresh，且 reload，发请求之后 field 才初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -508,14 +508,13 @@ describe('init data', () => {
       }
     })
   })
-
+  // 报错
   it('refresh 的时候 page 为最初的值', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
       test_order: 10
     }
-
     initState({
       getter,
       setter,
@@ -523,7 +522,13 @@ describe('init data', () => {
       type,
       query
     })
-
+    const initDaaa = getter(
+      generateFieldName({
+        func,
+        type,
+        query
+      })
+    )
     initData({
       cache,
       getter,
@@ -540,7 +545,6 @@ describe('init data', () => {
           query
         })
       )
-
       const field = generateDefaultField({
         result: api.testArrData().result,
         total: api.testArrData().total,
@@ -548,9 +552,7 @@ describe('init data', () => {
         fetched: true,
         page: 1
       })
-
       expect(state).toEqual(field)
-
       initData({
         cache,
         getter,
@@ -570,7 +572,6 @@ describe('init data', () => {
             query
           })
         )
-
         const field = generateDefaultField({
           result: api.testArrData().result,
           total: api.testArrData().total,
@@ -578,7 +579,6 @@ describe('init data', () => {
           fetched: true,
           page: 1
         })
-
         expect(state).toEqual(field)
         done()
       })

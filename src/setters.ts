@@ -1,12 +1,18 @@
+// setters.ts
 import {
   computeResultLength,
   setReactivityField,
   isObjectResult
 } from './utils'
 import ENUM from './enum'
-import type { setDataType, setErrorType } from './types'
+import type {
+  SetDataType,
+  SetErrorType,
+  DefaultField,
+  ApiResponse
+} from './types'
 
-export const SET_DATA = ({
+export const SET_DATA = <T, E>({
   getter,
   setter,
   data,
@@ -14,72 +20,83 @@ export const SET_DATA = ({
   type,
   page,
   insertBefore
-}: setDataType): Promise<any> => {
+}: SetDataType<T, E>): Promise<void> => {
   return new Promise((resolve, reject) => {
     const fieldData = getter(fieldName)
     if (!fieldData) {
-      reject()
+      reject(new Error(`Field ${fieldName} not found.`))
       return
     }
 
-    let result
-    let extra
+    // 类型断言：确保 fieldData 符合 DefaultField<T, E>
+    const field = fieldData as DefaultField<T, E>
+
+    let result: T
+    let extra: E | undefined
 
     if (isObjectResult(data)) {
-      result = data
-      fieldData.nothing = false
-      fieldData.fetched = true
-      fieldData.noMore = true
-      fieldData.page = -1
+      // data is T (object result mode)
+      result = data as T
+      field.nothing = false
+      field.fetched = true
+      field.noMore = true
+      field.page = -1
     } else {
-      result = data.result
-      extra = data.extra
+      // data is ApiResponse<T, E>
+      const apiResponse = data as ApiResponse<T, E>
+      result = apiResponse.result
+      extra = apiResponse.extra
       const isEmpty = computeResultLength(result) === 0
-      fieldData.nothing = fieldData.fetched ? false : isEmpty
-      fieldData.fetched = true
-      fieldData.total = data.total || 0
+      field.nothing = field.fetched ? false : isEmpty
+      field.fetched = true
+      field.total = apiResponse.total || 0
+
       if (type === ENUM.FETCH_TYPE.PAGINATION) {
-        fieldData.noMore = false
-        fieldData.page = +page
+        field.noMore = false
+        field.page = +page
       } else {
-        fieldData.noMore =
-          typeof data.no_more === 'undefined'
+        field.noMore =
+          typeof apiResponse.no_more === 'undefined'
             ? isEmpty
-            : data.no_more || isEmpty
-        fieldData.page = fieldData.page + 1
+            : apiResponse.no_more || isEmpty
+        field.page = field.page + 1
       }
     }
 
-    fieldData.loading = false
+    field.loading = false
+
+    // Mutate field in-place (same as old logic)
     setReactivityField(
-      fieldData,
-      // @ts-ignore
+      field,
       ENUM.FIELD_DATA.RESULT_KEY,
       result,
       type,
       insertBefore
     )
-    extra &&
+
+    if (extra !== undefined && extra !== null) {
       setReactivityField(
-        fieldData,
-        // @ts-ignore
+        field,
         ENUM.FIELD_DATA.EXTRA_KEY,
         extra,
         type,
         insertBefore
       )
+    }
+
+    // Notify setter that field has been mutated (not replaced)
     setter({
       key: fieldName,
-      type: ENUM.SETTER_TYPE.RESET,
-      value: fieldData,
+      type: ENUM.SETTER_TYPE.RESET, // or MUTATE if you have such type
+      value: field, // same reference
       callback: () => {
-        resolve(null)
+        resolve()
       }
     })
   })
 }
 
-export const SET_ERROR = ({ setter, fieldName, error }: setErrorType): void => {
+export const SET_ERROR = ({ setter, fieldName, error }: SetErrorType): void => {
   setter({
     key: fieldName,
     type: ENUM.SETTER_TYPE.MERGE,

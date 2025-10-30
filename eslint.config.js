@@ -1,12 +1,12 @@
 // eslint.config.js
-import eslint from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
-import prettier from 'eslint-config-prettier';
+import eslint from '@eslint/js'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
+import prettier from 'eslint-config-prettier'
 
 export default [
   {
-    ignores: ['dist/', 'node_modules/'],
+    ignores: ['dist/', 'node_modules/']
   },
   {
     files: ['src/**/*.ts'],
@@ -14,16 +14,16 @@ export default [
       parser: tsParser,
       parserOptions: {
         ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
+        sourceType: 'module'
+      }
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      '@typescript-eslint': tseslint
     },
     rules: {
       ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules,
-    },
+      ...tseslint.configs.recommended.rules
+    }
   },
-  prettier,
-];
+  prettier
+]

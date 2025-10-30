@@ -1,3 +1,4 @@
+// actions.ts
 import {
   generateDefaultField,
   generateFieldName,
@@ -13,26 +14,31 @@ import {
 import { SET_DATA, SET_ERROR } from './setters'
 import ENUM from './enum'
 import type {
-  objectKey,
-  initStateType,
-  initDataType,
-  loadMoreType,
-  updateStateType
+  ObjectKey,
+  InitStateType,
+  InitDataType,
+  LoadMoreType,
+  UpdateStateType,
+  DefaultField,
+  KeyMap,
+  ResultArrayType,
+  ResultObjectType
 } from './types'
 
+// --- initState: func is now just a string ---
 export const initState = ({
   getter,
   setter,
-  func,
+  func, // string only
   type,
   query,
   opts
-}: initStateType): Promise<null> => {
+}: InitStateType): Promise<void> => {
   return new Promise((resolve) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
     if (fieldData) {
-      resolve(null)
+      resolve()
       return
     }
 
@@ -41,7 +47,7 @@ export const initState = ({
       type: ENUM.SETTER_TYPE.RESET,
       value: generateDefaultField(opts),
       callback: () => {
-        resolve(null)
+        resolve()
       }
     })
   })
@@ -50,35 +56,36 @@ export const initState = ({
 export const initData = ({
   getter,
   setter,
-  func,
+  func, // string | function
   type,
   query,
   api,
   uniqueKey,
   callback
-}: initDataType): Promise<any> =>
+}: InitDataType): Promise<void> =>
   new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
     const doRefresh = !!query?.__refresh__
     const needReset = !!query?.__reload__
-    // 如果 error 了，就不再请求
+
     if (fieldData && fieldData.error && !doRefresh) {
-      return resolve(null)
+      resolve()
+      return
     }
-    // 正在请求中，return
     if (fieldData && fieldData.loading) {
-      return resolve(null)
+      resolve()
+      return
     }
-    // 这个 field 已经请求过了
     const dontFetch = fieldData && fieldData.fetched && !doRefresh
     if (dontFetch) {
-      return resolve(null)
+      resolve()
+      return
     }
 
     const params = generateRequestParams({
       field: {
-        ...fieldData,
+        ...(fieldData || generateDefaultField()),
         fetched: false
       },
       uniqueKey,
@@ -88,58 +95,62 @@ export const initData = ({
 
     const getData = () => {
       const loadData = () =>
-        new Promise((res) => {
+        new Promise<unknown>((res, rej) => {
           const getDataFromAPI = () => {
-            const funcCaller = typeof func === 'string' ? api[func] : func
+            const funcCaller =
+              typeof func === 'string'
+                ? (api[func] as (p: unknown) => Promise<unknown>)
+                : func
 
             funcCaller(params)
               .then(res)
               .catch((error: Error) => {
                 SET_ERROR({ setter, fieldName, error })
-                reject(error)
+                rej(error)
               })
           }
 
           getDataFromAPI()
         })
 
-      loadData().then((data) => {
-        const setData = () => {
-          SET_DATA({
-            getter,
-            setter,
-            data,
-            fieldName,
-            type,
-            page: params.page || 0,
-            insertBefore: false
-          }).then(() => {
-            if (callback) {
-              callback({
-                params,
-                data,
-                refresh: doRefresh
-              })
-            }
-            resolve(null)
-          })
-        }
+      loadData()
+        .then((data) => {
+          // <-- 'data' is now properly in scope
+          const setData = () => {
+            SET_DATA({
+              getter,
+              setter,
+              data,
+              fieldName,
+              type,
+              page: params.page || 0,
+              insertBefore: false
+            }).then(() => {
+              if (callback) {
+                callback({
+                  params,
+                  data, // <-- 'data' is now properly in scope
+                  refresh: doRefresh
+                })
+              }
+              resolve()
+            })
+          }
 
-        // 拿到数据后再重置 field
-        if (needReset) {
-          setter({
-            key: fieldName,
-            type: ENUM.SETTER_TYPE.RESET,
-            value: generateDefaultField(),
-            callback: setData
-          })
-        } else {
-          setData()
-        }
-      })
+          if (needReset) {
+            setter({
+              key: fieldName,
+              type: ENUM.SETTER_TYPE.RESET,
+              value: generateDefaultField(),
+              callback: setData
+            })
+          } else {
+            setData()
+          }
+        })
+        .catch(reject)
     }
 
-    // 需要预初始化 field
     if (!dontFetch && !needReset) {
       setter({
         key: fieldName,
@@ -161,41 +172,44 @@ export const loadMore = ({
   setter,
   query,
   type,
-  func,
+  func, // string | function
   api,
   uniqueKey,
   errorRetry,
   callback
-}: loadMoreType): Promise<any> =>
+}: LoadMoreType): Promise<void> =>
   new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
 
     if (!fieldData) {
-      return resolve(null)
+      resolve()
+      return
     }
 
     if (fieldData.loading) {
-      return resolve(null)
+      resolve()
+      return
     }
-
     if (fieldData.nothing) {
-      return resolve(null)
+      resolve()
+      return
     }
-
     if (fieldData.noMore && !errorRetry) {
-      return resolve(null)
+      resolve()
+      return
     }
-
     if (
       type === ENUM.FETCH_TYPE.PAGINATION &&
       query &&
+      query.page != null &&
       +query.page === fieldData.page
     ) {
-      return resolve(null)
+      resolve()
+      return
     }
 
-    let loadingState
+    let loadingState: Partial<DefaultField>
     if (type === ENUM.FETCH_TYPE.PAGINATION) {
       loadingState = {
         loading: true,
@@ -217,15 +231,18 @@ export const loadMore = ({
       type
     })
 
-    ;(params as any)[ENUM.FIELD_DATA.EXTRA_KEY] = (fieldData as any)[
-      ENUM.FIELD_DATA.EXTRA_KEY
-    ]
+    if ('extra' in fieldData) {
+      ;(params as KeyMap)[ENUM.FIELD_DATA.EXTRA_KEY] = fieldData.extra
+    }
 
     const getData = () => {
-      const funcCaller = typeof func === 'string' ? api[func] : func
+      const funcCaller =
+        typeof func === 'string'
+          ? (api[func] as (p: unknown) => Promise<unknown>)
+          : func
 
       funcCaller(params)
-        .then((data: any) => {
+        .then((data: unknown) => {
           SET_DATA({
             getter,
             setter,
@@ -242,7 +259,7 @@ export const loadMore = ({
                 refresh: false
               })
             }
-            resolve(null)
+            resolve()
           })
         })
         .catch((error: Error) => {
@@ -259,23 +276,24 @@ export const loadMore = ({
     })
   })
 
+// --- updateState: func is now just a string ---
 export const updateState = ({
   getter,
   setter,
+  func, // string only
   type,
-  func,
   query,
   method,
   value,
   id,
   uniqueKey,
   changeKey
-}: updateStateType) => {
+}: UpdateStateType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
     if (!fieldData) {
-      reject()
+      reject(new Error(`Field ${fieldName} not found.`))
       return
     }
 
@@ -284,102 +302,167 @@ export const updateState = ({
       return
     }
 
-    const _id = id || ''
+    const _id = id
     const _uniqueKey = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
     const _changeKey = changeKey || ENUM.FIELD_DATA.RESULT_KEY
     const beforeLength = computeResultLength(
-      (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY]
+      fieldData[ENUM.FIELD_DATA.RESULT_KEY]
     )
 
+    const newFieldData: DefaultField = { ...fieldData }
+
     if (method === ENUM.CHANGE_TYPE.SEARCH_FIELD) {
-      resolve(
-        searchValueByKey(
-          (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY],
-          _id as objectKey,
-          _uniqueKey
-        )
-      )
-    } else if (method === ENUM.CHANGE_TYPE.RESULT_UPDATE_KV) {
-      // 修改 result 下的某个值的任意字段
-      const matchedIndex = computeMatchedItemIndex(
-        _id as objectKey,
-        (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY],
+      if (_id == null) {
+        reject(new Error('ID is required for SEARCH_FIELD.'))
+        return
+      }
+      // --- 修正: 安全断言 ---
+      const result = searchValueByKey(
+        newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as
+          | ResultArrayType
+          | ResultObjectType,
+        _id as ObjectKey,
         _uniqueKey
       )
+      resolve(result)
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_UPDATE_KV) {
+      if (_id == null) {
+        reject(new Error('ID is required for RESULT_UPDATE_KV.'))
+        return
+      }
+      const matchedIndex = computeMatchedItemIndex(
+        _id as ObjectKey,
+        newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as ResultArrayType,
+        _uniqueKey
+      )
+      if (matchedIndex >= 0) {
+        updateObjectDeepValue(
+          (
+            newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<
+              string,
+              unknown
+            >[]
+          )[matchedIndex],
+          _changeKey,
+          value
+        )
+      }
+      resolve(null)
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE) {
+      if (_id == null) {
+        reject(new Error('ID is required for RESULT_ITEM_MERGE.'))
+        return
+      }
+      const matchedIndex = computeMatchedItemIndex(
+        _id as ObjectKey,
+        newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as ResultArrayType,
+        _uniqueKey
+      )
+      if (matchedIndex >= 0) {
+        const currentItem = (
+          newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<string, unknown>[]
+        )[matchedIndex]
+        ;(
+          newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<string, unknown>[]
+        )[matchedIndex] = {
+          ...currentItem,
+          ...(value as Record<string, unknown>)
+        }
+      }
+      resolve(null)
+    } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
+      // Safe double assertion
       updateObjectDeepValue(
-        (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex],
+        newFieldData as unknown as Record<string, unknown>,
         _changeKey,
         value
       )
-    } else if (method === ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE) {
-      // 修改 result 下的某个值的任意字段
-      const matchedIndex = computeMatchedItemIndex(
-        _id as objectKey,
-        (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY],
-        _uniqueKey
-      )
-      ;(fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex] = {
-        ...(fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY][matchedIndex],
-        ...value
-      }
-    } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
-      // 修改包括 field 下的任意字段
-      updateObjectDeepValue(fieldData, _changeKey, value)
+      resolve(null)
     } else {
-      let modifyValue = getObjectDeepValue(fieldData, _changeKey)
-      const matchedIndex = computeMatchedItemIndex(
-        _id as objectKey,
-        modifyValue,
-        _uniqueKey
+      let modifyValue = getObjectDeepValue(
+        newFieldData as unknown as Record<string, unknown>,
+        _changeKey
       )
+      if (modifyValue == null) {
+        modifyValue = []
+      }
+
+      const matchedIndex =
+        _id != null
+          ? computeMatchedItemIndex(
+              _id as ObjectKey,
+              modifyValue as ResultArrayType,
+              _uniqueKey
+            )
+          : -1
 
       switch (method) {
         case ENUM.CHANGE_TYPE.RESULT_ADD_AFTER:
-          isArray(value)
-            ? (modifyValue = modifyValue.concat(value))
-            : modifyValue.push(value)
+          if (isArray(modifyValue)) {
+            modifyValue = isArray(value)
+              ? [...modifyValue, ...value]
+              : [...modifyValue, value]
+          }
           break
         case ENUM.CHANGE_TYPE.RESULT_ADD_BEFORE:
-          isArray(value)
-            ? (modifyValue = value.concat(modifyValue))
-            : modifyValue.unshift(value)
+          if (isArray(modifyValue)) {
+            modifyValue = isArray(value)
+              ? [...value, ...modifyValue]
+              : [value, ...modifyValue]
+          }
           break
         case ENUM.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
-          if (matchedIndex >= 0) {
-            modifyValue.splice(matchedIndex, 1)
-          } else if (isArray(_id)) {
-            modifyValue = modifyValue.filter(
-              (_: any) => (_id as objectKey[]).indexOf(_[_uniqueKey]) === -1
-            )
+          if (isArray(modifyValue)) {
+            if (matchedIndex >= 0) {
+              modifyValue.splice(matchedIndex, 1)
+            } else if (isArray(_id)) {
+              const idSet = new Set(_id as ObjectKey[])
+              modifyValue = (modifyValue as Record<string, unknown>[]).filter(
+                (item) =>
+                  !idSet.has(
+                    getObjectDeepValue(
+                      item as Record<string, unknown>,
+                      _uniqueKey
+                    ) as ObjectKey
+                  )
+              )
+            }
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:
-          if (matchedIndex >= 0) {
+          if (isArray(modifyValue) && matchedIndex >= 0) {
             modifyValue.splice(matchedIndex, 0, value)
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER:
-          if (matchedIndex >= 0) {
+          if (isArray(modifyValue) && matchedIndex >= 0) {
             modifyValue.splice(matchedIndex + 1, 0, value)
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
-          combineArrayData(modifyValue, value, _uniqueKey)
+          if (isArray(modifyValue)) {
+            combineArrayData(modifyValue as ResultArrayType, value, _uniqueKey)
+          }
           break
+        default:
+          resolve(null)
+          return
       }
-      ;(fieldData as any)[_changeKey] = modifyValue
+      ;(newFieldData as unknown as Record<string, unknown>)[_changeKey] =
+        modifyValue
+      resolve(null)
     }
 
     const afterLength = computeResultLength(
-      (fieldData as any)[ENUM.FIELD_DATA.RESULT_KEY]
+      newFieldData[ENUM.FIELD_DATA.RESULT_KEY]
     )
-    fieldData.total = fieldData.total + afterLength - beforeLength
-    fieldData.nothing = afterLength === 0
+    newFieldData.total = newFieldData.total + afterLength - beforeLength
+    newFieldData.nothing = afterLength === 0
 
     setter({
       key: fieldName,
-      type: ENUM.SETTER_TYPE.MERGE,
-      value: fieldData,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: newFieldData,
       callback: () => {
         resolve(null)
       }
