@@ -24,14 +24,14 @@ type DataSource = string | ((params: unknown) => Promise<unknown>)
 /**
  * 字段获取器：根据字段名获取状态对象
  */
-type FieldGetter<T = unknown, E = unknown> = (
+export type FieldGetter<T = unknown, E = unknown> = (
   key: string
 ) => DefaultField<T, E> | undefined
 
 /**
  * 状态设置器函数类型
  */
-type FieldSetter = (obj: SetterFuncParams) => void
+export type FieldSetter = (obj: SetterFuncParams) => void
 
 /**
  * 获取数据后的回调函数
