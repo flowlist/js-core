@@ -6,7 +6,7 @@ import type {
   DefaultField,
   FetchType,
   FieldKeys,
-  GenerateFieldProps,
+  ListViewParams,
   GenerateParamsType,
   GenerateParamsResp
 } from './types'
@@ -50,7 +50,7 @@ export const generateFieldName = ({
   func,
   type,
   query = {}
-}: GenerateFieldProps): string => {
+}: ListViewParams): string => {
   const funcName =
     typeof func === 'string'
       ? func

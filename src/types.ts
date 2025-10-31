@@ -1,4 +1,5 @@
 // types.ts
+
 /**
  * 对象的唯一标识符类型
  */
@@ -61,13 +62,15 @@ export type FieldKeys =
   | 'page'
   | 'total'
 
-/**
- * 生成字段名称的参数
- */
-export interface GenerateFieldProps {
+// =============
+// 【内部抽象】将重复的公共参数提取出来
+// =============
+interface CommonParams {
   func: DataSource
   type: FetchType
   query?: KeyMap
+  uniqueKey?: string
+  callback?: FetchResultCallback
 }
 
 /**
@@ -126,26 +129,17 @@ export interface ApiResponse<T = unknown, E = unknown> {
 }
 
 // --- 公共配置基类 ---
-interface BaseFetchConfig {
+// 【内部使用】注意：这个基类不对外导出，仅用于内部组合
+interface BaseFetchConfig extends CommonParams {
   getter: FieldGetter
   setter: FieldSetter
-  func: DataSource
-  type: FetchType
-  query?: KeyMap
   api?: KeyMap
-  uniqueKey?: string
-  callback?: FetchResultCallback
 }
 
 /**
  * 初始化状态的参数
  */
-export interface InitStateType {
-  getter: FieldGetter
-  setter: FieldSetter
-  func: DataSource
-  type: FetchType
-  query?: KeyMap
+export interface InitStateType extends BaseFetchConfig {
   opts?: Partial<DefaultField<unknown, unknown>>
 }
 
@@ -202,3 +196,5 @@ export interface SetErrorType {
 export type ResultArrayType = KeyMap[]
 
 export type ResultObjectType = Record<ObjectKey, KeyMap[]>
+
+export type ListViewParams = CommonParams
