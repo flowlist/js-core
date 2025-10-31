@@ -97,7 +97,7 @@ export interface GenerateParamsResp {
 export interface SetterFuncParams {
   key: string
   type: number
-  value: Partial<DefaultField>
+  value: unknown
   callback?: (obj?: KeyMap) => void
 }
 
