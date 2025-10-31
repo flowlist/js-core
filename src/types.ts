@@ -97,7 +97,7 @@ export interface GenerateParamsResp {
 export interface SetterFuncParams {
   key: string
   type: number
-  value: unknown
+  value: Partial<DefaultField>
   callback?: (obj?: KeyMap) => void
 }
 
@@ -197,6 +197,6 @@ export type ResultObjectType = Record<ObjectKey, KeyMap[]>
 
 export type InitDataParams = CommonParams
 
-export interface ExtendedParams extends CommonParams {
+export interface LoadMoreParams extends CommonParams {
   errorRetry?: boolean
 }
