@@ -9,10 +9,11 @@ import type {
   SetDataType,
   SetErrorType,
   DefaultField,
-  ApiResponse
+  ApiResponse,
+  ResultType
 } from './types'
 
-export const SET_DATA = <T, E>({
+export const SET_DATA = ({
   getter,
   setter,
   data,
@@ -20,7 +21,7 @@ export const SET_DATA = <T, E>({
   type,
   page,
   insertBefore
-}: SetDataType<T, E>): Promise<void> => {
+}: SetDataType): Promise<void> => {
   return new Promise((resolve, reject) => {
     const fieldData = getter(fieldName)
     if (!fieldData) {
@@ -29,21 +30,21 @@ export const SET_DATA = <T, E>({
     }
 
     // 类型断言：确保 fieldData 符合 DefaultField<T, E>
-    const field = fieldData as DefaultField<T, E>
+    const field = fieldData as DefaultField
 
-    let result: T
-    let extra: E | undefined
+    let result: ResultType
+    let extra: unknown
 
     if (isObjectResult(data)) {
       // data is T (object result mode)
-      result = data as T
+      result = data
       field.nothing = false
       field.fetched = true
       field.noMore = true
       field.page = -1
     } else {
       // data is ApiResponse<T, E>
-      const apiResponse = data as ApiResponse<T, E>
+      const apiResponse = data as ApiResponse
       result = apiResponse.result
       extra = apiResponse.extra
       const isEmpty = computeResultLength(result) === 0

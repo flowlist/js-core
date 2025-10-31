@@ -15,7 +15,7 @@ export type KeyMap = Record<string, unknown>
 /**
  * 形态数组
  */
-export type MorphArray = unknown[]
+export type ResultType = KeyMap | unknown[]
 
 /**
  * 数据源类型：可以是 API 路径字符串，或返回 Promise 的函数
@@ -25,9 +25,7 @@ type DataSource = string | ((params: unknown) => Promise<unknown>)
 /**
  * 字段获取器：根据字段名获取状态对象
  */
-export type FieldGetter<T = unknown, E = unknown> = (
-  key: string
-) => DefaultField<T, E> | undefined
+export type FieldGetter = (key: string) => DefaultField | undefined
 
 /**
  * 状态设置器函数类型
@@ -39,7 +37,7 @@ export type FieldSetter = (obj: SetterFuncParams) => void
  */
 type FetchResultCallback = (obj: {
   params: GenerateParamsResp
-  data: unknown
+  data: ApiResponse
   refresh: boolean
 }) => void
 
@@ -77,7 +75,7 @@ interface CommonParams {
  * 生成请求参数的输入
  */
 export interface GenerateParamsType {
-  field: DefaultField<unknown, unknown>
+  field: DefaultField
   uniqueKey?: string
   query?: KeyMap
   type: FetchType
@@ -106,13 +104,13 @@ export interface SetterFuncParams {
 /**
  * 默认字段数据结构，使用泛型 T 和 E 分别代表 result 和 extra 的类型
  */
-export interface DefaultField<T = unknown, E = unknown> {
-  result: T
+export interface DefaultField {
+  result: ResultType
   noMore: boolean
   nothing: boolean
   loading: boolean
   error: null | Error
-  extra: E
+  extra: unknown
   fetched: boolean
   page: number
   total: number
@@ -121,9 +119,9 @@ export interface DefaultField<T = unknown, E = unknown> {
 /**
  * API 响应结构，使用泛型 T 和 E
  */
-export interface ApiResponse<T = unknown, E = unknown> {
-  result: T
-  extra?: E
+export interface ApiResponse {
+  result: ResultType
+  extra?: unknown
   total?: number
   no_more?: boolean
 }
@@ -140,7 +138,7 @@ interface BaseFetchConfig extends CommonParams {
  * 初始化状态的参数
  */
 export interface InitStateType extends BaseFetchConfig {
-  opts?: Partial<DefaultField<unknown, unknown>>
+  opts?: Partial<DefaultField>
 }
 
 /**
@@ -158,8 +156,8 @@ export interface LoadMoreType extends BaseFetchConfig {
 /**
  * 更新状态的参数
  */
-export interface UpdateStateType<T = unknown, E = unknown> {
-  getter: FieldGetter<T, E>
+export interface UpdateStateType {
+  getter: FieldGetter
   setter: FieldSetter
   func: DataSource
   type: FetchType
@@ -174,10 +172,10 @@ export interface UpdateStateType<T = unknown, E = unknown> {
 /**
  * 设置数据的参数
  */
-export interface SetDataType<T = unknown, E = unknown> {
-  getter: FieldGetter<T, E>
+export interface SetDataType {
+  getter: FieldGetter
   setter: FieldSetter
-  data: T | ApiResponse<T, E>
+  data: ApiResponse
   fieldName: string
   type: FetchType
   page: number
@@ -190,11 +188,15 @@ export interface SetDataType<T = unknown, E = unknown> {
 export interface SetErrorType {
   setter: FieldSetter
   fieldName: string
-  error: Error
+  error: null | Error
 }
 
 export type ResultArrayType = KeyMap[]
 
 export type ResultObjectType = Record<ObjectKey, KeyMap[]>
 
-export type ListViewParams = CommonParams
+export type InitDataParams = CommonParams
+
+export interface ExtendedParams extends CommonParams {
+  errorRetry?: boolean
+}

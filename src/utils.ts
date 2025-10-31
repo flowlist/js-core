@@ -6,7 +6,7 @@ import type {
   DefaultField,
   FetchType,
   FieldKeys,
-  ListViewParams,
+  InitDataParams,
   GenerateParamsType,
   GenerateParamsResp
 } from './types'
@@ -26,16 +26,16 @@ export const isObjectResult = (
 /**
  * 生成默认字段
  */
-export const generateDefaultField = <T = unknown, E = unknown>(
-  opts: Partial<DefaultField<T, E>> = {}
-): DefaultField<T, E> => ({
+export const generateDefaultField = (
+  opts: Partial<DefaultField> = {}
+): DefaultField => ({
   ...{
-    result: [] as T, // 用户需要确保 T 是兼容的类型，例如 T extends unknown[]
+    result: [],
     noMore: false,
     nothing: false,
     loading: false,
     error: null,
-    extra: null as E,
+    extra: null,
     fetched: false,
     page: 0,
     total: 0
@@ -50,7 +50,7 @@ export const generateFieldName = ({
   func,
   type,
   query = {}
-}: ListViewParams): string => {
+}: InitDataParams): string => {
   const funcName =
     typeof func === 'string'
       ? func
@@ -217,8 +217,8 @@ export const isArray = (data: unknown): data is unknown[] => {
 /**
  * 设置一个响应式的数据到对象上
  */
-export const setReactivityField = <T, E>(
-  field: DefaultField<T, E>,
+export const setReactivityField = (
+  field: DefaultField,
   key: FieldKeys,
   value: unknown,
   type: FetchType,
@@ -247,7 +247,7 @@ export const setReactivityField = <T, E>(
   // key is 'result'
   const resultField = field.result
   if (isArray(resultField)) {
-    field.result = {} as T // reset to empty object
+    field.result = {} // reset to empty object
   }
 
   // Now field.result is an object

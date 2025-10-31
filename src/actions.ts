@@ -22,7 +22,8 @@ import type {
   DefaultField,
   KeyMap,
   ResultArrayType,
-  ResultObjectType
+  ResultObjectType,
+  ApiResponse
 } from './types'
 
 // --- initState: func is now just a string ---
@@ -95,7 +96,7 @@ export const initData = ({
 
     const getData = () => {
       const loadData = () =>
-        new Promise<unknown>((res, rej) => {
+        new Promise<ApiResponse>((res, rej) => {
           const getDataFromAPI = () => {
             const funcCaller =
               typeof func === 'string' && api ? api[func] : func
@@ -240,7 +241,7 @@ export const loadMore = ({
 
       if (typeof funcCaller === 'function') {
         funcCaller(params)
-          .then((data: unknown) => {
+          .then((data: ApiResponse) => {
             SET_DATA({
               getter,
               setter,
