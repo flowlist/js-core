@@ -137,8 +137,9 @@ interface BaseFetchConfig extends CommonParams {
 /**
  * 初始化状态的参数
  */
-export interface InitStateType extends BaseFetchConfig {
-  opts?: Partial<DefaultField>
+export interface InitStateType extends InitStateParams {
+  getter: FieldGetter
+  setter: FieldSetter
 }
 
 /**
@@ -199,4 +200,11 @@ export type InitDataParams = CommonParams
 
 export interface LoadMoreParams extends CommonParams {
   errorRetry?: boolean
+}
+
+export interface InitStateParams {
+  func: DataSource
+  type: FetchType
+  query?: KeyMap
+  opts?: Partial<DefaultField>
 }
