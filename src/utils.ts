@@ -59,7 +59,7 @@ export const generateFieldName = ({
   let result = `${funcName}-${fetchType}`
   const filteredKeys = Object.keys(query).filter(
     (key) =>
-      !['undefined', 'object', 'function'].includes(typeof query[key]) &&
+      !['undefined', 'function'].includes(typeof query[key]) &&
       ![
         'page',
         'is_up',
@@ -71,7 +71,15 @@ export const generateFieldName = ({
   )
 
   filteredKeys.sort().forEach((key) => {
-    result += `-${key}-${query[key]}`
+    const value = query[key]
+    const safeValue =
+      typeof value === 'object'
+        ? JSON.stringify(value)
+        : String(value)
+
+    const encoded = encodeURIComponent(safeValue)
+
+    result += `-${key}-${encoded}`
   })
 
   return result
