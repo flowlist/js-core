@@ -1,29 +1,40 @@
 // eslint.config.js
-import eslint from '@eslint/js'
-import tseslint from '@typescript-eslint/eslint-plugin'
+import { defineConfig, globalIgnores } from 'eslint/config'
+import reactPlugin from 'eslint-plugin-react'
 import tsParser from '@typescript-eslint/parser'
-import prettier from 'eslint-config-prettier'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
+import prettierConfig from 'eslint-config-prettier'
+import prettierPlugin from 'eslint-plugin-prettier'
 
-export default [
+export default defineConfig([
+  // 1. 忽略文件（替代 .eslintignore）
+  globalIgnores([
+    'node_modules/',
+    'dist/'
+  ]),
+
   {
-    ignores: ['dist/', 'node_modules/']
-  },
-  {
-    files: ['src/**/*.ts'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module'
-      }
-    },
+    files: ['**/*.ts'],
     plugins: {
-      '@typescript-eslint': tseslint
+      '@typescript-eslint': tsPlugin
     },
     rules: {
-      ...eslint.configs.recommended.rules,
-      ...tseslint.configs.recommended.rules
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' }
+      ],
+      '@typescript-eslint/consistent-type-imports': 'warn'
     }
   },
-  prettier
-]
+
+  // 4. Prettier 集成（必须放在最后）
+  prettierConfig,
+  {
+    plugins: {
+      prettier: prettierPlugin
+    },
+    rules: {
+      'prettier/prettier': 'error'
+    }
+  }
+])

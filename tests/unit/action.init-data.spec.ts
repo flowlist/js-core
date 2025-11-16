@@ -133,7 +133,7 @@ describe('init data', () => {
 
     expect(state).toEqual(field)
   })
-  // 报错
+  
   it('如果正常初始化，就正常请求，loading 为 true', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -229,7 +229,7 @@ describe('init data', () => {
         done()
       })
   })
-  // 报错
+  
   it('如果 refresh，即使 fetched 了也要发请求', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -306,13 +306,14 @@ describe('init data', () => {
       })
     })
   })
-  // 报错
-  it('如果 refresh，但不 reload，发请求之前 field 就初始化', (done) => {
+  
+  it('如果 refresh，并且 reload，发请求之前 field 就初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
       test_order: 6,
-      __refresh__: true
+      __refresh__: true,
+      __reload__: true
     }
 
     initState({
@@ -379,14 +380,13 @@ describe('init data', () => {
       done()
     })
   })
-  // 报错
-  it('如果 refresh，且 reload，发请求之后 field 才初始化', (done) => {
+  
+  it('如果 refresh，但不 reload，发请求之后 field 才初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
     const query = {
       test_order: 7,
-      __refresh__: true,
-      __reload__: true
+      __refresh__: true
     }
 
     initState({
@@ -419,7 +419,7 @@ describe('init data', () => {
       query,
       api
     }).then(() => {
-      let state = getter(
+      const realPage1Data = getter(
         generateFieldName({
           func,
           type,
@@ -427,16 +427,15 @@ describe('init data', () => {
         })
       )
 
-      const field = generateDefaultField({
+      const mockPage1Data = generateDefaultField({
         result: api.testArrData().result,
         total: api.testArrData().total,
         noMore: api.testArrData().no_more,
         fetched: true,
         page: 1
       })
-
-      expect(state).toEqual(field)
-
+      
+      expect(realPage1Data).toEqual(mockPage1Data)
       initData({
         cache,
         getter,
@@ -461,12 +460,12 @@ describe('init data', () => {
           fetched: true,
           page: 1
         })
-
+        
         expect(state).toEqual(field)
         done()
       })
 
-      state = getter(
+      const onRefreshRealData = getter(
         generateFieldName({
           func,
           type,
@@ -474,7 +473,7 @@ describe('init data', () => {
         })
       )
 
-      expect(state).toEqual(field)
+      expect(onRefreshRealData).toEqual(mockPage1Data)
     })
   })
 
@@ -508,7 +507,7 @@ describe('init data', () => {
       }
     })
   })
-  // 报错
+  
   it('refresh 的时候 page 为最初的值', (done) => {
     const func = 'testArrFunc'
     const type = 'type'

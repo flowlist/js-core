@@ -26,11 +26,10 @@ import type {
   ApiResponse
 } from './types'
 
-// --- initState: func is now just a string ---
 export const initState = ({
   getter,
   setter,
-  func, // string only
+  func,
   type,
   query,
   opts
@@ -57,7 +56,7 @@ export const initState = ({
 export const initData = ({
   getter,
   setter,
-  func, // string | function
+  func,
   type,
   query,
   api,
@@ -95,7 +94,7 @@ export const initData = ({
     })
 
     const getData = () => {
-      const loadData = () =>
+      const apiCaller = () =>
         new Promise<ApiResponse>((res, rej) => {
           const getDataFromAPI = () => {
             const funcCaller =
@@ -114,9 +113,8 @@ export const initData = ({
           getDataFromAPI()
         })
 
-      loadData()
+      apiCaller()
         .then((data) => {
-          // <-- 'data' is now properly in scope
           const setData = () => {
             SET_DATA({
               getter,
@@ -130,7 +128,7 @@ export const initData = ({
               if (callback) {
                 callback({
                   params,
-                  data, // <-- 'data' is now properly in scope
+                  data,
                   refresh: doRefresh
                 })
               }
@@ -138,7 +136,7 @@ export const initData = ({
             })
           }
 
-          if (needReset) {
+          if (doRefresh && !needReset) {
             setter({
               key: fieldName,
               type: ENUM.SETTER_TYPE.RESET,
@@ -152,19 +150,20 @@ export const initData = ({
         .catch(reject)
     }
 
-    if (!dontFetch && !needReset) {
+    if (doRefresh && !needReset) {
+      getData()
+    } else {
       setter({
         key: fieldName,
         type: ENUM.SETTER_TYPE.RESET,
         value: {
           ...generateDefaultField(),
           loading: true,
-          error: null
+          error: null,
+          extra: null
         },
         callback: getData
       })
-    } else {
-      getData()
     }
   })
 
