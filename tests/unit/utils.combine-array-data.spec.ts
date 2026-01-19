@@ -2,6 +2,98 @@
 import { combineArrayData } from '../../src/utils'
 
 describe('combine-array-data', () => {
+  it('fieldArray 中存在非对象项时跳过', () => {
+    const field = [
+      {
+        id: 1,
+        txt: '2333'
+      },
+      null,
+      'string',
+      {
+        id: 2,
+        txt: '666'
+      }
+    ]
+
+    combineArrayData(
+      field,
+      [
+        {
+          id: 1,
+          txt: 'change1'
+        },
+        {
+          id: 2,
+          txt: 'change2'
+        }
+      ],
+      'id'
+    )
+
+    expect(field[0].txt).toBe('change1')
+    expect(field[1]).toBe(null)
+    expect(field[2]).toBe('string')
+    expect(field[3].txt).toBe('change2')
+  })
+
+  it('value 数组中存在非对象项时跳过', () => {
+    const field = [
+      {
+        id: 1,
+        txt: '2333'
+      },
+      {
+        id: 2,
+        txt: '666'
+      }
+    ]
+
+    combineArrayData(
+      field,
+      [
+        {
+          id: 1,
+          txt: 'change1'
+        },
+        null,
+        'string'
+      ],
+      'id'
+    )
+
+    expect(field[0].txt).toBe('change1')
+    expect(field[1].txt).toBe('666')
+  })
+
+  it('value 对象中存在非对象值时跳过', () => {
+    const field = [
+      {
+        id: 1,
+        txt: '2333'
+      },
+      {
+        id: 2,
+        txt: '666'
+      }
+    ]
+
+    combineArrayData(
+      field,
+      {
+        1: {
+          txt: 'change1'
+        },
+        2: null,
+        3: 'string'
+      },
+      'id'
+    )
+
+    expect(field[0].txt).toBe('change1')
+    expect(field[1].txt).toBe('666')
+  })
+
   it('value 是数组', () => {
     const field = [
       {

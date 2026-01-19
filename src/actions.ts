@@ -22,7 +22,6 @@ import type {
   DefaultField,
   KeyMap,
   ResultArrayType,
-  ResultObjectType,
   ApiResponse
 } from './types'
 
@@ -172,7 +171,7 @@ export const loadMore = ({
   setter,
   query,
   type,
-  func, // string | function
+  func,
   api,
   uniqueKey,
   errorRetry,
@@ -275,11 +274,10 @@ export const loadMore = ({
     })
   })
 
-// --- updateState: func is now just a string ---
-export const updateState = ({
+export const updateState = <T = KeyMap>({
   getter,
   setter,
-  func, // string only
+  func,
   type,
   query,
   method,
@@ -287,7 +285,7 @@ export const updateState = ({
   id,
   uniqueKey,
   changeKey
-}: UpdateStateType): Promise<unknown> => {
+}: UpdateStateType<T>): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, type, query })
     const fieldData = getter(fieldName)
@@ -315,11 +313,10 @@ export const updateState = ({
         reject(new Error('ID is required for SEARCH_FIELD.'))
         return
       }
-      // --- 修正: 安全断言 ---
       const result = searchValueByKey(
         newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as
           | ResultArrayType
-          | ResultObjectType,
+          | Record<string, KeyMap[]>,
         _id as ObjectKey,
         _uniqueKey
       )
@@ -336,12 +333,7 @@ export const updateState = ({
       )
       if (matchedIndex >= 0) {
         updateObjectDeepValue(
-          (
-            newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<
-              string,
-              unknown
-            >[]
-          )[matchedIndex],
+          (newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as KeyMap[])[matchedIndex],
           _changeKey,
           value
         )
@@ -359,27 +351,25 @@ export const updateState = ({
       )
       if (matchedIndex >= 0) {
         const currentItem = (
-          newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<string, unknown>[]
+          newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as KeyMap[]
         )[matchedIndex]
-        ;(
-          newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as Record<string, unknown>[]
-        )[matchedIndex] = {
-          ...currentItem,
-          ...(value as Record<string, unknown>)
-        }
+        ;(newFieldData[ENUM.FIELD_DATA.RESULT_KEY] as KeyMap[])[matchedIndex] =
+          {
+            ...currentItem,
+            ...(value as KeyMap)
+          }
       }
       resolve(null)
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
-      // Safe double assertion
       updateObjectDeepValue(
-        newFieldData as unknown as Record<string, unknown>,
+        newFieldData as unknown as KeyMap,
         _changeKey,
         value
       )
       resolve(null)
     } else {
       let modifyValue = getObjectDeepValue(
-        newFieldData as unknown as Record<string, unknown>,
+        newFieldData as unknown as KeyMap,
         _changeKey
       )
       if (modifyValue == null) {
@@ -416,13 +406,10 @@ export const updateState = ({
               modifyValue.splice(matchedIndex, 1)
             } else if (isArray(_id)) {
               const idSet = new Set(_id as ObjectKey[])
-              modifyValue = (modifyValue as Record<string, unknown>[]).filter(
+              modifyValue = (modifyValue as KeyMap[]).filter(
                 (item) =>
                   !idSet.has(
-                    getObjectDeepValue(
-                      item as Record<string, unknown>,
-                      _uniqueKey
-                    ) as ObjectKey
+                    getObjectDeepValue(item as KeyMap, _uniqueKey) as ObjectKey
                   )
               )
             }
@@ -440,15 +427,18 @@ export const updateState = ({
           break
         case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
           if (isArray(modifyValue)) {
-            combineArrayData(modifyValue as ResultArrayType, value, _uniqueKey)
+            combineArrayData(
+              modifyValue as ResultArrayType,
+              value as ResultArrayType | Record<ObjectKey, KeyMap>,
+              _uniqueKey
+            )
           }
           break
         default:
           resolve(null)
           return
       }
-      ;(newFieldData as unknown as Record<string, unknown>)[_changeKey] =
-        modifyValue
+      ;(newFieldData as unknown as KeyMap)[_changeKey] = modifyValue
       resolve(null)
     }
 

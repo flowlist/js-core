@@ -29,21 +29,18 @@ export const SET_DATA = ({
       return
     }
 
-    // 类型断言：确保 fieldData 符合 DefaultField<T, E>
     const field = fieldData as DefaultField
 
     let result: ResultType
     let extra: unknown
 
     if (isObjectResult(data)) {
-      // data is T (object result mode)
-      result = data
+      result = data as ResultType
       field.nothing = false
       field.fetched = true
       field.noMore = true
       field.page = -1
     } else {
-      // data is ApiResponse<T, E>
       const apiResponse = data as ApiResponse
       result = apiResponse.result
       extra = apiResponse.extra
@@ -66,7 +63,6 @@ export const SET_DATA = ({
 
     field.loading = false
 
-    // Mutate field in-place (same as old logic)
     setReactivityField(
       field,
       ENUM.FIELD_DATA.RESULT_KEY,
@@ -85,11 +81,10 @@ export const SET_DATA = ({
       )
     }
 
-    // Notify setter that field has been mutated (not replaced)
     setter({
       key: fieldName,
-      type: ENUM.SETTER_TYPE.RESET, // or MUTATE if you have such type
-      value: field, // same reference
+      type: ENUM.SETTER_TYPE.RESET,
+      value: field,
       callback: () => {
         resolve()
       }

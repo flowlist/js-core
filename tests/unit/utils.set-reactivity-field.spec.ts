@@ -106,6 +106,68 @@ describe('set reactivity field', () => {
     })
   })
 
+  it('当 result 为 null 时，value 是 object，会转换成 object - 测试 line 294-295', () => {
+    const field = {
+      result: null
+    }
+    const key = 'result'
+
+    const value = {
+      a: [1, 2, 3],
+      b: [4, 5, 6]
+    }
+    setReactivityField(field, key, value)
+    expect(field).toEqual({
+      [key]: value
+    })
+  })
+
+  it('当 result 为基本类型时，value 是 object，会转换成 object', () => {
+    const field = {
+      result: 'string'
+    }
+    const key = 'result'
+
+    const value = {
+      a: [1, 2, 3],
+      b: [4, 5, 6]
+    }
+    setReactivityField(field, key, value)
+    expect(field).toEqual({
+      [key]: value
+    })
+  })
+
+  it('当 value 是 object，existing 非数组，incoming 是数组时直接覆盖', () => {
+    const field = {
+      result: {
+        a: 'string'
+      }
+    }
+    const key = 'result'
+
+    const value = {
+      a: [1, 2, 3]
+    }
+    setReactivityField(field, key, value)
+    expect(field.result.a).toEqual([1, 2, 3])
+  })
+
+  it('当 value 是 object，existing 是数组，incoming 非数组时直接覆盖', () => {
+    const field = {
+      result: {
+        a: [1, 2, 3]
+      }
+    }
+    const key = 'result'
+
+    const value = {
+      a: 'string'
+    }
+    setReactivityField(field, key, value)
+    expect(field.result.a).toBe('string')
+  })
+
   it('当 value 是 object 且 type 不是 jump 时，insertBefore 为 true，把 result 做为 object 去操作', () => {
     const field = {
       result: []

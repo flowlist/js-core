@@ -47,4 +47,35 @@ describe('get object deep value', () => {
     const name = getObjectDeepValue(data, ['data', 'deep', 'key'])
     expect(name).toBe('dio')
   })
+
+  it('keys 是空数组返回原值', () => {
+    const name = getObjectDeepValue(data, [])
+    expect(name).toEqual(data)
+  })
+
+  it('访问不存在的路径返回 undefined', () => {
+    const name = getObjectDeepValue(data, 'not.exist.path')
+    expect(name).toBeUndefined()
+  })
+
+  it('中间路径为 null 时返回 undefined', () => {
+    const testData = {
+      a: null
+    }
+    const name = getObjectDeepValue(testData, 'a.b.c')
+    expect(name).toBeUndefined()
+  })
+
+  it('中间路径为基本类型时返回 undefined', () => {
+    const testData = {
+      a: 'string'
+    }
+    const name = getObjectDeepValue(testData, 'a.b')
+    expect(name).toBeUndefined()
+  })
+
+  it('field 为 null 时返回 undefined', () => {
+    const name = getObjectDeepValue(null, 'a.b')
+    expect(name).toBeUndefined()
+  })
 })

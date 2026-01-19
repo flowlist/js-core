@@ -8,12 +8,12 @@ import type {
   FieldKeys,
   InitDataParams,
   GenerateParamsType,
-  GenerateParamsResp
+  GenerateParamsResp,
+  ResultArrayType,
+  ResultObjectType
 } from './types'
 
-export const isArray = (data: unknown): data is unknown[] => {
-  return Array.isArray(data)
-}
+export const isArray = (data: unknown): data is unknown[] => Array.isArray(data)
 
 const stableSerialize = (value: unknown): string => {
   if (value === null || typeof value !== 'object') {
@@ -25,7 +25,9 @@ const stableSerialize = (value: unknown): string => {
     }
     const keys = Object.keys(value as Record<string, unknown>).sort()
     const obj: Record<string, unknown> = {}
-    for (const k of keys) {
+    const len = keys.length
+    for (let i = 0; i < len; i++) {
+      const k = keys[i]
       obj[k] = (value as Record<string, unknown>)[k]
     }
     return JSON.stringify(obj)
@@ -34,15 +36,19 @@ const stableSerialize = (value: unknown): string => {
   }
 }
 
-const extractUniqueKey = (item: unknown, uniqueKey?: string): ObjectKey | undefined => {
+const extractUniqueKey = (
+  item: unknown,
+  uniqueKey: string
+): ObjectKey | undefined => {
   if (typeof item !== 'object' || item === null) return undefined
-  const changing = uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
-  const val = (item as Record<string, unknown>)[changing] ?? undefined
+
+  const val = (item as KeyMap)[uniqueKey]
   if (typeof val === 'string' || typeof val === 'number') {
     return val
   }
-  if (typeof changing === 'string' && changing.includes('.')) {
-    const deepVal = getObjectDeepValue(item, changing)
+
+  if (uniqueKey.includes('.')) {
+    const deepVal = getObjectDeepValue(item, uniqueKey)
     if (typeof deepVal === 'string' || typeof deepVal === 'number') {
       return deepVal
     }
@@ -62,17 +68,15 @@ export const isObjectResult = (
 export const generateDefaultField = (
   opts: Partial<DefaultField> = {}
 ): DefaultField => ({
-  ...{
-    result: [],
-    noMore: false,
-    nothing: false,
-    loading: false,
-    error: null,
-    extra: null,
-    fetched: false,
-    page: 0,
-    total: 0
-  },
+  result: [],
+  noMore: false,
+  nothing: false,
+  loading: false,
+  error: null,
+  extra: null,
+  fetched: false,
+  page: 0,
+  total: 0,
   ...opts
 })
 
@@ -86,68 +90,67 @@ export const generateFieldName = ({
       ? func
       : (typeof func === 'function' ? func.name : undefined) ||
         `api-${Math.random().toString(36).substring(2, 8)}`
-  const fetchType = type || 'auto'
-  let result = `${funcName}-${fetchType}`
-  
-  const filteredKeys = Object.keys(query).filter(
-    (key) =>
-      (query as Record<string, unknown>)[key] !== undefined &&
-      typeof (query as Record<string, unknown>)[key] !== 'function' &&
-      ![
-        'page',
-        'is_up',
-        'since_id',
-        'seen_ids',
-        '__refresh__',
-        '__reload__'
-      ].includes(key)
-  )
+  let result = `${funcName}-${type || 'auto'}`
+
+  const filteredKeys = Object.keys(query).filter((key) => {
+    const value = query[key]
+    return (
+      value !== undefined &&
+      typeof value !== 'function' &&
+      key !== 'page' &&
+      key !== 'is_up' &&
+      key !== 'since_id' &&
+      key !== 'seen_ids' &&
+      key !== '__refresh__' &&
+      key !== '__reload__'
+    )
+  })
 
   filteredKeys.sort()
 
-  const querySuffix = filteredKeys.map((key) => {
-    const value = (query as Record<string, unknown>)[key]
+  const len = filteredKeys.length
+  for (let i = 0; i < len; i++) {
+    const key = filteredKeys[i]
+    const value = query[key]
     let safeValue: string
-    
+
     if (typeof value === 'object' && value !== null) {
-        safeValue = stableSerialize(value)
+      safeValue = stableSerialize(value)
     } else {
-        safeValue = String(value)
+      safeValue = String(value)
     }
 
     const encoded = encodeURIComponent(safeValue)
+    result += `-${key}-${encoded}`
+  }
 
-    return `-${key}-${encoded}`
-  }).join('')
-
-  result += querySuffix
   return result
 }
 
 export const getObjectDeepValue = (
   field: unknown,
-  keys: string | string[] = ''
+  keys: string | string[]
 ): unknown => {
   if (!keys || (Array.isArray(keys) && keys.length === 0)) {
     return field
   }
 
   const keysArr = Array.isArray(keys) ? keys : keys.split('.')
-
   let result: unknown = field
+  const len = keysArr.length
 
-  for (const key of keysArr) {
+  for (let i = 0; i < len; i++) {
     if (result == null || typeof result !== 'object') {
       return undefined
     }
-    result = (result as Record<string, unknown>)[key]
+    result = (result as KeyMap)[keysArr[i]]
   }
 
   return result
 }
 
 export const updateObjectDeepValue = (
-  field: Record<string, unknown>,
+  field: KeyMap,
   changeKey: string,
   value: unknown
 ): void => {
@@ -155,22 +158,21 @@ export const updateObjectDeepValue = (
 
   const keys = changeKey.split('.')
   const lastKey = keys.pop()!
-  let current: Record<string, unknown> = field
+  let current: KeyMap = field
+  const len = keys.length
 
-  for (const key of keys) {
+  for (let i = 0; i < len; i++) {
+    const key = keys[i]
     if (current[key] == null || typeof current[key] !== 'object') {
       current[key] = {}
     }
-    current = current[key] as Record<string, unknown>
+    current = current[key] as KeyMap
   }
 
   if (current != null && typeof current === 'object') {
     current[lastKey] = value
   }
 }
-
-type ResultArrayType = KeyMap[]
-type ResultObjectType = Record<ObjectKey, KeyMap[]>
 
 export const searchValueByKey = (
   result: ResultArrayType | ResultObjectType,
@@ -180,9 +182,8 @@ export const searchValueByKey = (
   if (isArray(result)) {
     const index = computeMatchedItemIndex(id, result, key)
     return index >= 0 ? result[index] : undefined
-  } else {
-    return result[id]
   }
+  return (result as ResultObjectType)[String(id)]
 }
 
 export const computeMatchedItemIndex = (
@@ -191,9 +192,7 @@ export const computeMatchedItemIndex = (
   changingKey: string
 ): number => {
   const stringifiedItemId = String(itemId)
-
-  const len = fieldArr?.length
-  if (typeof len !== 'number' || len <= 0) return -1
+  const len = fieldArr.length
 
   for (let i = 0; i < len; i++) {
     const item = fieldArr[i]
@@ -214,7 +213,9 @@ export const combineArrayData = (
   changingKey: string
 ): void => {
   const fieldArrayMap = new Map<string, number>()
-  for (let i = 0; i < fieldArray.length; i++) {
+  const arrLen = fieldArray.length
+
+  for (let i = 0; i < arrLen; i++) {
     const item = fieldArray[i]
     if (typeof item !== 'object' || item === null) continue
     const id = getObjectDeepValue(item, changingKey)
@@ -224,24 +225,28 @@ export const combineArrayData = (
   }
 
   if (isArray(value)) {
-    for (const col of value) {
+    const valLen = value.length
+    for (let i = 0; i < valLen; i++) {
+      const col = value[i]
       if (typeof col !== 'object' || col === null) continue
       const stringifyId = String(getObjectDeepValue(col, changingKey))
-      
+
       const index = fieldArrayMap.get(stringifyId)
-      
-      if (index !== undefined && index !== -1) {
+
+      if (index !== undefined) {
         fieldArray[index] = { ...fieldArray[index], ...col }
       }
     }
   } else {
-    for (const [uniqueId, col] of Object.entries(value)) {
+    const entries = Object.entries(value)
+    const entLen = entries.length
+    for (let i = 0; i < entLen; i++) {
+      const [uniqueId, col] = entries[i]
       if (typeof col !== 'object' || col === null) continue
-      const stringifyId = String(uniqueId)
-      
-      const index = fieldArrayMap.get(stringifyId)
-      
-      if (index !== undefined && index !== -1) {
+
+      const index = fieldArrayMap.get(uniqueId)
+
+      if (index !== undefined) {
         fieldArray[index] = { ...fieldArray[index], ...col }
       }
     }
@@ -259,7 +264,7 @@ export const setReactivityField = (
     ;(field as Record<FieldKeys, unknown>)[key] = value
     return
   }
-  
+
   if (key !== ENUM.FIELD_DATA.RESULT_KEY) {
     if (isArray(value)) {
       const current = (field as Record<FieldKeys, unknown>)[key]
@@ -275,7 +280,7 @@ export const setReactivityField = (
   }
 
   const resultField = field.result
-  const valueObj = value as Record<string, unknown>
+  const valueObj = value as KeyMap
 
   if (isArray(value)) {
     const currentArr = isArray(resultField) ? resultField : []
@@ -285,17 +290,20 @@ export const setReactivityField = (
     field.result = newValue as ResultArrayType
     return
   }
-  
-  let target = resultField as Record<string, unknown>
+
+  let target = resultField as KeyMap
   if (isArray(resultField)) {
     target = {}
     field.result = target as ResultObjectType
   } else if (typeof resultField !== 'object' || resultField === null) {
-      target = {}
-      field.result = target as ResultObjectType
+    target = {}
+    field.result = target as ResultObjectType
   }
-  
-  Object.keys(valueObj).forEach((subKey) => {
+
+  const keys = Object.keys(valueObj)
+  const len = keys.length
+  for (let i = 0; i < len; i++) {
+    const subKey = keys[i]
     const existing = target[subKey]
     const incoming = valueObj[subKey]
 
@@ -314,7 +322,7 @@ export const setReactivityField = (
     } else {
       target[subKey] = incoming
     }
-  })
+  }
 }
 
 export const computeResultLength = (data: unknown): number => {
@@ -323,9 +331,11 @@ export const computeResultLength = (data: unknown): number => {
   }
   if (data && typeof data === 'object') {
     let acc = 0
-    for (const val of Object.values(data)) {
-      if (isArray(val)) {
-        acc += val.length
+    const values = Object.values(data)
+    const len = values.length
+    for (let i = 0; i < len; i++) {
+      if (isArray(values[i])) {
+        acc += (values[i] as unknown[]).length
       }
     }
     return acc
@@ -333,12 +343,13 @@ export const computeResultLength = (data: unknown): number => {
   return 0
 }
 
-const getSeenIdsString = (arr: unknown[], uniqueKey?: string): string => {
+const getSeenIdsString = (arr: unknown[], uniqueKey: string): string => {
   if (!isArray(arr)) return ''
   const ids: ObjectKey[] = []
+  const len = arr.length
 
-  for (const item of arr) {
-    const id = extractUniqueKey(item, uniqueKey)
+  for (let i = 0; i < len; i++) {
+    const id = extractUniqueKey(arr[i], uniqueKey)
     if (id !== undefined) {
       ids.push(id)
     }
@@ -348,23 +359,22 @@ const getSeenIdsString = (arr: unknown[], uniqueKey?: string): string => {
 
 export const generateRequestParams = ({
   field,
-  uniqueKey,
+  uniqueKey = ENUM.DEFAULT_UNIQUE_KEY_NAME,
   query = {},
   type
 }: GenerateParamsType): GenerateParamsResp => {
-  const result: GenerateParamsResp = {}
+  const result: GenerateParamsResp = { ...query }
   const isFetched = field.fetched
-  
+
   const getSafeObjectKey = (item: unknown): ObjectKey | undefined => {
     return extractUniqueKey(item, uniqueKey)
   }
-
 
   if (isFetched) {
     if (type === ENUM.FETCH_TYPE.AUTO) {
       if (isArray(field.result)) {
         result.seen_ids = getSeenIdsString(field.result, uniqueKey)
-        
+
         const targetIndex = query.is_up ? 0 : field.result.length - 1
         const targetItem = field.result[targetIndex]
         result.since_id = getSafeObjectKey(targetItem)
@@ -416,8 +426,5 @@ export const generateRequestParams = ({
     }
   }
 
-  return {
-    ...query,
-    ...result
-  }
+  return result
 }

@@ -5,6 +5,39 @@ import { setter, getter, cache } from './env'
 import * as api from './api'
 
 describe('update state', () => {
+  it('如果 page 为 -1，则直接 resolve null - 测试 line 300-301', (done) => {
+    const func = 'update-state-page-minus-one'
+    const type = 'type'
+    const query = {
+      test_order: -1
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        page: -1,
+        result: api.testArrData().result
+      }
+    })
+
+    updateState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'push',
+      value: { id: 99, txt: 'test' }
+    }).then((res) => {
+      expect(res).toBeNull()
+      done()
+    })
+  })
+
   it('如果 field 未初始化，则 return', (done) => {
     const func = 'update-state-not-init'
     const type = 'type'
@@ -915,6 +948,78 @@ describe('update state', () => {
       condition[1].key = 'value_2_changed'
 
       expect(state.result).toEqual(condition)
+      done()
+    })
+  })
+
+  it('调用未知 method 时直接 resolve null - 测试 line 447-448', (done) => {
+    const func = 'update-state-unknown-method'
+    const type = 'type'
+    const query = {
+      test_order: 16
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: api.testArrData().result
+      }
+    })
+
+    updateState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'unknown-method',
+      value: { id: 99 }
+    }).then((res) => {
+      expect(res).toBeNull()
+      done()
+    })
+  })
+
+  it('modifyValue 为 null 时初始化为空数组 - 测试 line 386', (done) => {
+    const func = 'update-state-modify-null'
+    const type = 'type'
+    const query = {
+      test_order: 17
+    }
+
+    initState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      opts: {
+        result: []
+      }
+    })
+
+    updateState({
+      getter,
+      setter,
+      func,
+      type,
+      query,
+      method: 'push',
+      changeKey: 'custom_key',
+      value: { id: 1, txt: 'test' }
+    }).then(() => {
+      const state = getter(
+        generateFieldName({
+          func,
+          type,
+          query
+        })
+      )
+      expect(state.custom_key).toEqual([{ id: 1, txt: 'test' }])
       done()
     })
   })

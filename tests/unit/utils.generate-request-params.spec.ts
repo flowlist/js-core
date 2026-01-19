@@ -301,4 +301,92 @@ describe('generate request params', () => {
       is_up: 0
     })
   })
+
+  it('使用深层 uniqueKey 提取 id - 测试 extractUniqueKey line 44-50', () => {
+    const field = generateDefaultField({
+      fetched: true,
+      result: [{ data: { id: 5 } }, { data: { id: 6 } }, { data: { id: 7 } }]
+    })
+    const query = {}
+    const result = generateRequestParams({
+      field,
+      query,
+      type: 'auto',
+      uniqueKey: 'data.id'
+    })
+    expect(result).toEqual({
+      seen_ids: '5,6,7',
+      since_id: 7,
+      is_up: 0,
+      page: 1
+    })
+  })
+
+  it('result 中包含非对象项时正确处理', () => {
+    const field = generateDefaultField({
+      fetched: true,
+      result: [{ id: 5 }, null, 'string', { id: 6 }]
+    })
+    const query = {}
+    const result = generateRequestParams({
+      field,
+      query,
+      type: 'seenIds'
+    })
+    expect(result).toEqual({
+      seen_ids: '5,6'
+    })
+  })
+
+  it('uniqueKey 不存在时跳过该项', () => {
+    const field = generateDefaultField({
+      fetched: true,
+      result: [{ id: 5 }, { name: 'test' }, { id: 6 }]
+    })
+    const query = {}
+    const result = generateRequestParams({
+      field,
+      query,
+      type: 'seenIds'
+    })
+    expect(result).toEqual({
+      seen_ids: '5,6'
+    })
+  })
+
+  it('初次请求 type 为 auto，使用 query.sinceId', () => {
+    const field = generateDefaultField()
+    const query = {
+      sinceId: 100
+    }
+    const result = generateRequestParams({
+      field,
+      query,
+      type: 'auto'
+    })
+    expect(result).toEqual({
+      sinceId: 100,
+      seen_ids: '',
+      since_id: 100,
+      is_up: 0,
+      page: 1
+    })
+  })
+
+  it('初次请求 type 为 sinceId，使用 query.sinceId', () => {
+    const field = generateDefaultField()
+    const query = {
+      sinceId: 'abc123'
+    }
+    const result = generateRequestParams({
+      field,
+      query,
+      type: 'sinceId'
+    })
+    expect(result).toEqual({
+      sinceId: 'abc123',
+      since_id: 'abc123',
+      is_up: 0
+    })
+  })
 })

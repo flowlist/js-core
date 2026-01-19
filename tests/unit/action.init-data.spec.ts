@@ -133,7 +133,7 @@ describe('init data', () => {
 
     expect(state).toEqual(field)
   })
-  
+
   it('如果正常初始化，就正常请求，loading 为 true', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -229,7 +229,7 @@ describe('init data', () => {
         done()
       })
   })
-  
+
   it('如果 refresh，即使 fetched 了也要发请求', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -306,7 +306,7 @@ describe('init data', () => {
       })
     })
   })
-  
+
   it('如果 refresh，并且 reload，发请求之前 field 就初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -380,7 +380,7 @@ describe('init data', () => {
       done()
     })
   })
-  
+
   it('如果 refresh，但不 reload，发请求之后 field 才初始化', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
@@ -434,7 +434,7 @@ describe('init data', () => {
         fetched: true,
         page: 1
       })
-      
+
       expect(realPage1Data).toEqual(mockPage1Data)
       initData({
         cache,
@@ -460,7 +460,7 @@ describe('init data', () => {
           fetched: true,
           page: 1
         })
-        
+
         expect(state).toEqual(field)
         done()
       })
@@ -507,7 +507,7 @@ describe('init data', () => {
       }
     })
   })
-  
+
   it('refresh 的时候 page 为最初的值', (done) => {
     const func = 'testArrFunc'
     const type = 'type'
