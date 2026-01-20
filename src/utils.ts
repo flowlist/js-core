@@ -1,36 +1,82 @@
 // utils.ts
 import ENUM from './enum'
+
 import type {
-  ObjectKey,
-  KeyMap,
+  ApiContract,
   DefaultField,
   FetchType,
   FieldKeys,
-  InitDataParams,
-  GenerateParamsType,
   GenerateParamsResp,
+  GenerateParamsType,
+  KeyMap,
+  ObjectKey,
+  RequestParams,
   ResultArrayType,
-  ResultObjectType
+  ResultObjectType,
+  ResultType
 } from './types'
 
+// ========== 类型守卫函数 ==========
+
 export const isArray = (data: unknown): data is unknown[] => Array.isArray(data)
+
+/**
+ * 检查是否为数组
+ */
+export const isResultArray = (data: ResultType): data is ResultArrayType =>
+  Array.isArray(data)
+
+/**
+ * 检查是否为对象结果
+ */
+export const isResultObject = (data: ResultType): data is ResultObjectType =>
+  !Array.isArray(data) && typeof data === 'object' && data !== null
+
+/**
+ * 检查是否为 ObjectKey
+ */
+export const isObjectKey = (value: unknown): value is ObjectKey =>
+  typeof value === 'string' || typeof value === 'number'
+
+/**
+ * 检查是否为 KeyMap
+ */
+export const isKeyMap = (value: unknown): value is KeyMap =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/**
+ * 检查是否为 KeyMap 数组
+ */
+export const isKeyMapArray = (value: unknown): value is KeyMap[] =>
+  Array.isArray(value) &&
+  value.every((item) => typeof item === 'object' && item !== null)
+
+/**
+ * 检查是否为 ObjectKey 数组
+ */
+export const isObjectKeyArray = (value: unknown): value is ObjectKey[] =>
+  Array.isArray(value) &&
+  value.every((item) => typeof item === 'string' || typeof item === 'number')
 
 const stableSerialize = (value: unknown): string => {
   if (value === null || typeof value !== 'object') {
     return String(value)
   }
   try {
-    if (Array.isArray(value)) {
+    if (isArray(value)) {
       return JSON.stringify(value)
     }
-    const keys = Object.keys(value as Record<string, unknown>).sort()
-    const obj: Record<string, unknown> = {}
-    const len = keys.length
-    for (let i = 0; i < len; i++) {
-      const k = keys[i]
-      obj[k] = (value as Record<string, unknown>)[k]
+    if (isKeyMap(value)) {
+      const keys = Object.keys(value).sort()
+      const obj: Record<string, unknown> = {}
+      const len = keys.length
+      for (let i = 0; i < len; i++) {
+        const k = keys[i]
+        obj[k] = value[k]
+      }
+      return JSON.stringify(obj)
     }
-    return JSON.stringify(obj)
+    return '[Unsupported Object]'
   } catch {
     return '[Circular Object/Value]'
   }
@@ -40,16 +86,16 @@ const extractUniqueKey = (
   item: unknown,
   uniqueKey: string
 ): ObjectKey | undefined => {
-  if (typeof item !== 'object' || item === null) return undefined
+  if (!isKeyMap(item)) return undefined
 
-  const val = (item as KeyMap)[uniqueKey]
-  if (typeof val === 'string' || typeof val === 'number') {
+  const val = item[uniqueKey]
+  if (isObjectKey(val)) {
     return val
   }
 
   if (uniqueKey.includes('.')) {
     const deepVal = getObjectDeepValue(item, uniqueKey)
-    if (typeof deepVal === 'string' || typeof deepVal === 'number') {
+    if (isObjectKey(deepVal)) {
       return deepVal
     }
   }
@@ -80,38 +126,27 @@ export const generateDefaultField = (
   ...opts
 })
 
-export const generateFieldName = ({
+export const generateFieldName = <P = RequestParams, R = ResultType>({
   func,
-  type,
-  query = {}
-}: InitDataParams): string => {
-  const funcName =
-    typeof func === 'string'
-      ? func
-      : (typeof func === 'function' ? func.name : undefined) ||
-        `api-${Math.random().toString(36).substring(2, 8)}`
-  let result = `${funcName}-${type || 'auto'}`
-
-  const filteredKeys = Object.keys(query).filter((key) => {
-    const value = query[key]
-    return (
-      value !== undefined &&
-      typeof value !== 'function' &&
-      key !== 'page' &&
-      key !== 'is_up' &&
-      key !== 'since_id' &&
-      key !== 'seen_ids' &&
-      key !== '__refresh__' &&
-      key !== '__reload__'
-    )
-  })
-
-  filteredKeys.sort()
+  query
+}: {
+  func: ApiContract<P, R>
+  query?: P
+}): string => {
+  let result = func.id
+  // 当 query 为 undefined 时，直接返回 func.id
+  if (!query) {
+    return result
+  }
+  const queryObj = query as Record<string, unknown>
+  const filteredKeys = Object.keys(queryObj)
+    .filter((key) => !func.paramsIgnore.includes(key))
+    .sort()
 
   const len = filteredKeys.length
   for (let i = 0; i < len; i++) {
     const key = filteredKeys[i]
-    const value = query[key]
+    const value = queryObj[key]
     let safeValue: string
 
     if (typeof value === 'object' && value !== null) {
@@ -131,11 +166,11 @@ export const getObjectDeepValue = (
   field: unknown,
   keys: string | string[]
 ): unknown => {
-  if (!keys || (Array.isArray(keys) && keys.length === 0)) {
+  if (!keys || (isArray(keys) && keys.length === 0)) {
     return field
   }
 
-  const keysArr = Array.isArray(keys) ? keys : keys.split('.')
+  const keysArr = isArray(keys) ? keys : keys.split('.')
   let result: unknown = field
   const len = keysArr.length
 
@@ -143,7 +178,11 @@ export const getObjectDeepValue = (
     if (result == null || typeof result !== 'object') {
       return undefined
     }
-    result = (result as KeyMap)[keysArr[i]]
+    if (isKeyMap(result)) {
+      result = result[keysArr[i]]
+    } else {
+      return undefined
+    }
   }
 
   return result
@@ -157,16 +196,24 @@ export const updateObjectDeepValue = (
   if (!changeKey) return
 
   const keys = changeKey.split('.')
-  const lastKey = keys.pop()!
+  const lastKey = keys.pop()
+  if (!lastKey) return
+
   let current: KeyMap = field
   const len = keys.length
 
   for (let i = 0; i < len; i++) {
     const key = keys[i]
-    if (current[key] == null || typeof current[key] !== 'object') {
+    const currentVal = current[key]
+    if (currentVal == null || typeof currentVal !== 'object') {
       current[key] = {}
     }
-    current = current[key] as KeyMap
+    const next = current[key]
+    if (isKeyMap(next)) {
+      current = next
+    } else {
+      return
+    }
   }
 
   if (current != null && typeof current === 'object') {
@@ -179,11 +226,14 @@ export const searchValueByKey = (
   id: ObjectKey,
   key: string
 ): unknown => {
-  if (isArray(result)) {
+  if (isResultArray(result)) {
     const index = computeMatchedItemIndex(id, result, key)
     return index >= 0 ? result[index] : undefined
   }
-  return (result as ResultObjectType)[String(id)]
+  if (isResultObject(result)) {
+    return result[String(id)]
+  }
+  return undefined
 }
 
 export const computeMatchedItemIndex = (
@@ -196,7 +246,7 @@ export const computeMatchedItemIndex = (
 
   for (let i = 0; i < len; i++) {
     const item = fieldArr[i]
-    if (typeof item !== 'object' || item === null) continue
+    if (!isKeyMap(item)) continue
 
     const itemValue = getObjectDeepValue(item, changingKey)
     if (String(itemValue) === stringifiedItemId) {
@@ -212,12 +262,14 @@ export const combineArrayData = (
   value: ResultArrayType | Record<ObjectKey, KeyMap>,
   changingKey: string
 ): void => {
+  // 优化：使用 Map 缓存索引，避免重复查找
   const fieldArrayMap = new Map<string, number>()
   const arrLen = fieldArray.length
 
+  // 第一遍遍历：建立 id -> index 映射
   for (let i = 0; i < arrLen; i++) {
     const item = fieldArray[i]
-    if (typeof item !== 'object' || item === null) continue
+    if (!isKeyMap(item)) continue
     const id = getObjectDeepValue(item, changingKey)
     if (id !== undefined) {
       fieldArrayMap.set(String(id), i)
@@ -228,26 +280,34 @@ export const combineArrayData = (
     const valLen = value.length
     for (let i = 0; i < valLen; i++) {
       const col = value[i]
-      if (typeof col !== 'object' || col === null) continue
+      if (!isKeyMap(col)) continue
       const stringifyId = String(getObjectDeepValue(col, changingKey))
 
       const index = fieldArrayMap.get(stringifyId)
 
       if (index !== undefined) {
-        fieldArray[index] = { ...fieldArray[index], ...col }
+        // 优化：直接修改属性，而非创建新对象（性能提升）
+        const existingItem = fieldArray[index]
+        if (isKeyMap(existingItem)) {
+          // 使用 Object.assign 比展开运算符性能更好
+          Object.assign(existingItem, col)
+        }
       }
     }
-  } else {
+  } else if (isKeyMap(value)) {
     const entries = Object.entries(value)
     const entLen = entries.length
     for (let i = 0; i < entLen; i++) {
       const [uniqueId, col] = entries[i]
-      if (typeof col !== 'object' || col === null) continue
+      if (!isKeyMap(col)) continue
 
       const index = fieldArrayMap.get(uniqueId)
 
       if (index !== undefined) {
-        fieldArray[index] = { ...fieldArray[index], ...col }
+        const existingItem = fieldArray[index]
+        if (isKeyMap(existingItem)) {
+          Object.assign(existingItem, col)
+        }
       }
     }
   }
@@ -284,10 +344,30 @@ export const setReactivityField = (
 
   if (isArray(value)) {
     const currentArr = isArray(resultField) ? resultField : []
-    const newValue = insertBefore
-      ? [...value, ...currentArr]
-      : [...currentArr, ...value]
-    field.result = newValue as ResultArrayType
+
+    // 优化：对于聊天消息场景，使用更高效的数组合并方式
+    if (insertBefore) {
+      // 历史消息加载：新消息在前
+      if (value.length === 0) {
+        return // 空数组，无需操作
+      }
+      if (currentArr.length === 0) {
+        field.result = value as ResultArrayType
+        return
+      }
+      // 使用 concat 而非展开运算符，性能更好
+      field.result = (value as KeyMap[]).concat(currentArr) as ResultArrayType
+    } else {
+      // 新消息追加：新消息在后
+      if (value.length === 0) {
+        return
+      }
+      if (currentArr.length === 0) {
+        field.result = value as ResultArrayType
+        return
+      }
+      field.result = currentArr.concat(value as KeyMap[]) as ResultArrayType
+    }
     return
   }
 
@@ -329,13 +409,14 @@ export const computeResultLength = (data: unknown): number => {
   if (isArray(data)) {
     return data.length
   }
-  if (data && typeof data === 'object') {
+  if (isKeyMap(data)) {
     let acc = 0
     const values = Object.values(data)
     const len = values.length
     for (let i = 0; i < len; i++) {
-      if (isArray(values[i])) {
-        acc += (values[i] as unknown[]).length
+      const val = values[i]
+      if (isArray(val)) {
+        acc += val.length
       }
     }
     return acc
@@ -372,7 +453,7 @@ export const generateRequestParams = ({
 
   if (isFetched) {
     if (type === ENUM.FETCH_TYPE.AUTO) {
-      if (isArray(field.result)) {
+      if (isResultArray(field.result)) {
         result.seen_ids = getSeenIdsString(field.result, uniqueKey)
 
         const targetIndex = query.is_up ? 0 : field.result.length - 1
@@ -382,11 +463,11 @@ export const generateRequestParams = ({
       result.is_up = query.is_up ? 1 : 0
       result.page = typeof query.page === 'number' ? query.page : field.page + 1
     } else if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
-      if (isArray(field.result)) {
+      if (isResultArray(field.result)) {
         result.seen_ids = getSeenIdsString(field.result, uniqueKey)
       }
     } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
-      if (isArray(field.result)) {
+      if (isResultArray(field.result)) {
         const targetIndex = query.is_up ? 0 : field.result.length - 1
         const targetItem = field.result[targetIndex]
         result.since_id = getSafeObjectKey(targetItem)
@@ -400,24 +481,22 @@ export const generateRequestParams = ({
   } else {
     if (type === ENUM.FETCH_TYPE.AUTO) {
       result.seen_ids = ''
-      result.since_id =
-        typeof query.sinceId === 'string' || typeof query.sinceId === 'number'
-          ? query.sinceId
-          : query.is_up
-            ? 999999999
-            : 0
+      result.since_id = isObjectKey(query.sinceId)
+        ? query.sinceId
+        : query.is_up
+          ? 999999999
+          : 0
       result.is_up = query.is_up ? 1 : 0
       result.page =
         typeof query.page === 'number' ? query.page : field.page || 1
     } else if (type === ENUM.FETCH_TYPE.HAS_LOADED_IDS) {
       result.seen_ids = ''
     } else if (type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID) {
-      result.since_id =
-        typeof query.sinceId === 'string' || typeof query.sinceId === 'number'
-          ? query.sinceId
-          : query.is_up
-            ? 999999999
-            : 0
+      result.since_id = isObjectKey(query.sinceId)
+        ? query.sinceId
+        : query.is_up
+          ? 999999999
+          : 0
       result.is_up = query.is_up ? 1 : 0
     } else if (type === ENUM.FETCH_TYPE.PAGINATION) {
       result.page = typeof query.page === 'number' ? query.page : field.page

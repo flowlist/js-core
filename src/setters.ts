@@ -1,16 +1,16 @@
 // setters.ts
+import ENUM from './enum'
 import {
   computeResultLength,
-  setReactivityField,
-  isObjectResult
+  isObjectResult,
+  setReactivityField
 } from './utils'
-import ENUM from './enum'
+
 import type {
-  SetDataType,
-  SetErrorType,
-  DefaultField,
   ApiResponse,
-  ResultType
+  ResultType,
+  SetDataType,
+  SetErrorType
 } from './types'
 
 export const SET_DATA = ({
@@ -29,7 +29,7 @@ export const SET_DATA = ({
       return
     }
 
-    const field = fieldData as DefaultField
+    const field = fieldData
 
     let result: ResultType
     let extra: unknown

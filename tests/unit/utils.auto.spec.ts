@@ -1,14 +1,14 @@
 // @ts-nocheck
+import ENUM from '../../src/enum'
 import {
-  isArray,
+  computeResultLength,
   generateDefaultField,
-  isObjectResult,
   generateRequestParams,
   getObjectDeepValue,
-  setReactivityField,
-  computeResultLength
+  isArray,
+  isObjectResult,
+  setReactivityField
 } from '../../src/utils'
-import ENUM from '../../src/enum'
 
 describe('safe utils', () => {
   it('isArray', () => {

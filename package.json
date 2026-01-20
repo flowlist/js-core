@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "3.0.11",
+  "version": "4.0.2-beta.0",
   "description": "flowlist frontend javascript core",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -37,8 +37,7 @@
   "homepage": "https://github.com/flowlist/js-core#readme",
   "scripts": {
     "build": "tsup",
-    "prepublishOnly": "npm run test:unit && npm run build",
-    "test:unit": "jest",
+    "test": "jest",
     "lint": "eslint src --ext .ts --fix && prettier --write ./"
   },
   "devDependencies": {
