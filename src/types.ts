@@ -141,10 +141,8 @@ interface CommonParams<P = RequestParams, R = ResultType> {
 
 // --- 公共配置基类 ---
 // 【内部使用】注意：这个基类不对外导出，仅用于内部组合
-interface BaseFetchConfig<
-  P = RequestParams,
-  R = ResultType
-> extends CommonParams<P, R> {
+interface BaseFetchConfig<P = RequestParams, R = ResultType>
+  extends CommonParams<P, R> {
   readonly getter: FieldGetter
   readonly setter: FieldSetter
 }
@@ -161,10 +159,8 @@ export interface InitStateParams<P = RequestParams, R = ResultType> {
 /**
  * 初始化状态的参数（内部）
  */
-export interface InitStateType<
-  P = RequestParams,
-  R = ResultType
-> extends InitStateParams<P, R> {
+export interface InitStateType<P = RequestParams, R = ResultType>
+  extends InitStateParams<P, R> {
   readonly getter: FieldGetter
   readonly setter: FieldSetter
 }
@@ -188,20 +184,16 @@ export type InitDataType<P = RequestParams, R = ResultType> = BaseFetchConfig<
 /**
  * 加载更多的参数对外接口
  */
-export interface LoadMoreParams<
-  P = RequestParams,
-  R = ResultType
-> extends CommonParams<P, R> {
+export interface LoadMoreParams<P = RequestParams, R = ResultType>
+  extends CommonParams<P, R> {
   readonly errorRetry?: boolean
 }
 
 /**
  * 加载更多的参数（内部）
  */
-export interface LoadMoreType<
-  P = RequestParams,
-  R = ResultType
-> extends BaseFetchConfig<P, R> {
+export interface LoadMoreType<P = RequestParams, R = ResultType>
+  extends BaseFetchConfig<P, R> {
   readonly errorRetry?: boolean
 }
 
@@ -231,7 +223,6 @@ export interface UpdateStateParams<
   T = KeyMap
 > {
   readonly func: ApiContract<P, R>
-  readonly type: FetchType
   readonly query?: P
   readonly method: string
   readonly value: T | T[] | KeyMap | KeyMap[]
