@@ -6,12 +6,7 @@ import {
   setReactivityField
 } from './utils'
 
-import type {
-  ApiResponse,
-  ResultType,
-  SetDataType,
-  SetErrorType
-} from './types'
+import type { BaseApiResponse, SetDataType, SetErrorType } from './types'
 
 export const SET_DATA = ({
   getter,
@@ -29,19 +24,20 @@ export const SET_DATA = ({
       return
     }
 
+    // 强制类型转换以进行写入
     const field = fieldData
 
-    let result: ResultType
+    let result: any
     let extra: unknown
 
     if (isObjectResult(data)) {
-      result = data as ResultType
+      result = data
       field.nothing = false
       field.fetched = true
       field.noMore = true
       field.page = -1
     } else {
-      const apiResponse = data as ApiResponse
+      const apiResponse = data as BaseApiResponse
       result = apiResponse.result
       extra = apiResponse.extra
       const isEmpty = computeResultLength(result) === 0
