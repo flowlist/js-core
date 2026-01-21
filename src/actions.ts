@@ -66,6 +66,7 @@ export const createApi = <P extends RequestParams, R>(options: {
   id: string
   type?: FetchType
   uniqueKey?: string
+  is_up?: boolean
   paramsIgnore?: string[]
   fetcher: (params: P) => Promise<BaseApiResponse<R>>
 }): ApiContract<P, R> => {
@@ -75,9 +76,9 @@ export const createApi = <P extends RequestParams, R>(options: {
     id: options.id,
     type: options.type || (ENUM.FETCH_TYPE.SCROLL_LOAD_MORE as FetchType),
     uniqueKey: options.uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME,
+    is_up: options.is_up || false,
     paramsIgnore: [
       'page',
-      'is_up',
       'since_id',
       'seen_ids',
       '__refresh__',
@@ -134,6 +135,7 @@ export const initData = <P extends RequestParams, R>({
       field: generateDefaultField({ ...fieldData, fetched: false }),
       uniqueKey: func.uniqueKey,
       type: func.type,
+      is_up: func.is_up,
       query: query as KeyMap
     })
 
@@ -217,6 +219,7 @@ export const loadMore = <P extends RequestParams, R>({
       field: fieldData,
       uniqueKey: func.uniqueKey,
       type,
+      is_up: func.is_up,
       query: query as KeyMap
     })
 
@@ -236,7 +239,7 @@ export const loadMore = <P extends RequestParams, R>({
               type,
               fieldName,
               page: params.page || 0,
-              insertBefore: !!query?.is_up
+              insertBefore: func.is_up
             }).then(() => {
               callback?.({ params: params as P, data, refresh: false })
               resolve()

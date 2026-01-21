@@ -58,7 +58,6 @@ export interface RequestParams {
   [key: string]: any
   __refresh__?: boolean
   __reload__?: boolean
-  is_up?: 0 | 1 | boolean
   page?: number
   sinceId?: ObjectKey
 }
@@ -79,6 +78,7 @@ export interface ApiContract<TParams extends RequestParams, TResponse> {
    */
   readonly id: string
   readonly type: FetchType
+  readonly is_up: boolean
   readonly uniqueKey: string
   readonly paramsIgnore: string[]
 }
@@ -125,6 +125,7 @@ export interface GenerateParamsResp extends RequestParams {
 export interface GenerateParamsType {
   readonly field: DefaultField
   readonly uniqueKey?: string
+  readonly is_up?: boolean
   readonly query?: KeyMap
   readonly type: FetchType
 }
