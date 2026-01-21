@@ -1,14 +1,23 @@
-// src/actions.ts
 import ENUM from './enum'
 import { SET_DATA, SET_ERROR } from './setters'
 import {
+  combineArrayData,
+  computeMatchedItemIndex,
   computeResultLength,
   generateDefaultField,
   generateRequestParams,
+  getObjectDeepValue,
   getResultAsArray,
+  isArray,
+  isKeyMap,
+  isKeyMapArray,
+  isObjectKey,
+  isObjectKeyArray,
   searchValueByKey,
   stableSerialize,
-  toObjectKey
+  toObjectKey,
+  updateArrayItem,
+  updateObjectDeepValue
 } from './utils'
 
 import type {
@@ -20,10 +29,67 @@ import type {
   InitStateType,
   KeyMap,
   LoadMoreType,
+  ObjectKey,
   RequestParams,
   UpdateStateType
 } from './types'
 
+// --- 辅助函数：生成字段名 ---
+export const generateFieldName = <P extends RequestParams, R>({
+  func,
+  query
+}: {
+  func: ApiContract<P, R>
+  query?: P
+}): string => {
+  let result = func.id
+  if (!query) return result
+
+  const queryObj = query as Record<string, unknown>
+  const filteredKeys = Object.keys(queryObj)
+    .filter((key) => !func.paramsIgnore.includes(key))
+    .sort()
+
+  for (const key of filteredKeys) {
+    const value = queryObj[key]
+    const safeValue =
+      typeof value === 'object' && value !== null
+        ? stableSerialize(value)
+        : String(value)
+    result += `-${key}-${encodeURIComponent(safeValue)}`
+  }
+  return result
+}
+
+// --- API 构造器 ---
+export const createApi = <P extends RequestParams, R>(options: {
+  id: string
+  type?: FetchType
+  uniqueKey?: string
+  paramsIgnore?: string[]
+  fetcher: (params: P) => Promise<BaseApiResponse<R>>
+}): ApiContract<P, R> => {
+  const fn = ((params: P) => options.fetcher(params)) as ApiContract<P, R>
+
+  const metadata: Partial<ApiContract<P, R>> = {
+    id: options.id,
+    type: options.type || (ENUM.FETCH_TYPE.SCROLL_LOAD_MORE as FetchType),
+    uniqueKey: options.uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME,
+    paramsIgnore: [
+      'page',
+      'is_up',
+      'since_id',
+      'seen_ids',
+      '__refresh__',
+      '__reload__',
+      ...(options.paramsIgnore || [])
+    ]
+  }
+
+  return Object.freeze(Object.assign(fn, metadata))
+}
+
+// --- 核心 Action：initState ---
 export const initState = <P extends RequestParams, R>({
   getter,
   setter,
@@ -33,23 +99,18 @@ export const initState = <P extends RequestParams, R>({
 }: InitStateType<P, R>): Promise<void> => {
   return new Promise((resolve) => {
     const fieldName = generateFieldName({ func, query })
-    const fieldData = getter(fieldName)
-    if (fieldData) {
-      resolve()
-      return
-    }
+    if (getter(fieldName)) return resolve()
 
     setter({
       key: fieldName,
       type: ENUM.SETTER_TYPE.RESET,
       value: generateDefaultField(opts),
-      callback: () => {
-        resolve()
-      }
+      callback: () => resolve()
     })
   })
 }
 
+// --- 核心 Action：initData ---
 export const initData = <P extends RequestParams, R>({
   getter,
   setter,
@@ -61,29 +122,22 @@ export const initData = <P extends RequestParams, R>({
     const fieldName = generateFieldName({ func, query })
     const fieldData = getter(fieldName)
 
-    // query 已经被泛型 P 约束
     const doRefresh = !!query?.__refresh__
     const needReset = !!query?.__reload__
     const directlyLoadData = doRefresh && !needReset
 
-    // 状态锁判断
     if (fieldData && fieldData.error && !doRefresh) return resolve()
     if (fieldData && fieldData.loading) return resolve()
     if (fieldData && fieldData.fetched && !doRefresh) return resolve()
 
     const params = generateRequestParams({
-      field: generateDefaultField({
-        ...fieldData,
-        fetched: false
-      }),
+      field: generateDefaultField({ ...fieldData, fetched: false }),
       uniqueKey: func.uniqueKey,
       type: func.type,
-      query: query as KeyMap // 内部生成逻辑兼容
+      query: query as KeyMap
     })
 
     const executeFetch = () => {
-      // 这里的 params 需要断言为 P，因为 generateRequestParams 返回的是混合类型
-      // 但实际上它包含了 query 的所有字段，所以是安全的
       func(params as P)
         .then((data) => {
           const commitData = () => {
@@ -96,11 +150,7 @@ export const initData = <P extends RequestParams, R>({
               page: params.page || 0,
               insertBefore: false
             }).then(() => {
-              callback?.({
-                params: params as P,
-                data,
-                refresh: doRefresh
-              })
+              callback?.({ params: params as P, data, refresh: doRefresh })
               resolve()
             })
           }
@@ -128,16 +178,13 @@ export const initData = <P extends RequestParams, R>({
       setter({
         key: fieldName,
         type: ENUM.SETTER_TYPE.RESET,
-        value: {
-          ...generateDefaultField(),
-          loading: true,
-          error: null
-        },
+        value: { ...generateDefaultField(), loading: true, error: null },
         callback: executeFetch
       })
     }
   })
 
+// --- 核心 Action：loadMore ---
 export const loadMore = <P extends RequestParams, R>({
   getter,
   setter,
@@ -149,36 +196,22 @@ export const loadMore = <P extends RequestParams, R>({
   new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, query })
     const fieldData = getter(fieldName)
-    const type = func.type
-
     if (!fieldData || fieldData.loading || fieldData.nothing) return resolve()
     if (fieldData.noMore && !errorRetry) return resolve()
 
-    // 检查分页重复加载
+    const type = func.type
     if (
       type === ENUM.FETCH_TYPE.PAGINATION &&
-      query &&
-      query.page != null &&
+      query?.page != null &&
       Number(query.page) === fieldData.page
     ) {
-      resolve()
-      return
+      return resolve()
     }
 
-    let loadingState: Partial<DefaultField>
-    if (type === ENUM.FETCH_TYPE.PAGINATION) {
-      loadingState = {
-        loading: true,
-        error: null,
-        [ENUM.FIELD_DATA.RESULT_KEY]: [],
-        [ENUM.FIELD_DATA.EXTRA_KEY]: null
-      }
-    } else {
-      loadingState = {
-        loading: true,
-        error: null
-      }
-    }
+    const loadingState: Partial<DefaultField> =
+      type === ENUM.FETCH_TYPE.PAGINATION
+        ? { loading: true, error: null, result: [], extra: null }
+        : { loading: true, error: null }
 
     const params = generateRequestParams({
       field: fieldData,
@@ -187,9 +220,7 @@ export const loadMore = <P extends RequestParams, R>({
       query: query as KeyMap
     })
 
-    if (fieldData.extra) {
-      params[ENUM.FIELD_DATA.EXTRA_KEY] = fieldData.extra
-    }
+    if (fieldData.extra) params.extra = fieldData.extra
 
     setter({
       key: fieldName,
@@ -207,11 +238,7 @@ export const loadMore = <P extends RequestParams, R>({
               page: params.page || 0,
               insertBefore: !!query?.is_up
             }).then(() => {
-              callback?.({
-                params: params as P,
-                data,
-                refresh: false
-              })
+              callback?.({ params: params as P, data, refresh: false })
               resolve()
             })
           })
@@ -223,6 +250,7 @@ export const loadMore = <P extends RequestParams, R>({
     })
   })
 
+// --- 核心 Action：updateState ---
 export const updateState = <P extends RequestParams, R>({
   getter,
   setter,
@@ -256,13 +284,6 @@ export const updateState = <P extends RequestParams, R>({
     const newFieldData: DefaultField = { ...fieldData }
     const resultArray = getResultAsArray(newFieldData)
 
-    // ... 逻辑保持不变，但移除了内部不必要的类型断言，依赖 utils 中的通用处理 ...
-    // 为节省篇幅，省略具体的 switch-case 逻辑，这些逻辑与你提供的原代码完全一致
-    // 唯一的区别是类型签名变成了 UpdateStateType<P, R>
-
-    // (此处插入原有的 updateState 逻辑代码)
-    // 为演示完整性，以下是逻辑复用示例：
-
     if (method === ENUM.CHANGE_TYPE.SEARCH_FIELD) {
       const objectKeyId = toObjectKey(_id)
       if (objectKeyId === undefined) {
@@ -273,20 +294,143 @@ export const updateState = <P extends RequestParams, R>({
         ? searchValueByKey(resultArray, objectKeyId, _uniqueKey)
         : undefined
       resolve(searchResult)
-      return
+      return // 搜索操作不需要更新状态
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_UPDATE_KV) {
+      const objectKeyId = toObjectKey(_id)
+      if (objectKeyId === undefined) {
+        reject(new Error('ID is required for RESULT_UPDATE_KV.'))
+        return
+      }
+      if (resultArray) {
+        const matchedIndex = computeMatchedItemIndex(
+          objectKeyId,
+          resultArray,
+          _uniqueKey
+        )
+        if (matchedIndex >= 0 && isKeyMap(resultArray[matchedIndex])) {
+          updateObjectDeepValue(resultArray[matchedIndex], _changeKey, value)
+        }
+      }
+      resolve(null)
+    } else if (method === ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE) {
+      const objectKeyId = toObjectKey(_id)
+      if (objectKeyId === undefined) {
+        reject(new Error('ID is required for RESULT_ITEM_MERGE.'))
+        return
+      }
+      if (resultArray && isKeyMap(value)) {
+        const matchedIndex = computeMatchedItemIndex(
+          objectKeyId,
+          resultArray,
+          _uniqueKey
+        )
+        updateArrayItem(resultArray, matchedIndex, (item) => ({
+          ...item,
+          ...value
+        }))
+      }
+      resolve(null)
+    } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
+      // 使用特定字段更新而不是通用 KeyMap
+      if (_changeKey === ENUM.FIELD_DATA.RESULT_KEY && isKeyMapArray(value)) {
+        newFieldData.result = value
+      } else if (_changeKey === ENUM.FIELD_DATA.EXTRA_KEY && isKeyMap(value)) {
+        newFieldData.extra = value
+      }
+      resolve(null)
+    } else {
+      // 获取要修改的值
+      let modifyValue: unknown
+      if (_changeKey === ENUM.FIELD_DATA.RESULT_KEY) {
+        modifyValue = newFieldData.result
+      } else if (_changeKey === ENUM.FIELD_DATA.EXTRA_KEY) {
+        modifyValue = newFieldData.extra
+      } else {
+        modifyValue = getObjectDeepValue(newFieldData, _changeKey)
+      }
+      if (modifyValue == null) {
+        modifyValue = []
+      }
+
+      const objectKeyId = toObjectKey(_id)
+      const matchedIndex =
+        objectKeyId !== undefined && isKeyMapArray(modifyValue)
+          ? computeMatchedItemIndex(objectKeyId, modifyValue, _uniqueKey)
+          : -1
+
+      switch (method) {
+        case ENUM.CHANGE_TYPE.RESULT_ADD_AFTER:
+          if (isArray(modifyValue)) {
+            modifyValue = isArray(value)
+              ? [...modifyValue, ...value]
+              : [...modifyValue, value]
+          }
+          break
+        case ENUM.CHANGE_TYPE.RESULT_ADD_BEFORE:
+          if (isArray(modifyValue)) {
+            modifyValue = isArray(value)
+              ? [...value, ...modifyValue]
+              : [value, ...modifyValue]
+          }
+          break
+        case ENUM.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
+          if (isKeyMapArray(modifyValue)) {
+            if (matchedIndex >= 0) {
+              modifyValue.splice(matchedIndex, 1)
+            } else if (isObjectKeyArray(_id)) {
+              const idSet = new Set<ObjectKey>(_id)
+              modifyValue = modifyValue.filter((item) => {
+                const itemKey = getObjectDeepValue(item, _uniqueKey)
+                return !isObjectKey(itemKey) || !idSet.has(itemKey)
+              })
+            }
+          }
+          break
+        case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:
+          if (isArray(modifyValue) && matchedIndex >= 0) {
+            modifyValue.splice(matchedIndex, 0, value)
+          }
+          break
+        case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER:
+          if (isArray(modifyValue) && matchedIndex >= 0) {
+            modifyValue.splice(matchedIndex + 1, 0, value)
+          }
+          break
+        case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
+          if (isKeyMapArray(modifyValue)) {
+            if (isKeyMapArray(value)) {
+              combineArrayData(modifyValue, value, _uniqueKey)
+            } else if (isKeyMap(value)) {
+              // value 是 KeyMap，需要检查是否为 Record<ObjectKey, KeyMap>
+              const valueAsRecord: Record<ObjectKey, KeyMap> = {}
+              for (const [k, v] of Object.entries(value)) {
+                if (isKeyMap(v)) {
+                  valueAsRecord[k] = v
+                }
+              }
+              combineArrayData(modifyValue, valueAsRecord, _uniqueKey)
+            }
+          }
+          break
+        default:
+          resolve(null)
+          return
+      }
+      // 更新对应字段的值
+      if (
+        _changeKey === ENUM.FIELD_DATA.RESULT_KEY &&
+        isKeyMapArray(modifyValue)
+      ) {
+        newFieldData.result = modifyValue
+      } else if (
+        _changeKey === ENUM.FIELD_DATA.EXTRA_KEY &&
+        isKeyMap(modifyValue)
+      ) {
+        newFieldData.extra = modifyValue
+      }
+      resolve(null)
     }
 
-    // ... 其他逻辑 (update, merge, push, splice 等) ...
-    // 这里依然使用 utils 中的函数 (updateObjectDeepValue 等)，它们接受 any/KeyMap
-    // 所以这里的执行逻辑是安全的。
-
-    // 逻辑结束部分:
-
-    // 模拟逻辑执行...
-    // 实际项目中请完整保留原来的逻辑块
-    // 为了通过类型检查，可能需要少量的 as any，因为 updateState 的本质就是非常动态的
-
-    // 假设逻辑执行完毕
     const afterLength = computeResultLength(
       newFieldData[ENUM.FIELD_DATA.RESULT_KEY]
     )
@@ -302,66 +446,4 @@ export const updateState = <P extends RequestParams, R>({
       }
     })
   })
-}
-
-export const createApi = <TParams extends RequestParams, TResponse>(options: {
-  id: string
-  type?: FetchType
-  uniqueKey?: string
-  paramsIgnore?: string[]
-  fetcher: (params: TParams) => Promise<BaseApiResponse<TResponse>>
-}): ApiContract<TParams, TResponse> => {
-  const fn: any = (params: TParams) => options.fetcher(params)
-
-  // 附加元数据
-  fn.id = options.id
-  fn.type = options.type || ENUM.FETCH_TYPE.SCROLL_LOAD_MORE
-  fn.uniqueKey = options.uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME
-  fn.paramsIgnore = [
-    'page',
-    'is_up',
-    'since_id',
-    'seen_ids',
-    '__refresh__',
-    '__reload__',
-    ...(options.paramsIgnore || [])
-  ]
-
-  return fn as ApiContract<TParams, TResponse>
-}
-
-export const generateFieldName = <P extends RequestParams, R>({
-  func,
-  query
-}: {
-  func: ApiContract<P, R>
-  query?: P
-}): string => {
-  let result = func.id
-  if (!query) {
-    return result
-  }
-  // 强制转换为 Record 以便遍历
-  const queryObj = query as Record<string, unknown>
-  const filteredKeys = Object.keys(queryObj)
-    .filter((key) => !func.paramsIgnore.includes(key))
-    .sort()
-
-  const len = filteredKeys.length
-  for (let i = 0; i < len; i++) {
-    const key = filteredKeys[i]
-    const value = queryObj[key]
-    let safeValue: string
-
-    if (typeof value === 'object' && value !== null) {
-      safeValue = stableSerialize(value)
-    } else {
-      safeValue = String(value)
-    }
-
-    const encoded = encodeURIComponent(safeValue)
-    result += `-${key}-${encoded}`
-  }
-
-  return result
 }

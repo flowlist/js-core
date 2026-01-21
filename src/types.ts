@@ -152,46 +152,6 @@ interface ActionParams<TParams extends RequestParams, TResponse> {
   query?: TParams // 这里的 query 被强约束为 TParams
 }
 
-/**
- * initData 参数
- */
-export interface InitDataType<TParams extends RequestParams, TResponse>
-  extends ActionParams<TParams, TResponse> {
-  callback?: FetchResultCallback<TParams, TResponse>
-}
-
-/**
- * initState 参数
- */
-export interface InitStateType<TParams extends RequestParams, TResponse>
-  extends ActionParams<TParams, TResponse> {
-  opts?: Partial<DefaultField<TResponse>>
-}
-
-/**
- * loadMore 参数
- */
-export interface LoadMoreType<TParams extends RequestParams, TResponse>
-  extends ActionParams<TParams, TResponse> {
-  errorRetry?: boolean
-  callback?: FetchResultCallback<TParams, TResponse>
-}
-
-/**
- * updateState 参数
- * 这里的 TValue 尝试对更新的值进行约束
- */
-export interface UpdateStateType<TParams extends RequestParams, TResponse> {
-  getter: FieldGetter
-  setter: FieldSetter
-  func: ApiContract<TParams, TResponse>
-  query?: TParams
-  method: string
-  value: any // updateState 逻辑过于动态，保持 any 以兼容原逻辑，但业务层应尽量传入正确类型
-  id?: ObjectKey | ObjectKey[]
-  changeKey?: string
-}
-
 // ==========================================
 // Setters 参数
 // ==========================================
@@ -210,4 +170,81 @@ export interface SetErrorType {
   readonly setter: FieldSetter
   readonly fieldName: string
   readonly error: Error | null
+}
+
+/**
+ * 初始化状态的外部参数
+ */
+export interface InitStateParams<
+  P extends RequestParams = RequestParams,
+  R = any
+> {
+  readonly func: ApiContract<P, R>
+  readonly query?: P
+  readonly opts?: Partial<DefaultField<R>>
+}
+
+/**
+ * 初始化数据的外部参数
+ */
+export interface InitDataParams<
+  P extends RequestParams = RequestParams,
+  R = any
+> {
+  readonly func: ApiContract<P, R>
+  readonly query?: P
+  readonly callback?: FetchResultCallback<P, R>
+}
+
+/**
+ * 加载更多的外部参数
+ */
+export interface LoadMoreParams<
+  P extends RequestParams = RequestParams,
+  R = any
+> {
+  readonly func: ApiContract<P, R>
+  readonly query?: P
+  readonly errorRetry?: boolean
+  readonly callback?: FetchResultCallback<P, R>
+}
+
+/**
+ * 更新状态的外部参数
+ */
+export interface UpdateStateParams<
+  P extends RequestParams = RequestParams,
+  R = any
+> {
+  readonly func: ApiContract<P, R>
+  readonly query?: P
+  readonly method: string
+  readonly value: any
+  readonly id?: ObjectKey | ObjectKey[]
+  readonly changeKey?: string
+  readonly uniqueKey?: string
+}
+
+export interface InitStateType<P extends RequestParams, R>
+  extends InitStateParams<P, R> {
+  readonly getter: FieldGetter
+  readonly setter: FieldSetter
+}
+
+export interface InitDataType<P extends RequestParams, R>
+  extends InitDataParams<P, R> {
+  readonly getter: FieldGetter
+  readonly setter: FieldSetter
+}
+
+export interface LoadMoreType<P extends RequestParams, R>
+  extends LoadMoreParams<P, R> {
+  readonly getter: FieldGetter
+  readonly setter: FieldSetter
+}
+
+export interface UpdateStateType<P extends RequestParams, R>
+  extends UpdateStateParams<P, R> {
+  readonly getter: FieldGetter
+  readonly setter: FieldSetter
 }
