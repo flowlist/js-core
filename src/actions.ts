@@ -1,4 +1,4 @@
-// actions.ts
+// src/actions.ts
 import ENUM from './enum'
 import { SET_DATA, SET_ERROR } from './setters'
 import {
@@ -9,13 +9,15 @@ import {
   generateFieldName,
   generateRequestParams,
   getObjectDeepValue,
+  getResultAsArray,
   isArray,
   isKeyMap,
   isKeyMapArray,
   isObjectKey,
   isObjectKeyArray,
-  isResultArray,
   searchValueByKey,
+  toObjectKey,
+  updateArrayItem,
   updateObjectDeepValue
 } from './utils'
 
@@ -28,7 +30,6 @@ import type {
   LoadMoreType,
   ObjectKey,
   RequestParams,
-  ResultArrayType,
   ResultType,
   UpdateStateType
 } from './types'
@@ -72,13 +73,18 @@ export const initData = <P = RequestParams, R = ResultType>({
     const queryAsParams = query as RequestParams | undefined
     const doRefresh = !!queryAsParams?.__refresh__
     const needReset = !!queryAsParams?.__reload__
+    const directlyLoadData = doRefresh && !needReset
 
     // 状态锁判断
+    if (fieldData && fieldData.error && !doRefresh) return resolve()
     if (fieldData && fieldData.loading) return resolve()
     if (fieldData && fieldData.fetched && !doRefresh) return resolve()
 
     const params = generateRequestParams({
-      field: fieldData || generateDefaultField(),
+      field: generateDefaultField({
+        ...fieldData,
+        fetched: false
+      }),
       uniqueKey: func.uniqueKey, // 自动从契约获取
       type: func.type,
       query: query as KeyMap | undefined
@@ -109,7 +115,7 @@ export const initData = <P = RequestParams, R = ResultType>({
             })
           }
 
-          if (doRefresh && !needReset) {
+          if (directlyLoadData) {
             setter({
               key: fieldName,
               type: ENUM.SETTER_TYPE.RESET,
@@ -127,16 +133,20 @@ export const initData = <P = RequestParams, R = ResultType>({
     }
 
     // 更新 Loading 状态并触发请求
-    setter({
-      key: fieldName,
-      type: ENUM.SETTER_TYPE.RESET,
-      value: {
-        ...generateDefaultField(),
-        loading: true,
-        error: null
-      },
-      callback: executeFetch
-    })
+    if (directlyLoadData) {
+      executeFetch()
+    } else {
+      setter({
+        key: fieldName,
+        type: ENUM.SETTER_TYPE.RESET,
+        value: {
+          ...generateDefaultField(),
+          loading: true,
+          error: null
+        },
+        callback: executeFetch
+      })
+    }
   })
 
 /**
@@ -153,14 +163,40 @@ export const loadMore = <P = RequestParams, R = ResultType>({
   new Promise((resolve, reject) => {
     const fieldName = generateFieldName({ func, query })
     const fieldData = getter(fieldName)
+    const type = func.type
 
     if (!fieldData || fieldData.loading || fieldData.nothing) return resolve()
     if (fieldData.noMore && !errorRetry) return resolve()
 
+    if (
+      type === ENUM.FETCH_TYPE.PAGINATION &&
+      query &&
+      (query as RequestParams).page != null &&
+      +(query as RequestParams).page! === fieldData.page
+    ) {
+      resolve()
+      return
+    }
+
+    let loadingState: Partial<DefaultField>
+    if (type === ENUM.FETCH_TYPE.PAGINATION) {
+      loadingState = {
+        loading: true,
+        error: null,
+        [ENUM.FIELD_DATA.RESULT_KEY]: [],
+        [ENUM.FIELD_DATA.EXTRA_KEY]: null
+      }
+    } else {
+      loadingState = {
+        loading: true,
+        error: null
+      }
+    }
+
     const params = generateRequestParams({
       field: fieldData,
       uniqueKey: func.uniqueKey,
-      type: func.type,
+      type,
       query: query as KeyMap | undefined
     })
 
@@ -169,12 +205,10 @@ export const loadMore = <P = RequestParams, R = ResultType>({
       params[ENUM.FIELD_DATA.EXTRA_KEY] = fieldData.extra
     }
 
-    const queryAsParams = query as RequestParams | undefined
-
     setter({
       key: fieldName,
       type: ENUM.SETTER_TYPE.MERGE,
-      value: { loading: true, error: null },
+      value: loadingState,
       callback: () => {
         func(params as P & typeof params)
           .then((data) => {
@@ -182,10 +216,10 @@ export const loadMore = <P = RequestParams, R = ResultType>({
               getter,
               setter,
               data: data as ApiResponse,
+              type,
               fieldName,
-              type: func.type,
               page: params.page || 0,
-              insertBefore: !!queryAsParams?.is_up
+              insertBefore: !!(query as RequestParams | undefined)?.is_up
             }).then(() => {
               callback?.({
                 params: params as P & typeof params,
@@ -202,42 +236,6 @@ export const loadMore = <P = RequestParams, R = ResultType>({
       }
     })
   })
-
-/**
- * 安全地将 id 转换为 ObjectKey
- */
-const toObjectKey = (
-  id: ObjectKey | ObjectKey[] | undefined
-): ObjectKey | undefined => {
-  if (id === undefined) return undefined
-  if (isObjectKey(id)) return id
-  if (isObjectKeyArray(id) && id.length > 0) return id[0]
-  return undefined
-}
-
-/**
- * 获取 result 字段作为 ResultArrayType
- */
-const getResultAsArray = (field: DefaultField): ResultArrayType | null => {
-  const result = field[ENUM.FIELD_DATA.RESULT_KEY]
-  return isResultArray(result) ? result : null
-}
-
-/**
- * 更新数组中指定索引的项
- */
-const updateArrayItem = (
-  arr: ResultArrayType,
-  index: number,
-  updater: (item: KeyMap) => KeyMap
-): void => {
-  if (index >= 0 && index < arr.length) {
-    const item = arr[index]
-    if (isKeyMap(item)) {
-      arr[index] = updater(item)
-    }
-  }
-}
 
 export const updateState = <P = RequestParams, R = ResultType, T = KeyMap>({
   getter,

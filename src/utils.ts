@@ -507,3 +507,41 @@ export const generateRequestParams = ({
 
   return result
 }
+
+/**
+ * 安全地将 id 转换为 ObjectKey
+ */
+export const toObjectKey = (
+  id: ObjectKey | ObjectKey[] | undefined
+): ObjectKey | undefined => {
+  if (id === undefined) return undefined
+  if (isObjectKey(id)) return id
+  if (isObjectKeyArray(id) && id.length > 0) return id[0]
+  return undefined
+}
+
+/**
+ * 获取 result 字段作为 ResultArrayType
+ */
+export const getResultAsArray = (
+  field: DefaultField
+): ResultArrayType | null => {
+  const result = field[ENUM.FIELD_DATA.RESULT_KEY]
+  return isResultArray(result) ? result : null
+}
+
+/**
+ * 更新数组中指定索引的项
+ */
+export const updateArrayItem = (
+  arr: ResultArrayType,
+  index: number,
+  updater: (item: KeyMap) => KeyMap
+): void => {
+  if (index >= 0 && index < arr.length) {
+    const item = arr[index]
+    if (isKeyMap(item)) {
+      arr[index] = updater(item)
+    }
+  }
+}
