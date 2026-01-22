@@ -284,8 +284,15 @@ export const updateState = <P extends RequestParams, R>({
       fieldData[ENUM.FIELD_DATA.RESULT_KEY]
     )
 
+    // 创建新的 field 对象，并深拷贝 result 数组以确保响应式
     const newFieldData: DefaultField = { ...fieldData }
-    const resultArray = getResultAsArray(newFieldData)
+    // 如果 result 是数组，创建新数组引用（浅拷贝数组，但元素保持引用）
+    // 这样后续的修改会在新数组上进行，确保引用变化
+    let resultArray = getResultAsArray(fieldData)
+    if (resultArray) {
+      resultArray = [...resultArray]
+      newFieldData.result = resultArray as any
+    }
 
     if (method === ENUM.CHANGE_TYPE.SEARCH_FIELD) {
       const objectKeyId = toObjectKey(_id)
@@ -311,7 +318,10 @@ export const updateState = <P extends RequestParams, R>({
           _uniqueKey
         )
         if (matchedIndex >= 0 && isKeyMap(resultArray[matchedIndex])) {
-          updateObjectDeepValue(resultArray[matchedIndex], _changeKey, value)
+          // ✅ 创建新对象以确保响应式
+          const newItem = { ...resultArray[matchedIndex] }
+          updateObjectDeepValue(newItem, _changeKey, value)
+          resultArray[matchedIndex] = newItem
         }
       }
       resolve(null)
@@ -327,6 +337,7 @@ export const updateState = <P extends RequestParams, R>({
           resultArray,
           _uniqueKey
         )
+        // ✅ updateArrayItem 会创建新对象，数组已经是新引用
         updateArrayItem(resultArray, matchedIndex, (item) => ({
           ...item,
           ...value
@@ -334,10 +345,11 @@ export const updateState = <P extends RequestParams, R>({
       }
       resolve(null)
     } else if (method === ENUM.CHANGE_TYPE.RESET_FIELD) {
-      // 使用特定字段更新而不是通用 KeyMap
       if (_changeKey === ENUM.FIELD_DATA.RESULT_KEY && isKeyMapArray(value)) {
+        // ✅ 直接替换为新值
         newFieldData.result = value
       } else if (_changeKey === ENUM.FIELD_DATA.EXTRA_KEY && isKeyMap(value)) {
+        // ✅ 直接替换为新值
         newFieldData.extra = value
       }
       resolve(null)
@@ -345,7 +357,7 @@ export const updateState = <P extends RequestParams, R>({
       // 获取要修改的值
       let modifyValue: unknown
       if (_changeKey === ENUM.FIELD_DATA.RESULT_KEY) {
-        modifyValue = newFieldData.result
+        modifyValue = resultArray || newFieldData.result
       } else if (_changeKey === ENUM.FIELD_DATA.EXTRA_KEY) {
         modifyValue = newFieldData.extra
       } else {
@@ -363,6 +375,7 @@ export const updateState = <P extends RequestParams, R>({
 
       switch (method) {
         case ENUM.CHANGE_TYPE.RESULT_ADD_AFTER:
+          // ✅ 始终创建新数组
           if (isArray(modifyValue)) {
             modifyValue = isArray(value)
               ? [...modifyValue, ...value]
@@ -370,6 +383,7 @@ export const updateState = <P extends RequestParams, R>({
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_ADD_BEFORE:
+          // ✅ 始终创建新数组
           if (isArray(modifyValue)) {
             modifyValue = isArray(value)
               ? [...value, ...modifyValue]
@@ -377,11 +391,16 @@ export const updateState = <P extends RequestParams, R>({
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_REMOVE_BY_ID:
+          // ✅ splice 或 filter 都会修改/创建数组
           if (isKeyMapArray(modifyValue)) {
             if (matchedIndex >= 0) {
-              modifyValue.splice(matchedIndex, 1)
+              // 创建新数组副本后再 splice
+              const newArray = [...modifyValue]
+              newArray.splice(matchedIndex, 1)
+              modifyValue = newArray
             } else if (isObjectKeyArray(_id)) {
               const idSet = new Set<ObjectKey>(_id)
+              // filter 本身返回新数组
               modifyValue = modifyValue.filter((item) => {
                 const itemKey = getObjectDeepValue(item, _uniqueKey)
                 return !isObjectKey(itemKey) || !idSet.has(itemKey)
@@ -390,29 +409,38 @@ export const updateState = <P extends RequestParams, R>({
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE:
+          // ✅ 创建新数组后 splice
           if (isArray(modifyValue) && matchedIndex >= 0) {
-            modifyValue.splice(matchedIndex, 0, value)
+            const newArray = [...modifyValue]
+            newArray.splice(matchedIndex, 0, value)
+            modifyValue = newArray
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER:
+          // ✅ 创建新数组后 splice
           if (isArray(modifyValue) && matchedIndex >= 0) {
-            modifyValue.splice(matchedIndex + 1, 0, value)
+            const newArray = [...modifyValue]
+            newArray.splice(matchedIndex + 1, 0, value)
+            modifyValue = newArray
           }
           break
         case ENUM.CHANGE_TYPE.RESULT_LIST_MERGE:
+          // ⚠️ combineArrayData 直接修改数组，需要特殊处理
           if (isKeyMapArray(modifyValue)) {
+            // 创建新数组副本
+            const newArray = [...modifyValue]
             if (isKeyMapArray(value)) {
-              combineArrayData(modifyValue, value, _uniqueKey)
+              combineArrayData(newArray, value, _uniqueKey)
             } else if (isKeyMap(value)) {
-              // value 是 KeyMap，需要检查是否为 Record<ObjectKey, KeyMap>
               const valueAsRecord: Record<ObjectKey, KeyMap> = {}
               for (const [k, v] of Object.entries(value)) {
                 if (isKeyMap(v)) {
                   valueAsRecord[k] = v
                 }
               }
-              combineArrayData(modifyValue, valueAsRecord, _uniqueKey)
+              combineArrayData(newArray, valueAsRecord, _uniqueKey)
             }
+            modifyValue = newArray
           }
           break
         default:

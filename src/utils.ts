@@ -36,17 +36,36 @@ export const isKeyMap = (value: unknown): value is KeyMap =>
 
 /**
  * 检查是否为 KeyMap 数组
+ * 性能优化：使用 for 循环替代 every，提前退出
  */
-export const isKeyMapArray = (value: unknown): value is KeyMap[] =>
-  isArray(value) &&
-  value.every((item) => typeof item === 'object' && item !== null)
+export const isKeyMapArray = (value: unknown): value is KeyMap[] => {
+  if (!isArray(value)) return false
+  const len = value.length
+  for (let i = 0; i < len; i++) {
+    const item = value[i]
+    if (typeof item !== 'object' || item === null) {
+      return false
+    }
+  }
+  return true
+}
 
 /**
  * 检查是否为 ObjectKey 数组
+ * 性能优化：使用 for 循环替代 every，提前退出
  */
-export const isObjectKeyArray = (value: unknown): value is ObjectKey[] =>
-  isArray(value) &&
-  value.every((item) => typeof item === 'string' || typeof item === 'number')
+export const isObjectKeyArray = (value: unknown): value is ObjectKey[] => {
+  if (!isArray(value)) return false
+  const len = value.length
+  for (let i = 0; i < len; i++) {
+    const item = value[i]
+    const itemType = typeof item
+    if (itemType !== 'string' && itemType !== 'number') {
+      return false
+    }
+  }
+  return true
+}
 
 export const stableSerialize = (value: unknown): string => {
   if (value === null || typeof value !== 'object') {
@@ -125,20 +144,33 @@ export const generateFieldName = <P extends RequestParams, R>({
   func: ApiContract<P, R>
   query?: P
 }): string => {
-  let result = func.id
+  // 快速路径：无 query
   if (!query) {
-    return result
+    return func.id
   }
-  // 强制转换为 Record 以便遍历
-  const queryObj = query as Record<string, unknown>
-  const filteredKeys = Object.keys(queryObj)
-    .filter((key) => !func.paramsIgnore.includes(key))
-    .sort()
+
+  // 计算 fieldName
+  let result = func.id
+  const keys = Object.keys(query)
+  const paramsIgnore = func.paramsIgnore
+  const filteredKeys: string[] = []
+
+  // 优化：减少闭包创建，直接过滤
+  const keysLen = keys.length
+  for (let i = 0; i < keysLen; i++) {
+    const key = keys[i]
+    if (!paramsIgnore.includes(key)) {
+      filteredKeys.push(key)
+    }
+  }
+
+  // 排序保证稳定性
+  filteredKeys.sort()
 
   const len = filteredKeys.length
   for (let i = 0; i < len; i++) {
     const key = filteredKeys[i]
-    const value = queryObj[key]
+    const value = query[key]
     let safeValue: string
 
     if (typeof value === 'object' && value !== null) {
@@ -158,23 +190,19 @@ export const getObjectDeepValue = (
   field: unknown,
   keys: string | string[]
 ): unknown => {
-  if (!keys || (isArray(keys) && keys.length === 0)) {
+  if (!keys || (Array.isArray(keys) && (keys as string[]).length === 0))
     return field
+
+  const keysArr = Array.isArray(keys)
+    ? (keys as string[])
+    : (keys as string).split('.')
+  let cur: any = field
+  for (let i = 0, n = keysArr.length; i < n; ++i) {
+    if (cur == null || typeof cur !== 'object') return undefined
+    cur = cur[keysArr[i]]
   }
 
-  const keysArr = isArray(keys) ? keys : keys.split('.')
-  let result: any = field
-  const len = keysArr.length
-
-  for (let i = 0; i < len; i++) {
-    if (result == null || typeof result !== 'object') {
-      return undefined
-    }
-    // 这里不再严格检查 isKeyMap，因为只要是对象就可以取值
-    result = result[keysArr[i]]
-  }
-
-  return result
+  return cur
 }
 
 export const updateObjectDeepValue = (
@@ -225,6 +253,13 @@ export const searchValueByKey = (
   return undefined
 }
 
+/**
+ * 查找匹配项的索引
+ * 性能优化：
+ * 1. 提前字符串化避免重复转换
+ * 2. 优化简单 key 的访问路径（无需 split）
+ * 3. 减少函数调用开销
+ */
 export const computeMatchedItemIndex = (
   itemId: ObjectKey,
   fieldArr: any[],
@@ -232,20 +267,39 @@ export const computeMatchedItemIndex = (
 ): number => {
   const stringifiedItemId = String(itemId)
   const len = fieldArr.length
+  const isSimpleKey = !changingKey.includes('.')
 
-  for (let i = 0; i < len; i++) {
-    const item = fieldArr[i]
-    if (!isKeyMap(item)) continue
-
-    const itemValue = getObjectDeepValue(item, changingKey)
-    if (String(itemValue) === stringifiedItemId) {
-      return i
+  // 快速路径：简单 key（无需深度访问）
+  if (isSimpleKey) {
+    for (let i = 0; i < len; i++) {
+      const item = fieldArr[i]
+      if (!isKeyMap(item)) continue
+      if (String(item[changingKey]) === stringifiedItemId) {
+        return i
+      }
+    }
+  } else {
+    // 慢速路径：深度 key
+    for (let i = 0; i < len; i++) {
+      const item = fieldArr[i]
+      if (!isKeyMap(item)) continue
+      const itemValue = getObjectDeepValue(item, changingKey)
+      if (String(itemValue) === stringifiedItemId) {
+        return i
+      }
     }
   }
 
   return -1
 }
 
+/**
+ * 合并数组数据
+ * 性能优化：
+ * 1. 使用 Map 进行 O(1) 查找
+ * 2. 创建新对象确保响应式
+ * 3. 缓存 changingKey 的解析结果
+ */
 export const combineArrayData = (
   fieldArray: any[],
   value: any[] | Record<ObjectKey, KeyMap>,
@@ -254,6 +308,7 @@ export const combineArrayData = (
   const fieldArrayMap = new Map<string, number>()
   const arrLen = fieldArray.length
 
+  // 构建索引 Map，复用 changingKey 解析
   for (let i = 0; i < arrLen; i++) {
     const item = fieldArray[i]
     if (!isKeyMap(item)) continue
@@ -275,7 +330,8 @@ export const combineArrayData = (
       if (index !== undefined) {
         const existingItem = fieldArray[index]
         if (isKeyMap(existingItem)) {
-          Object.assign(existingItem, col)
+          // ✅ 创建新对象确保响应式
+          fieldArray[index] = { ...existingItem, ...col }
         }
       }
     }
@@ -291,13 +347,21 @@ export const combineArrayData = (
       if (index !== undefined) {
         const existingItem = fieldArray[index]
         if (isKeyMap(existingItem)) {
-          Object.assign(existingItem, col)
+          // ✅ 创建新对象确保响应式
+          fieldArray[index] = { ...existingItem, ...col }
         }
       }
     }
   }
 }
 
+/**
+ * 设置响应式字段
+ * 性能优化：
+ * 1. 快速路径优化常见场景
+ * 2. 减少条件判断
+ * 3. 使用原生方法 concat 而非展开运算符（在大数组时性能更好）
+ */
 export const setReactivityField = (
   field: DefaultField,
   key: FieldKeys,
@@ -305,81 +369,84 @@ export const setReactivityField = (
   type: FetchType,
   insertBefore: boolean
 ): void => {
-  const fieldAny = field as any // 为了动态赋值，暂时断言为 any
+  const fieldAny = field as any
 
+  // 快速路径：分页模式直接赋值
   if (type === ENUM.FETCH_TYPE.PAGINATION) {
     fieldAny[key] = value
     return
   }
 
+  // 快速路径：非 result 字段
   if (key !== ENUM.FIELD_DATA.RESULT_KEY) {
     if (isArray(value)) {
       const current = fieldAny[key]
       const currentArr = isArray(current) ? current : []
-      const newValue = insertBefore
-        ? [...value, ...currentArr]
-        : [...currentArr, ...value]
-      fieldAny[key] = newValue
+      // 使用 concat 性能优于展开运算符
+      fieldAny[key] = insertBefore
+        ? (value as any[]).concat(currentArr)
+        : currentArr.concat(value as any[])
     } else {
       fieldAny[key] = value
     }
     return
   }
 
-  // Handle Result Logic
+  // 处理 result 字段 - 数组类型
   const resultField = field.result
-  const valueObj = value as KeyMap
 
   if (isArray(value)) {
-    const currentArr = isArray(resultField) ? resultField : []
     const valueArr = value as KeyMap[]
+    const valueLen = valueArr.length
 
-    if (insertBefore) {
-      if (valueArr.length === 0) return
-      if (currentArr.length === 0) {
-        field.result = valueArr as any
-        return
-      }
-      field.result = valueArr.concat(currentArr) as any
-    } else {
-      if (valueArr.length === 0) return
-      if (currentArr.length === 0) {
-        field.result = valueArr as any
-        return
-      }
-      field.result = currentArr.concat(valueArr) as any
+    // 快速路径：空数组直接返回
+    if (valueLen === 0) return
+
+    const currentArr = isArray(resultField) ? resultField : []
+    const currentLen = currentArr.length
+
+    // 快速路径：当前为空，直接赋值
+    if (currentLen === 0) {
+      field.result = valueArr as any
+      return
     }
+
+    // 使用 concat 合并数组（比展开运算符快）
+    field.result = (
+      insertBefore ? valueArr.concat(currentArr) : currentArr.concat(valueArr)
+    ) as any
     return
   }
 
-  // Handle Object Result Logic
+  // 处理 result 字段 - 对象类型
+  const valueObj = value as KeyMap
   let target = resultField as Record<string, any>
-  if (isArray(resultField)) {
-    target = {}
-    field.result = target as any
-  } else if (typeof resultField !== 'object' || resultField === null) {
+
+  if (
+    isArray(resultField) ||
+    typeof resultField !== 'object' ||
+    resultField === null
+  ) {
     target = {}
     field.result = target as any
   }
 
   const keys = Object.keys(valueObj)
   const len = keys.length
+
   for (let i = 0; i < len; i++) {
     const subKey = keys[i]
     const existing = target[subKey]
     const incoming = valueObj[subKey]
 
     if (existing !== undefined) {
-      if (insertBefore) {
-        target[subKey] =
-          isArray(incoming) && isArray(existing)
-            ? [...incoming, ...existing]
-            : incoming
+      // 两个都是数组才合并，否则覆盖
+      if (isArray(existing) && isArray(incoming)) {
+        target[subKey] = insertBefore
+          ? incoming.concat(existing)
+          : existing.concat(incoming)
       } else {
-        target[subKey] =
-          isArray(existing) && isArray(incoming)
-            ? [...existing, ...incoming]
-            : incoming
+        target[subKey] = incoming
       }
     } else {
       target[subKey] = incoming
