@@ -1,4 +1,4 @@
-// enum.ts
+// constants.ts
 const FETCH_TYPE_ARRAY = ['jump', 'sinceId', 'page', 'seenIds', 'auto'] as const
 
 export default {

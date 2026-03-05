@@ -1,12 +1,7 @@
-// setters.ts
-import ENUM from './enum'
-import {
-  computeResultLength,
-  isObjectResult,
-  setReactivityField
-} from './utils'
-
-import type { BaseApiResponse, SetDataType, SetErrorType } from './types'
+// _internal/setters.ts
+import ENUM from '../constants'
+import type { BaseApiResponse, SetDataType, SetErrorType } from '../types'
+import { computeResultLength, setReactivityField } from './utils'
 
 export const SET_DATA = ({
   getter,
@@ -24,13 +19,14 @@ export const SET_DATA = ({
       return
     }
 
-    // 强制类型转换以进行写入
     const field = fieldData
-
     let result: any
     let extra: unknown
 
-    if (isObjectResult(data)) {
+    // 标准 API 响应（有 result 属性）
+    const hasResult = Object.prototype.hasOwnProperty.call(data, 'result')
+    if (!hasResult) {
+      // 非标准：整个 data 就是 result
       result = data
       field.nothing = false
       field.fetched = true
@@ -81,9 +77,7 @@ export const SET_DATA = ({
       key: fieldName,
       type: ENUM.SETTER_TYPE.RESET,
       value: field,
-      callback: () => {
-        resolve()
-      }
+      callback: () => resolve()
     })
   })
 }
@@ -92,9 +86,6 @@ export const SET_ERROR = ({ setter, fieldName, error }: SetErrorType): void => {
   setter({
     key: fieldName,
     type: ENUM.SETTER_TYPE.MERGE,
-    value: {
-      error,
-      loading: false
-    }
+    value: { error, loading: false }
   })
 }
