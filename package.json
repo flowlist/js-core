@@ -1,6 +1,6 @@
 {
   "name": "@flowlist/js-core",
-  "version": "4.0.9-beta.0",
+  "version": "4.0.10-beta.0",
   "description": "flowlist frontend javascript core",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -82,6 +82,28 @@
         "default": "./dist/mutations/extended.js"
       },
       "default": "./dist/mutations/extended.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "core": [
+        "dist/core.d.ts"
+      ],
+      "constants": [
+        "dist/constants.d.ts"
+      ],
+      "types": [
+        "dist/types.d.ts"
+      ],
+      "mutations": [
+        "dist/mutations/index.d.ts"
+      ],
+      "mutations/core": [
+        "dist/mutations/core.d.ts"
+      ],
+      "mutations/extended": [
+        "dist/mutations/extended.d.ts"
+      ]
     }
   },
   "files": [
