@@ -90,8 +90,8 @@ describe('utils - getObjectDeepValue', () => {
   const data = { id: 123, slug: 'abc', data: { unique_id: 456, deep: { key: 'dio' } } }
 
   it('无 keys 或空数组返回 field', () => {
-    expect(getObjectDeepValue(data)).toEqual(data)
     expect(getObjectDeepValue(data, [])).toEqual(data)
+    expect(getObjectDeepValue(data, '')).toEqual(data)
   })
   it('单层 key 返回对应值', () => {
     expect(getObjectDeepValue(data, 'id')).toBe(123)
@@ -132,6 +132,11 @@ describe('utils - updateObjectDeepValue', () => {
     const obj: Record<string, unknown> = {}
     updateObjectDeepValue(obj, '', 1)
     expect(obj).toEqual({})
+  })
+  it('中间路径为数组等非 KeyMap 时提前 return', () => {
+    const obj: Record<string, unknown> = { a: { b: [] } }
+    updateObjectDeepValue(obj, 'a.b.c', 1)
+    expect(obj).toEqual({ a: { b: [] } })
   })
 })
 
@@ -201,11 +206,11 @@ describe('utils - toObjectKey', () => {
 })
 
 describe('utils - getResultAsArray', () => {
-  it('result 为数组时返回副本', () => {
+  it('result 为数组时返回该数组', () => {
     const arr = [1, 2]
     const field = generateDefaultField({ result: arr })
     expect(getResultAsArray(field)).toEqual([1, 2])
-    expect(getResultAsArray(field)).not.toBe(arr)
+    expect(getResultAsArray(field)).toBe(arr)
   })
   it('result 非数组返回 null', () => {
     const field = generateDefaultField({ result: {} as unknown as any[] })
@@ -242,7 +247,7 @@ describe('utils - searchValueByKey', () => {
     expect(searchValueByKey(map, 1, 'id')).toEqual({ name: 'a' })
   })
   it('非数组非对象返回 undefined', () => {
-    expect(searchValueByKey(null, 1, 'id')).toBeUndefined()
+    expect(searchValueByKey(null as any, 1, 'id')).toBeUndefined()
   })
 })
 
@@ -253,16 +258,28 @@ describe('utils - combineArrayData', () => {
     expect(field[0].txt).toBe('x')
     expect(field[1].txt).toBe('y')
   })
+  it('数组 value 中非对象项被跳过', () => {
+    const field = [{ id: 1, txt: 'a' }, { id: 2, txt: 'b' }]
+    combineArrayData(field, [{ id: 1, txt: 'x' }, null, 1 as any, { id: 2, txt: 'y' }], 'id')
+    expect(field[0].txt).toBe('x')
+    expect(field[1].txt).toBe('y')
+  })
   it('按 id 合并对象 value', () => {
     const field = [{ id: 1, txt: 'a' }, { id: 2, txt: 'b' }]
     combineArrayData(field, { 1: { txt: 'x' }, 2: { txt: 'y' } }, 'id')
     expect(field[0].txt).toBe('x')
     expect(field[1].txt).toBe('y')
   })
-  it('深层 key 合并', () => {
-    const field = [{ id: 1, obj: { slug: 'a' } }, { id: 2, obj: { slug: 'b' } }]
-    combineArrayData(field, [{ obj: { slug: 'a' }, txt: 'x' }], 'obj.slug')
+  it('对象 value 中非 KeyMap 项被跳过', () => {
+    const field = [{ id: 1, txt: 'a' }, { id: 2, txt: 'b' }]
+    combineArrayData(field, { 1: { txt: 'x' }, 2: 'invalid' as any }, 'id')
     expect(field[0].txt).toBe('x')
+    expect(field[1].txt).toBe('b')
+  })
+  it('深层 key 合并', () => {
+    const field: Record<string, unknown>[] = [{ id: 1, obj: { slug: 'a' } }, { id: 2, obj: { slug: 'b' } }]
+    combineArrayData(field, [{ obj: { slug: 'a' }, txt: 'x' }], 'obj.slug')
+    expect(field[0]).toMatchObject({ txt: 'x' })
   })
   it('非对象项跳过', () => {
     const field = [{ id: 1 }, null, { id: 2 }]
@@ -283,6 +300,11 @@ describe('utils - setReactivityField', () => {
     setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [2], 'sinceId', false)
     expect(field.extra).toEqual([1, 2])
   })
+  it('非 result 字段 insertBefore 时新数组在前', () => {
+    const field = generateDefaultField({ extra: [1] })
+    setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [0, -1], 'sinceId', true)
+    expect(field.extra).toEqual([0, -1, 1])
+  })
   it('result 数组 insertBefore 时新数据在前', () => {
     const field = generateDefaultField({ result: [1, 2] })
     setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3, 4], 'page', true)
@@ -293,20 +315,62 @@ describe('utils - setReactivityField', () => {
     setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3], 'page', false)
     expect(field.result).toEqual([1, 2, 3])
   })
+  it('result 原为空数组时直接赋 value', () => {
+    const field = generateDefaultField({ result: [] })
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [1, 2], 'page', false)
+    expect(field.result).toEqual([1, 2])
+  })
   it('空数组不修改 result', () => {
     const field = generateDefaultField({ result: [1] })
     setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [], 'page', false)
     expect(field.result).toEqual([1])
   })
+  it('result 为对象（按 key 分组）时合并子数组', () => {
+    const field = generateDefaultField({
+      result: { group1: [1, 2], group2: [3] } as unknown as any[]
+    })
+    setReactivityField(
+      field,
+      ENUM.FIELD_DATA.RESULT_KEY,
+      { group1: [0], group2: [4] },
+      'page',
+      false
+    )
+    expect(field.result).toEqual({ group1: [1, 2, 0], group2: [3, 4] })
+  })
+  it('result 非数组非对象时先置为 {} 再合并对象', () => {
+    const field = generateDefaultField({ result: null as unknown as any[] })
+    setReactivityField(
+      field,
+      ENUM.FIELD_DATA.RESULT_KEY,
+      { newKey: [1, 2] },
+      'page',
+      false
+    )
+    expect(field.result).toEqual({ newKey: [1, 2] })
+  })
+  it('result 为对象时新增 key 直接赋 incoming', () => {
+    const field = generateDefaultField({
+      result: { a: [1] } as unknown as any[]
+    })
+    setReactivityField(
+      field,
+      ENUM.FIELD_DATA.RESULT_KEY,
+      { b: [2], c: 3 },
+      'page',
+      false
+    )
+    expect(field.result).toEqual({ a: [1], b: [2], c: 3 })
+  })
 })
 
 describe('utils - generateRequestParams', () => {
-  it('初次请求 type=page 时 page 为 1 或 query.page', () => {
+  it('初次请求 type=page 时 page 固定为 1', () => {
     const field = generateDefaultField()
     const r = generateRequestParams({ field, query: { a: 'x' }, type: 'page' })
     expect(r.page).toBe(1)
     const r2 = generateRequestParams({ field, query: { page: 20 }, type: 'page' })
-    expect(r2.page).toBe(20)
+    expect(r2.page).toBe(1)
   })
   it('初次请求 type=jump 使用 query.page 或 field.page', () => {
     expect(generateRequestParams({ field: generateDefaultField(), query: { page: 20 }, type: 'jump' }).page).toBe(20)
@@ -345,6 +409,39 @@ describe('utils - generateRequestParams', () => {
     expect(r.since_id).toBe(7)
     expect(r.is_up).toBe(0)
   })
+  it('已拉取 type=auto 且 is_up 为 true 时 since_id 取首项', () => {
+    const field = generateDefaultField({ fetched: true, result: [{ id: 5 }, { id: 6 }, { id: 7 }] })
+    const r = generateRequestParams({ field, query: {}, type: 'auto', is_up: true })
+    expect(r.since_id).toBe(5)
+    expect(r.is_up).toBe(1)
+  })
+  it('已拉取 type=seenIds 且 result 非数组时不设置 seen_ids', () => {
+    const field = generateDefaultField({ fetched: true, result: {} as unknown as any[] })
+    const r = generateRequestParams({ field, query: {}, type: 'seenIds' })
+    expect(r.seen_ids).toBeUndefined()
+  })
+  it('已拉取 type=sinceId 且 result 非数组时不设置 since_id', () => {
+    const field = generateDefaultField({ fetched: true, result: {} as unknown as any[] })
+    const r = generateRequestParams({ field, query: {}, type: 'sinceId' })
+    expect(r.since_id).toBeUndefined()
+    expect(r.is_up).toBe(0)
+  })
+  it('初次请求 type=auto 且 query.sinceId 非 ObjectKey 时 since_id 为空', () => {
+    const r = generateRequestParams({
+      field: generateDefaultField(),
+      query: { sinceId: {} as any },
+      type: 'auto'
+    })
+    expect(r.since_id).toBe('')
+  })
+  it('初次请求 type=PAGINATION 且 query.page 非数字时用 field.page', () => {
+    const r = generateRequestParams({
+      field: generateDefaultField({ page: 2 }),
+      query: { page: 'x' as any },
+      type: 'jump'
+    })
+    expect(r.page).toBe(2)
+  })
   it('深层 uniqueKey 提取 id', () => {
     const field = generateDefaultField({
       fetched: true,
@@ -359,6 +456,48 @@ describe('utils - generateRequestParams', () => {
       result: [{ id: 5 }, null, { id: 6 }]
     })
     const r = generateRequestParams({ field, query: {}, type: 'seenIds' })
+    expect(r.seen_ids).toBe('5,6')
+  })
+  it('已拉取 type=jump(PAGINATION) 时 page 用 query.page 或 undefined', () => {
+    const field = generateDefaultField({ fetched: true, result: [{ id: 1 }] })
+    expect(generateRequestParams({ field, query: { page: 5 }, type: 'jump' }).page).toBe(5)
+    expect(generateRequestParams({ field, query: {}, type: 'jump' }).page).toBeUndefined()
+  })
+  it('初次请求 type=auto 使用 query.sinceId', () => {
+    const r = generateRequestParams({
+      field: generateDefaultField(),
+      query: { sinceId: 'x' },
+      type: 'auto'
+    })
+    expect(r.since_id).toBe('x')
+  })
+  it('初次请求 type=hasLoadedIds 仅 seen_ids 为空', () => {
+    const r = generateRequestParams({
+      field: generateDefaultField(),
+      query: {},
+      type: 'seenIds'
+    })
+    expect(r.seen_ids).toBe('')
+  })
+  it('初次请求 type=sinceId 使用 query.sinceId', () => {
+    const r = generateRequestParams({
+      field: generateDefaultField(),
+      query: { sinceId: 99 },
+      type: 'sinceId'
+    })
+    expect(r.since_id).toBe(99)
+  })
+  it('result 非数组时不设置 seen_ids', () => {
+    const field = generateDefaultField({ fetched: true, result: {} as unknown as any[] })
+    const r = generateRequestParams({ field, query: {}, type: 'seenIds' })
+    expect(r.seen_ids).toBeUndefined()
+  })
+  it('深层 uniqueKey 路径值为非 ObjectKey 时该项不参与 seen_ids', () => {
+    const field = generateDefaultField({
+      fetched: true,
+      result: [{ data: { id: 5 } }, { data: { id: {} } }, { data: { id: 6 } }]
+    })
+    const r = generateRequestParams({ field, query: {}, type: 'seenIds', uniqueKey: 'data.id' })
     expect(r.seen_ids).toBe('5,6')
   })
 })

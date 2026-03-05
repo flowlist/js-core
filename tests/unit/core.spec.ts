@@ -198,6 +198,62 @@ describe('loadMore', () => {
     await loadMore({ getter, setter, func }).then(() => {})
   })
 
+  it('type=PAGINATION 时 loadingState 含 result:[]、extra:null', async () => {
+    const func = createApi<RequestParams, unknown>({
+      id: 'pag-load-api',
+      type: 'jump',
+      uniqueKey: 'id',
+      fetcher: async () => ({ result: [{ id: 1 }], no_more: true, total: 1 })
+    })
+    await initState({ getter, setter, func })
+    await initData({ getter, setter, func })
+    await loadMore({ getter, setter, func })
+    const field = getter('pag-load-api')!
+    expect(Array.isArray(field.result)).toBe(true)
+  })
+
+  it('PAGINATION 且 query.page 等于当前 page 时直接 resolve', async () => {
+    const func = createApi<RequestParams, unknown>({
+      id: 'pag-api',
+      type: 'jump',
+      uniqueKey: 'id',
+      fetcher: async () => ({ result: [] })
+    })
+    await initState({ getter, setter, func })
+    setter({
+      key: 'pag-api',
+      type: 1,
+      value: { page: 2, noMore: false, loading: false },
+      callback: () => {}
+    })
+    await loadMore({ getter, setter, func, query: { page: 2 } as RequestParams })
+    const field = getter('pag-api')!
+    expect(field.page).toBe(2)
+  })
+
+  it('noMore 且 errorRetry 为 true 时仍会请求', async () => {
+    const func = createTestApi({ id: 'retry-api' })
+    await initState({ getter, setter, func })
+    setter({
+      key: 'retry-api',
+      type: 1,
+      value: { noMore: true, loading: false },
+      callback: () => {}
+    })
+    let called = false
+    const retryApi = createApi<RequestParams, unknown>({
+      id: 'retry-api',
+      type: 'page',
+      uniqueKey: 'id',
+      fetcher: async () => {
+        called = true
+        return { result: [{ id: 4 }], no_more: true, total: 4 }
+      }
+    })
+    await loadMore({ getter, setter, func: retryApi, errorRetry: true })
+    expect(called).toBe(true)
+  })
+
   it('正常 loadMore 会请求并合并 result', async () => {
     const func = createTestApi({ id: 'lm2-api' })
     await initState({ getter, setter, func })
@@ -213,5 +269,70 @@ describe('loadMore', () => {
     const field = getter('lm2-api')!
     expect(Array.isArray(field.result)).toBe(true)
     expect((field.result as any[]).length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('loadMore 成功时调用 callback', async () => {
+    const first = { result: [{ id: 1 }, { id: 2 }], no_more: false, total: 10 }
+    const second = { result: [{ id: 3 }], no_more: true, total: 10 }
+    let callCount = 0
+    const func = createApi<RequestParams, unknown>({
+      id: 'lm-cb-api',
+      type: 'page',
+      uniqueKey: 'id',
+      fetcher: async () => (++callCount === 1 ? first : second)
+    })
+    await initState({ getter, setter, func })
+    await initData({ getter, setter, func })
+    const callback = jest.fn()
+    await loadMore({ getter, setter, func, callback })
+    expect(callback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refresh: false,
+        data: second,
+        params: expect.any(Object)
+      })
+    )
+  })
+
+  it('loadMore 时若 field 有 extra 则带入 params.extra', async () => {
+    const first = { result: [{ id: 1 }], no_more: false, total: 10 }
+    let capturedParams: any = null
+    const func = createApi<RequestParams, unknown>({
+      id: 'lm-extra-api',
+      type: 'page',
+      uniqueKey: 'id',
+      fetcher: async (params) => {
+        capturedParams = params
+        return first
+      }
+    })
+    await initState({ getter, setter, func })
+    await initData({ getter, setter, func })
+    setter({
+      key: 'lm-extra-api',
+      type: 1,
+      value: { extra: { cursor: 'next' } },
+      callback: () => {}
+    })
+    await loadMore({ getter, setter, func })
+    expect(capturedParams?.extra).toEqual({ cursor: 'next' })
+  })
+
+  it('loadMore 请求失败时 SET_ERROR 并 reject', async () => {
+    const first = { result: [{ id: 1 }], no_more: false, total: 10 }
+    const err = new Error('load more failed')
+    let callCount = 0
+    const func = createApi<RequestParams, unknown>({
+      id: 'lm-err-api',
+      type: 'page',
+      uniqueKey: 'id',
+      fetcher: async () => (++callCount === 1 ? first : Promise.reject(err))
+    })
+    await initState({ getter, setter, func })
+    await initData({ getter, setter, func })
+    await expect(loadMore({ getter, setter, func })).rejects.toThrow('load more failed')
+    const field = getter('lm-err-api')!
+    expect(field.error).toBe(err)
+    expect(field.loading).toBe(false)
   })
 })
