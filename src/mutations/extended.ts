@@ -2,6 +2,7 @@
 import {
   combineArrayData,
   computeMatchedItemIndex,
+  getObjectDeepValue,
   isArray,
   isKeyMap,
   isKeyMapArray,
@@ -92,11 +93,58 @@ export const patchHandler: MutationHandler = (ctx) => {
   return { modifyValue: newArray }
 }
 
+
+// --- batch_update: 批量 merge + append ---
+export const batchUpdateHandler: MutationHandler = (ctx) => {
+  if (!isKeyMapArray(ctx.resultArray)) return
+
+  const { merges, appends } = ctx.value as {
+    merges?: Array<{ id: ObjectKey; value: KeyMap }>
+    appends?: KeyMap[]
+  }
+
+  const newArray = [...ctx.resultArray]
+
+  // 构建索引 Map
+  const indexMap = new Map<string, number>()
+  for (let i = 0; i < newArray.length; i++) {
+    const item = newArray[i]
+    if (!isKeyMap(item)) continue
+    const key = getObjectDeepValue(item, ctx._uniqueKey)
+    if (key !== undefined) indexMap.set(String(key), i)
+  }
+
+  // 处理 merges：按 key 查找索引，浅合并
+  if (isArray(merges)) {
+    for (const merge of merges) {
+      if (!isKeyMap(merge) || merge.id === undefined || !isKeyMap(merge.value))
+        continue
+      const idx = indexMap.get(String(merge.id))
+      if (idx !== undefined && isKeyMap(newArray[idx])) {
+        newArray[idx] = { ...newArray[idx], ...merge.value }
+      }
+    }
+  }
+
+  // 处理 appends：过滤已存在项，追加到末尾
+  if (isArray(appends)) {
+    for (const item of appends) {
+      if (!isKeyMap(item)) continue
+      const key = getObjectDeepValue(item, ctx._uniqueKey)
+      if (key !== undefined && indexMap.has(String(key))) continue
+      newArray.push(item)
+    }
+  }
+
+  return { modifyValue: newArray }
+}
+
 // --- 扩展 mutation 注册表 ---
 export const extendedMutations: Record<string, MutationHandler> = {
   [ENUM.CHANGE_TYPE.SEARCH_FIELD]: searchHandler,
   [ENUM.CHANGE_TYPE.RESULT_UPDATE_KV]: updateKVHandler,
   [ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE]: insertBeforeHandler,
   [ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER]: insertAfterHandler,
-  [ENUM.CHANGE_TYPE.RESULT_LIST_MERGE]: patchHandler
+  [ENUM.CHANGE_TYPE.RESULT_LIST_MERGE]: patchHandler,
+  [ENUM.CHANGE_TYPE.RESULT_BATCH_UPDATE]: batchUpdateHandler
 }

@@ -6,7 +6,8 @@ import {
   updateKVHandler,
   insertBeforeHandler,
   insertAfterHandler,
-  patchHandler
+  patchHandler,
+  batchUpdateHandler
 } from '../../src/mutations/extended'
 import ENUM from '../../src/constants'
 import type { DefaultField } from '../../src/types'
@@ -100,5 +101,97 @@ describe('mutations/extended - patchHandler', () => {
   })
   it('resultArray 非 KeyMap 数组不修改', () => {
     expect(patchHandler(baseCtx(null as any, []))?.modifyValue).toBeUndefined()
+  })
+})
+
+describe('mutations/extended - batchUpdateHandler', () => {
+  it('仅 merges：按 id 浅合并到已有项', () => {
+    const arr = [{ id: 1, name: 'a', score: 10 }, { id: 2, name: 'b', score: 20 }]
+    const ctx = baseCtx(arr, {
+      merges: [
+        { id: 1, value: { name: 'a-updated', extra: true } },
+        { id: 2, value: { score: 99 } }
+      ]
+    })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([
+      { id: 1, name: 'a-updated', score: 10, extra: true },
+      { id: 2, name: 'b', score: 99 }
+    ])
+  })
+
+  it('仅 appends：追加不重复的项到末尾', () => {
+    const arr = [{ id: 1, name: 'a' }]
+    const ctx = baseCtx(arr, {
+      appends: [{ id: 2, name: 'b' }, { id: 3, name: 'c' }]
+    })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([
+      { id: 1, name: 'a' },
+      { id: 2, name: 'b' },
+      { id: 3, name: 'c' }
+    ])
+  })
+
+  it('appends 自动去重：已存在的 id 不追加', () => {
+    const arr = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }]
+    const ctx = baseCtx(arr, {
+      appends: [{ id: 2, name: 'b-dup' }, { id: 3, name: 'c' }]
+    })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([
+      { id: 1, name: 'a' },
+      { id: 2, name: 'b' },
+      { id: 3, name: 'c' }
+    ])
+  })
+
+  it('merges + appends 组合操作', () => {
+    const arr = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }]
+    const ctx = baseCtx(arr, {
+      merges: [{ id: 1, value: { name: 'a-merged' } }],
+      appends: [{ id: 3, name: 'c' }]
+    })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([
+      { id: 1, name: 'a-merged' },
+      { id: 2, name: 'b' },
+      { id: 3, name: 'c' }
+    ])
+  })
+
+  it('merges 中 id 不存在时跳过', () => {
+    const arr = [{ id: 1, name: 'a' }]
+    const ctx = baseCtx(arr, {
+      merges: [{ id: 99, value: { name: 'ghost' } }]
+    })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([{ id: 1, name: 'a' }])
+  })
+
+  it('空 merges 和 appends', () => {
+    const arr = [{ id: 1, name: 'a' }]
+    const ctx = baseCtx(arr, { merges: [], appends: [] })
+    const out = batchUpdateHandler(ctx)
+    expect(out?.modifyValue).toEqual([{ id: 1, name: 'a' }])
+  })
+
+  it('resultArray 非 KeyMap 数组返回 undefined', () => {
+    const ctx = { ...baseCtx([], {}), resultArray: null }
+    expect(batchUpdateHandler(ctx)).toBeUndefined()
+  })
+
+  it('不修改原数组（immutable）', () => {
+    const arr = [{ id: 1, name: 'a' }, { id: 2, name: 'b' }]
+    const original = [...arr.map(i => ({ ...i }))]
+    const ctx = baseCtx(arr, {
+      merges: [{ id: 1, value: { name: 'updated' } }],
+      appends: [{ id: 3, name: 'c' }]
+    })
+    batchUpdateHandler(ctx)
+    // 原始 ctx.resultArray 项不应被修改（handler 内部是复制数组操作）
+    // 但注意 baseCtx 传入的 arr 引用和 ctx.resultArray 是同一个
+    // handler 内部 [...ctx.resultArray] 创建新数组，所以原 arr 不变
+    expect(arr).toEqual(original)
   })
 })
