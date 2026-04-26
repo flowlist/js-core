@@ -8,6 +8,7 @@ import {
   isKeyMapArray,
   searchValueByKey,
   toObjectKey,
+  updateArrayItem,
   updateObjectDeepValue
 } from '../_internal/utils'
 import ENUM from '../constants'
@@ -94,6 +95,66 @@ export const patchHandler: MutationHandler = (ctx) => {
 }
 
 
+// --- merge-if-exists: 带存在性检查的 merge ---
+export const mergeIfExistsHandler: MutationHandler = (ctx) => {
+  const objectKeyId = toObjectKey(ctx._id)
+  if (objectKeyId === undefined || !ctx.resultArray || !isKeyMap(ctx.value))
+    return { resolved: false }
+
+  const matchedIndex = computeMatchedItemIndex(
+    objectKeyId,
+    ctx.resultArray,
+    ctx._uniqueKey
+  )
+  if (matchedIndex < 0) return { resolved: false }
+
+  updateArrayItem(ctx.resultArray, matchedIndex, (item) => ({
+    ...item,
+    ...ctx.value
+  }))
+  return { resolved: true }
+}
+
+// --- merge-sort: merge 单项后按指定字段排序 ---
+export const mergeSortHandler: MutationHandler = (ctx) => {
+  const objectKeyId = toObjectKey(ctx._id)
+  if (objectKeyId === undefined || !isKeyMapArray(ctx.resultArray))
+    return { resolved: false }
+
+  // value 结构: { data: KeyMap, sortBy: string, order?: 'asc' | 'desc' }
+  const { data, sortBy, order = 'desc' } = ctx.value as {
+    data: KeyMap
+    sortBy: string
+    order?: 'asc' | 'desc'
+  }
+
+  if (!isKeyMap(data) || !sortBy) return { resolved: false }
+
+  const matchedIndex = computeMatchedItemIndex(
+    objectKeyId,
+    ctx.resultArray,
+    ctx._uniqueKey
+  )
+  if (matchedIndex < 0) return { resolved: false }
+
+  // merge
+  const newArray = [...ctx.resultArray]
+  newArray[matchedIndex] = { ...newArray[matchedIndex], ...data }
+
+  // sort
+  const multiplier = order === 'asc' ? 1 : -1
+  newArray.sort((a, b) => {
+    const va = getObjectDeepValue(a, sortBy)
+    const vb = getObjectDeepValue(b, sortBy)
+    if (va == null && vb == null) return 0
+    if (va == null) return 1
+    if (vb == null) return -1
+    return va < vb ? -1 * multiplier : va > vb ? 1 * multiplier : 0
+  })
+
+  return { modifyValue: newArray }
+}
+
 // --- batch_update: 批量 merge + append ---
 export const batchUpdateHandler: MutationHandler = (ctx) => {
   if (!isKeyMapArray(ctx.resultArray)) return
@@ -146,5 +207,7 @@ export const extendedMutations: Record<string, MutationHandler> = {
   [ENUM.CHANGE_TYPE.RESULT_INSERT_TO_BEFORE]: insertBeforeHandler,
   [ENUM.CHANGE_TYPE.RESULT_INSERT_TO_AFTER]: insertAfterHandler,
   [ENUM.CHANGE_TYPE.RESULT_LIST_MERGE]: patchHandler,
-  [ENUM.CHANGE_TYPE.RESULT_BATCH_UPDATE]: batchUpdateHandler
+  [ENUM.CHANGE_TYPE.RESULT_BATCH_UPDATE]: batchUpdateHandler,
+  [ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE_SORT]: mergeSortHandler,
+  [ENUM.CHANGE_TYPE.RESULT_ITEM_MERGE_IF_EXISTS]: mergeIfExistsHandler
 }

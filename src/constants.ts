@@ -25,7 +25,9 @@ export default {
     RESULT_INSERT_TO_AFTER: 'insert-after',
     RESULT_LIST_MERGE: 'patch',
     RESULT_ITEM_MERGE: 'merge',
-    RESULT_BATCH_UPDATE: 'batch_update'
+    RESULT_BATCH_UPDATE: 'batch_update',
+    RESULT_ITEM_MERGE_SORT: 'merge-sort',
+    RESULT_ITEM_MERGE_IF_EXISTS: 'merge-if-exists'
   } as const,
   FIELD_DATA: {
     RESULT_KEY: 'result',
