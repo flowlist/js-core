@@ -10,7 +10,8 @@ export const SET_DATA = ({
   fieldName,
   type,
   page,
-  insertBefore
+  insertBefore,
+  uniqueKey
 }: SetDataType): Promise<void> => {
   return new Promise((resolve, reject) => {
     const fieldData = getter(fieldName)
@@ -60,7 +61,8 @@ export const SET_DATA = ({
       ENUM.FIELD_DATA.RESULT_KEY,
       result,
       type,
-      insertBefore
+      insertBefore,
+      uniqueKey
     )
 
     if (extra !== undefined && extra !== null) {

@@ -146,6 +146,107 @@ describe('SET_DATA', () => {
     const field = getter(fieldName)!
     expect(field.extra).toEqual({ cursor: 'abc' })
   })
+
+  // ── 增量追加去重（按 uniqueKey）──────────────────────────────────────────────
+  // 场景：sinceId / scroll 增量加载时，服务端因 since 边界（createdAt >= since）或
+  // reconnect 重叠会把「列表里已有的项」再返回一次。旧实现纯 concat 会产生重复行。
+  // 修复：追加时按 uniqueKey 去重，同 key 用 incoming 覆盖 existing 并保持原位置。
+  it('增量追加：同 uniqueKey 的项去重而非重复 append', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        result: [{ id: 1 }, { id: 2 }, { id: 3 }]
+      })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      uniqueKey: 'id',
+      // since 增量把已存在的 id:3 又带回 + 一条新 id:4
+      data: { result: [{ id: 3 }, { id: 4 }], no_more: true },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SCROLL_LOAD_MORE,
+      page: 2,
+      insertBefore: false
+    })
+    const field = getter(fieldName)!
+    expect((field.result as Array<{ id: number }>).map((m) => m.id)).toEqual([
+      1, 2, 3, 4
+    ])
+  })
+
+  it('增量追加去重：同 key 用 incoming 覆盖 existing 字段（不新增行）', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        result: [{ id: 1, status: 'sending' }]
+      })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      uniqueKey: 'id',
+      data: { result: [{ id: 1, status: 'success' }], no_more: true },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SCROLL_LOAD_MORE,
+      page: 2,
+      insertBefore: false
+    })
+    const field = getter(fieldName)!
+    expect(field.result).toEqual([{ id: 1, status: 'success' }])
+  })
+
+  it('insertBefore 追加去重：新项前插、已存在项就地更新不重复', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        result: [{ id: 2 }, { id: 3 }]
+      })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      uniqueKey: 'id',
+      // 前插一条新 id:1 + 重叠的 id:2
+      data: { result: [{ id: 1 }, { id: 2 }], no_more: true },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SCROLL_LOAD_MORE,
+      page: 2,
+      insertBefore: true
+    })
+    const field = getter(fieldName)!
+    expect((field.result as Array<{ id: number }>).map((m) => m.id)).toEqual([
+      1, 2, 3
+    ])
+  })
+
+  it('未传 uniqueKey 时回退默认键去重（id）', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({ fetched: true, result: [{ id: 1 }] })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      // 不传 uniqueKey → 用默认键（id）
+      data: { result: [{ id: 1 }, { id: 2 }], no_more: true },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SCROLL_LOAD_MORE,
+      page: 2,
+      insertBefore: false
+    })
+    const field = getter(fieldName)!
+    expect((field.result as Array<{ id: number }>).map((m) => m.id)).toEqual([
+      1, 2
+    ])
+  })
 })
 
 describe('SET_ERROR', () => {

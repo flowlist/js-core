@@ -8,6 +8,7 @@ import {
   initData,
   loadMore
 } from '../../src/core'
+import { generateDefaultField } from '../../src/_internal/utils'
 import ENUM from '../../src/constants'
 import { getter, setter, clearStore } from '../helpers/store'
 import { createTestApi, testListResponse, createFailingApi } from '../helpers/api'
@@ -162,6 +163,96 @@ describe('initData', () => {
     expect(callback).toHaveBeenCalledWith(
       expect.objectContaining({ refresh: true })
     )
+  })
+
+  // 回归：silent refresh（directlyLoadData）拉回与现有列表重叠的项时，
+  // 不应产生重复行。SCROLL 增量的 since 边界会把最新一条再返回一次 —— 旧实现
+  // 「先 RESET → concat（零去重）」会复制该项；修复后按 uniqueKey 去重。
+  it('SCROLL silent refresh 拉回重叠项时不产生重复', async () => {
+    let payload = [
+      { id: 1, v: 'a' },
+      { id: 2, v: 'b' }
+    ]
+    const func = createTestApi({
+      id: 'refresh-dedup-api',
+      type: 'sinceId',
+      uniqueKey: 'id',
+      // @ts-expect-error 测试用动态返回
+      fetcher: async () => ({ result: payload, no_more: false })
+    })
+    await initState({ getter, setter, func })
+    await initData({ getter, setter, func })
+    // 第二次 silent refresh：服务端把已存在的 id:2 再带回 + 新 id:3
+    payload = [
+      { id: 2, v: 'b' },
+      { id: 3, v: 'c' }
+    ]
+    await initData({
+      getter,
+      setter,
+      func,
+      query: { __refresh__: true } as RequestParams
+    })
+    const field = getter('refresh-dedup-api')!
+    expect((field.result as Array<{ id: number }>).map((m) => m.id)).toEqual([
+      1, 2, 3
+    ])
+  })
+
+  // 根治回归：silent refresh 网络请求进行中，外部往 store 写入新项（模拟聊天连发的
+  // 乐观/回填消息在 refresh 在途时到达）。refresh 完成后该 in-flight 新项**不得被覆盖
+  // 丢失**。验证 directlyLoadData 对增量类型不持有过期快照、不 RESET。
+  it('SCROLL silent refresh 在途时到达的 in-flight 新项不被覆盖丢失', async () => {
+    let resolveFetch!: (v: { result: unknown; no_more: boolean }) => void
+    const func = createTestApi({
+      id: 'refresh-inflight-api',
+      type: 'sinceId',
+      uniqueKey: 'id',
+      // @ts-expect-error 测试用受控 Promise，请求挂起直到手动 resolve
+      fetcher: () =>
+        new Promise<{ result: unknown; no_more: boolean }>((res) => {
+          resolveFetch = res
+        })
+    })
+    await initState({ getter, setter, func })
+    // 首屏：已有 id:1, id:2
+    setter({
+      key: 'refresh-inflight-api',
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        result: [{ id: 1 }, { id: 2 }]
+      })
+    })
+
+    // 发起 silent refresh（请求挂起，不 await）
+    const refreshPromise = initData({
+      getter,
+      setter,
+      func,
+      query: { __refresh__: true } as RequestParams
+    })
+
+    // 网络在途期间：外部把 in-flight 新项 id:99 写进 store（模拟乐观/回填）
+    const cur = getter('refresh-inflight-api')!
+    setter({
+      key: 'refresh-inflight-api',
+      type: ENUM.SETTER_TYPE.RESET,
+      value: {
+        ...cur,
+        result: [...(cur.result as unknown[]), { id: 99 }]
+      }
+    })
+
+    // 服务端增量返回 id:3（不含 id:99，因为它还没落库）
+    resolveFetch({ result: [{ id: 3 }], no_more: true })
+    await refreshPromise
+
+    const field = getter('refresh-inflight-api')!
+    const ids = (field.result as Array<{ id: number }>).map((m) => m.id)
+    // id:99（在途写入）必须保留，且增量 id:3 合并进来
+    expect(ids).toContain(99)
+    expect(ids).toEqual([1, 2, 99, 3])
   })
 })
 

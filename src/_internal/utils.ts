@@ -210,12 +210,54 @@ export const combineArrayData = (
 
 // ========== 响应式字段设置 ==========
 
+/**
+ * 把 incoming 追加合并进 current（SCROLL/sinceId 增量路径），按 uniqueKey 去重：
+ *  - current 中已存在的 key → 用 incoming 同 key 项覆盖合并字段，**保持原位置**；
+ *  - current 中不存在的 key → 按 insertBefore 决定前插 / 尾插。
+ * 顺序稳定：先产出（保留 current 顺序、就地更新）已存在项，再产出新增项。
+ *
+ * 背景：sinceId / scroll 增量加载时，服务端因 since 边界（createdAt >= since）或
+ * reconnect 重叠会把「列表里已有的项」再次返回。旧实现纯 concat 会产生重复行
+ * （典型：聊天连发后 silent refresh 把最新一条又带回，列表出现两份）。
+ */
+const mergeAppendDedup = (
+  current: any[],
+  incoming: any[],
+  uniqueKey: string,
+  insertBefore: boolean
+): any[] => {
+  // 不可去重的项（非对象 / 无有效 uniqueKey）原样保留，按 concat 语义处理。
+  const indexByKey = new Map<ObjectKey, number>()
+  for (let i = 0; i < current.length; i++) {
+    const item = current[i]
+    if (!isKeyMap(item)) continue
+    const key = extractUniqueKey(item, uniqueKey)
+    if (key !== undefined) indexByKey.set(key, i)
+  }
+
+  const merged = [...current]
+  const appended: any[] = []
+  for (const item of incoming) {
+    const key = isKeyMap(item) ? extractUniqueKey(item, uniqueKey) : undefined
+    if (key !== undefined && indexByKey.has(key)) {
+      const idx = indexByKey.get(key)!
+      // 同 key：incoming 覆盖 existing（合并字段），保持原位置，不新增行
+      merged[idx] = isKeyMap(merged[idx]) ? { ...merged[idx], ...item } : item
+    } else {
+      appended.push(item)
+    }
+  }
+
+  return insertBefore ? [...appended, ...merged] : [...merged, ...appended]
+}
+
 export const setReactivityField = (
   field: DefaultField,
   key: FieldKeys,
   value: unknown,
   type: FetchType,
-  insertBefore: boolean
+  insertBefore: boolean,
+  uniqueKey: string = ENUM.DEFAULT_UNIQUE_KEY_NAME
 ): void => {
   const fieldAny = field as any
 
@@ -246,10 +288,12 @@ export const setReactivityField = (
       field.result = value as any
       return
     }
-    field.result = (
+    // 按 uniqueKey 去重追加：避免 since 边界 / reconnect 重叠把已有项重复 append
+    field.result = mergeAppendDedup(
+      current,
+      value as any[],
+      uniqueKey,
       insertBefore
-        ? [...(value as any[]), ...current]
-        : [...current, ...(value as any[])]
     ) as any
     return
   }

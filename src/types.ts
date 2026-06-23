@@ -118,6 +118,7 @@ export interface SetDataType {
   readonly type: FetchType
   readonly page: number
   readonly insertBefore: boolean
+  readonly uniqueKey?: string
 }
 
 export interface SetErrorType {
