@@ -176,8 +176,8 @@ describe('initData', () => {
     const func = createTestApi({
       id: 'refresh-dedup-api',
       type: 'sinceId',
+      mergeStrategy: 'preserve',
       uniqueKey: 'id',
-      // @ts-expect-error 测试用动态返回
       fetcher: async () => ({ result: payload, no_more: false })
     })
     await initState({ getter, setter, func })
@@ -201,14 +201,14 @@ describe('initData', () => {
 
   // 根治回归：silent refresh 网络请求进行中，外部往 store 写入新项（模拟聊天连发的
   // 乐观/回填消息在 refresh 在途时到达）。refresh 完成后该 in-flight 新项**不得被覆盖
-  // 丢失**。验证 directlyLoadData 对增量类型不持有过期快照、不 RESET。
-  it('SCROLL silent refresh 在途时到达的 in-flight 新项不被覆盖丢失', async () => {
+  // 丢失**。mergeStrategy='preserve' 跳 RESET、不持过期快照。
+  it('preserve silent refresh 在途时到达的 in-flight 新项不被覆盖丢失', async () => {
     let resolveFetch!: (v: { result: unknown; no_more: boolean }) => void
     const func = createTestApi({
       id: 'refresh-inflight-api',
       type: 'sinceId',
+      mergeStrategy: 'preserve',
       uniqueKey: 'id',
-      // @ts-expect-error 测试用受控 Promise，请求挂起直到手动 resolve
       fetcher: () =>
         new Promise<{ result: unknown; no_more: boolean }>((res) => {
           resolveFetch = res

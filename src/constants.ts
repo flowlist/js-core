@@ -1,6 +1,8 @@
 // constants.ts
 const FETCH_TYPE_ARRAY = ['jump', 'sinceId', 'page', 'seenIds', 'auto'] as const
 
+const MERGE_STRATEGY_ARRAY = ['replace', 'append', 'preserve'] as const
+
 export default {
   SETTER_TYPE: {
     RESET: 0,
@@ -13,6 +15,16 @@ export default {
     SCROLL_LOAD_MORE: FETCH_TYPE_ARRAY[2],
     HAS_LOADED_IDS: FETCH_TYPE_ARRAY[3],
     AUTO: FETCH_TYPE_ARRAY[4]
+  } as const,
+  MERGE_STRATEGY_ARRAY,
+  // result 合并策略（与 FETCH_TYPE 正交）：
+  //   REPLACE  —— loadMore/refresh 均整表替换（分页 / jump）
+  //   APPEND   —— loadMore 去重追加；refresh 整表替换回第一页（无限滚动，默认）
+  //   PRESERVE —— loadMore 去重追加；refresh 跳 RESET 保 in-flight（实时流 / 聊天）
+  MERGE_STRATEGY: {
+    REPLACE: MERGE_STRATEGY_ARRAY[0],
+    APPEND: MERGE_STRATEGY_ARRAY[1],
+    PRESERVE: MERGE_STRATEGY_ARRAY[2]
   } as const,
   CHANGE_TYPE: {
     SEARCH_FIELD: 'search',

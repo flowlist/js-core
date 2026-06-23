@@ -50,8 +50,16 @@ export interface RequestParams {
   sinceId?: ObjectKey
 }
 
-/** 数据获取策略类型 */
+/** 数据获取策略类型（仅决定「请求参数怎么算」，与合并策略正交） */
 export type FetchType = 'jump' | 'sinceId' | 'page' | 'seenIds' | 'auto'
+
+/**
+ * result 合并策略（仅决定「拿到数据后怎么写进 result」，与 FetchType 正交）：
+ *  - 'replace' ：loadMore / refresh 均整表替换（分页 / jump）
+ *  - 'append'  ：loadMore 去重追加；refresh 整表替换回第一页（无限滚动，默认）
+ *  - 'preserve'：loadMore 去重追加；refresh 跳 RESET 保 in-flight（实时流 / 聊天）
+ */
+export type MergeStrategy = 'replace' | 'append' | 'preserve'
 
 /** API 契约 */
 export interface ApiContract<TParams extends RequestParams, TResponse> {
@@ -60,6 +68,7 @@ export interface ApiContract<TParams extends RequestParams, TResponse> {
   readonly type: FetchType
   readonly is_up: boolean
   readonly uniqueKey: string
+  readonly mergeStrategy: MergeStrategy
   readonly paramsIgnore: string[]
 }
 
@@ -119,6 +128,9 @@ export interface SetDataType {
   readonly page: number
   readonly insertBefore: boolean
   readonly uniqueKey?: string
+  readonly mergeStrategy?: MergeStrategy
+  /** refresh 整表替换：直接覆盖 result + 重置 extra/page（不走去重追加） */
+  readonly replaceOnRefresh?: boolean
 }
 
 export interface SetErrorType {

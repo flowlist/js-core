@@ -18,7 +18,10 @@ export const createTestApi = (overrides?: {
   id?: string
   type?: 'jump' | 'sinceId' | 'page' | 'seenIds' | 'auto'
   uniqueKey?: string
+  is_up?: boolean
+  mergeStrategy?: 'replace' | 'append' | 'preserve'
   paramsIgnore?: string[]
+  fetcher?: (params: RequestParams) => Promise<BaseApiResponse>
 }) => {
   return createApi<RequestParams, unknown>({
     id: 'test-api',

@@ -2,11 +2,11 @@
 import ENUM from '../constants'
 import type {
   DefaultField,
-  FetchType,
   FieldKeys,
   GenerateParamsResp,
   GenerateParamsType,
   KeyMap,
+  MergeStrategy,
   ObjectKey
 } from '../types'
 
@@ -255,14 +255,15 @@ export const setReactivityField = (
   field: DefaultField,
   key: FieldKeys,
   value: unknown,
-  type: FetchType,
   insertBefore: boolean,
-  uniqueKey: string = ENUM.DEFAULT_UNIQUE_KEY_NAME
+  uniqueKey: string = ENUM.DEFAULT_UNIQUE_KEY_NAME,
+  mergeStrategy: MergeStrategy = ENUM.MERGE_STRATEGY.APPEND as MergeStrategy
 ): void => {
   const fieldAny = field as any
 
-  // 分页模式直接赋值
-  if (type === ENUM.FETCH_TYPE.PAGINATION) {
+  // replace 策略：直接赋值（整页替换）。与旧 `type===PAGINATION` 等价——
+  // 历来 PAGINATION 默认推导为 'replace'，其余推导为 'append'，故行为 100% 兼容。
+  if (mergeStrategy === ENUM.MERGE_STRATEGY.REPLACE) {
     fieldAny[key] = value
     return
   }

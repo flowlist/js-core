@@ -16,6 +16,7 @@ import type {
   InitStateType,
   KeyMap,
   LoadMoreType,
+  MergeStrategy,
   RequestParams
 } from './types'
 
@@ -52,16 +53,30 @@ export const createApi = <P extends RequestParams, R>(options: {
   type?: FetchType
   uniqueKey?: string
   is_up?: boolean
+  mergeStrategy?: MergeStrategy
   paramsIgnore?: string[]
   fetcher: (params: P) => Promise<BaseApiResponse<R>>
 }): ApiContract<P, R> => {
   const fn = ((params: P) => options.fetcher(params)) as ApiContract<P, R>
 
+  const type = options.type || (ENUM.FETCH_TYPE.SCROLL_LOAD_MORE as FetchType)
+
+  // mergeStrategy 默认由 type 推导，保证对既有列表 100% 向后兼容：
+  //   - jump(PAGINATION) → 'replace'（分页历来整表替换）
+  //   - 其余             → 'append'（无限滚动历来去重追加）
+  // 仅实时流（聊天）需显式声明 'preserve'。
+  const mergeStrategy: MergeStrategy =
+    options.mergeStrategy ??
+    (type === ENUM.FETCH_TYPE.PAGINATION
+      ? (ENUM.MERGE_STRATEGY.REPLACE as MergeStrategy)
+      : (ENUM.MERGE_STRATEGY.APPEND as MergeStrategy))
+
   const metadata: Partial<ApiContract<P, R>> = {
     id: options.id,
-    type: options.type || (ENUM.FETCH_TYPE.SCROLL_LOAD_MORE as FetchType),
+    type,
     uniqueKey: options.uniqueKey || ENUM.DEFAULT_UNIQUE_KEY_NAME,
     is_up: options.is_up || false,
+    mergeStrategy,
     paramsIgnore: [
       'page',
       'since_id',
@@ -127,7 +142,9 @@ export const initData = <P extends RequestParams, R>({
     const executeFetch = () => {
       func(params as P)
         .then((data) => {
-          const commitData = () => {
+          // replaceOnRefresh：refresh 时整表替换（append/replace 策略），SET_DATA
+          // 直接覆盖 result + 重置 extra/page，不走去重追加，避免旧 cursor 污染。
+          const commitData = (replaceOnRefresh = false) => {
             SET_DATA({
               getter,
               setter,
@@ -136,7 +153,9 @@ export const initData = <P extends RequestParams, R>({
               type: func.type,
               page: params.page || 0,
               insertBefore: false,
-              uniqueKey: func.uniqueKey
+              uniqueKey: func.uniqueKey,
+              mergeStrategy: func.mergeStrategy,
+              replaceOnRefresh
             }).then(() => {
               callback?.({ params: params as P, data, refresh: doRefresh })
               resolve()
@@ -144,35 +163,23 @@ export const initData = <P extends RequestParams, R>({
           }
 
           if (directlyLoadData) {
-            // 增量类型（SCROLL / sinceId）的 silent refresh：请求用的是基于现有列表算出的
-            // since_id（拉「比我已有的更新」的增量），语义上就是「把增量合并进现有列表」，
-            // 故**完全跳过 RESET**，直接 commitData。
+            // 刷新（__refresh__）的 commit 策略由 mergeStrategy 决定（与 type 解耦）：
             //
-            // 为什么不能先 RESET（无论清空还是用快照保留 result）：
-            //   - RESET 到空 → 丢历史（只剩本次增量）；
-            //   - RESET 用 initData 入口处抓的 fieldData 快照保留 result → 该快照在「网络请求
-            //     发出」那一刻取得，但 setter(RESET) 在请求 resolve（数百 ms）后才执行；这期间
-            //     若有 in-flight 写入（如聊天连发的乐观/回填消息），会被陈旧快照覆盖回退而丢失。
-            //   两种 RESET 都依赖「过时的数据视图」，是连发重复/丢消息的同源根因。
+            // 'preserve'（实时流 / 聊天）：**完全跳过 RESET**，直接 commitData()。
+            //   请求基于现有列表算出的 since 拉增量，语义是「把增量合并进现有列表」。
+            //   不能先 RESET：① RESET 到空会丢历史；② 用 initData 入口快照保留 result，
+            //   该快照在请求发出时取得、却在 resolve（数百 ms）后才 setter，期间若有 in-flight
+            //   写入（聊天连发的乐观/回填消息）会被陈旧快照覆盖丢失。跳过 RESET 后 SET_DATA
+            //   自身 getter() 读最新 store，按 uniqueKey 去重 append → 历史+in-flight+增量
+            //   三者正确合并，零重复零丢失，且不持任何快照。
             //
-            // 跳过 RESET 后：SET_DATA 在执行时自身 getter() 读**最新** store（含网络期间到达的
-            // in-flight 项），再经 setReactivityField 按 uniqueKey 去重 append 增量 →
-            // 历史 + in-flight + 本次增量三者正确合并，零重复、零丢失，且不持有任何快照。
-            //
-            // 非增量类型（PAGINATION / jump / seenIds）维持原「先 RESET 清空再写」语义：
-            //   它们 silent refresh 是「整体重拉第一页替换」，SET_DATA 直接替换 result，需先清空。
-            const isIncrementalType =
-              func.type === ENUM.FETCH_TYPE.SCROLL_LOAD_MORE ||
-              func.type === ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID
-            if (isIncrementalType) {
+            // 'append' / 'replace'（无限滚动 / 分页）：refresh = 整表替换回第一页。
+            //   不先清空（避免白屏）；请求 resolve 后 SET_DATA 以 replaceOnRefresh 原子覆盖
+            //   result 并重置 extra/page。React 重渲染原子，旧列表→新列表无空帧。
+            if (func.mergeStrategy === ENUM.MERGE_STRATEGY.PRESERVE) {
               commitData()
             } else {
-              setter({
-                key: fieldName,
-                type: ENUM.SETTER_TYPE.RESET,
-                value: generateDefaultField(),
-                callback: commitData
-              })
+              commitData(true)
             }
           } else {
             commitData()
@@ -221,8 +228,11 @@ export const loadMore = <P extends RequestParams, R>({
       return resolve()
     }
 
+    // loadMore 合并由 mergeStrategy 决定（与 type 解耦）：
+    //   'replace' → 先清空 result/extra 再写新页（分页整页替换）
+    //   'append' / 'preserve' → 保留现有列表，SET_DATA 去重追加
     const loadingState: Partial<DefaultField> =
-      type === ENUM.FETCH_TYPE.PAGINATION
+      func.mergeStrategy === ENUM.MERGE_STRATEGY.REPLACE
         ? { loading: true, error: null, result: [], extra: null }
         : { loading: true, error: null }
 
@@ -251,7 +261,8 @@ export const loadMore = <P extends RequestParams, R>({
               fieldName,
               page: params.page || 0,
               insertBefore: func.is_up,
-              uniqueKey: func.uniqueKey
+              uniqueKey: func.uniqueKey,
+              mergeStrategy: func.mergeStrategy
             }).then(() => {
               callback?.({ params: params as P, data, refresh: false })
               resolve()

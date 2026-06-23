@@ -247,6 +247,56 @@ describe('SET_DATA', () => {
       1, 2
     ])
   })
+
+  it('成功落数据时清除上一次的 error（刷新/重试成功后不残留旧错误）', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        error: new Error('previous boom')
+      })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      data: { result: [{ id: 1 }], no_more: true },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SCROLL_LOAD_MORE,
+      page: 1,
+      insertBefore: false
+    })
+    expect(getter(fieldName)!.error).toBeNull()
+  })
+
+  it('replaceOnRefresh 整表替换并清 error + 重置 extra', async () => {
+    setter({
+      key: fieldName,
+      type: ENUM.SETTER_TYPE.RESET,
+      value: generateDefaultField({
+        fetched: true,
+        result: [{ id: 1 }, { id: 2 }, { id: 3 }],
+        extra: { cursor: 'old' },
+        error: new Error('boom')
+      })
+    })
+    await SET_DATA({
+      getter,
+      setter,
+      data: { result: [{ id: 9 }], extra: { cursor: 'new' }, no_more: false },
+      fieldName,
+      type: ENUM.FETCH_TYPE.SINCE_FIRST_OR_END_ID,
+      page: 0,
+      insertBefore: false,
+      mergeStrategy: 'append',
+      replaceOnRefresh: true
+    })
+    const field = getter(fieldName)!
+    // 整表替换（非 append），旧 1/2/3 丢弃
+    expect((field.result as Array<{ id: number }>).map((m) => m.id)).toEqual([9])
+    expect((field.extra as { cursor: string }).cursor).toBe('new')
+    expect(field.error).toBeNull()
+  })
 })
 
 describe('SET_ERROR', () => {

@@ -290,39 +290,39 @@ describe('utils - combineArrayData', () => {
 })
 
 describe('utils - setReactivityField', () => {
-  it('PAGINATION 模式直接赋值', () => {
+  it('replace 策略直接赋值', () => {
     const field = generateDefaultField()
-    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [1, 2], ENUM.FETCH_TYPE.PAGINATION, false)
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [1, 2], false, 'id', 'replace')
     expect(field.result).toEqual([1, 2])
   })
   it('非 result 字段 append 数组', () => {
     const field = generateDefaultField({ extra: [1] })
-    setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [2], 'sinceId', false)
+    setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [2], false)
     expect(field.extra).toEqual([1, 2])
   })
   it('非 result 字段 insertBefore 时新数组在前', () => {
     const field = generateDefaultField({ extra: [1] })
-    setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [0, -1], 'sinceId', true)
+    setReactivityField(field, ENUM.FIELD_DATA.EXTRA_KEY, [0, -1], true)
     expect(field.extra).toEqual([0, -1, 1])
   })
   it('result 数组 insertBefore 时新数据在前', () => {
     const field = generateDefaultField({ result: [1, 2] })
-    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3, 4], 'page', true)
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3, 4], true)
     expect(field.result).toEqual([3, 4, 1, 2])
   })
   it('result 数组 insertBefore=false 时新数据在后', () => {
     const field = generateDefaultField({ result: [1, 2] })
-    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3], 'page', false)
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [3], false)
     expect(field.result).toEqual([1, 2, 3])
   })
   it('result 原为空数组时直接赋 value', () => {
     const field = generateDefaultField({ result: [] })
-    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [1, 2], 'page', false)
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [1, 2], false)
     expect(field.result).toEqual([1, 2])
   })
   it('空数组不修改 result', () => {
     const field = generateDefaultField({ result: [1] })
-    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [], 'page', false)
+    setReactivityField(field, ENUM.FIELD_DATA.RESULT_KEY, [], false)
     expect(field.result).toEqual([1])
   })
   it('result 为对象（按 key 分组）时合并子数组', () => {
@@ -333,7 +333,6 @@ describe('utils - setReactivityField', () => {
       field,
       ENUM.FIELD_DATA.RESULT_KEY,
       { group1: [0], group2: [4] },
-      'page',
       false
     )
     expect(field.result).toEqual({ group1: [1, 2, 0], group2: [3, 4] })
@@ -344,7 +343,6 @@ describe('utils - setReactivityField', () => {
       field,
       ENUM.FIELD_DATA.RESULT_KEY,
       { newKey: [1, 2] },
-      'page',
       false
     )
     expect(field.result).toEqual({ newKey: [1, 2] })
@@ -357,7 +355,6 @@ describe('utils - setReactivityField', () => {
       field,
       ENUM.FIELD_DATA.RESULT_KEY,
       { b: [2], c: 3 },
-      'page',
       false
     )
     expect(field.result).toEqual({ a: [1], b: [2], c: 3 })
